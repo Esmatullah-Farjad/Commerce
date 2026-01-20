@@ -1,0 +1,535 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-03-26 17:40+0430\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+#: .\src\core\settings.py:121
+msgid "Persian"
+msgstr "فارسی"
+
+msgid "English"
+msgstr "انگلیسی"
+
+
+
+msgid "Purchase"
+msgstr "خرید"
+
+msgid "Sale"
+msgstr "فروش"
+
+msgid "Home"
+msgstr "خانه"
+
+msgid "Cart"
+msgstr "سبد خرید"
+
+msgid "Hello"
+msgstr "سلام و خوش آمدید"
+
+msgid "Language"
+msgstr "زبان"
+
+msgid "Error"
+msgstr "خظا"
+
+msgid "Sign In"
+msgstr "ورود"
+
+msgid "Sign Up"
+msgstr "ثبت نام"
+
+msgid "Sign Out"
+msgstr "خروج"
+
+msgid "Admin Dashboard"
+msgstr "پنل مدیریت"
+
+msgid "My Profile"
+msgstr "پروفایل من"
+
+
+msgid "Success"
+msgstr "موفقیت"
+
+msgid "Email/Username"
+msgstr "ایمیل/نام کاربری"
+
+msgid "Password"
+msgstr "گذرواژه"
+
+msgid "To continue to your account, please sign in"
+msgstr "برای ادامه به حساب خود، لطفاً وارد شوید"
+
+msgid "Don't have an account ?"
+msgstr "حساب کاربری ندارید؟"
+
+msgid "Create One"
+msgstr "یک حساب بسازید"
+
+msgid "forgot password?"
+msgstr "رمز عبور خود را فراموش کرده اید؟"
+
+msgid "Enter email"
+msgstr "ایمیل خود را وارد کنید"
+
+msgid "Enter password"
+msgstr "رمز عبور خود را وارد کنید"
+
+#landing page translation
+msgid "Store Management System"
+msgstr "سیستم مدیریت فروشگاه"
+
+msgid "A Store Management System is a software solution designed to manage and streamline various operations of a retail business. It typically includes features like inventory management, sales and billing, customer management, employee tracking, and reporting. The system helps store owners and managers track stock levels, process transactions efficiently, and generate reports to make informed business decisions"
+msgstr "سیستم مدیریت فروشگاه یک راه‌حل نرم‌افزاری است که برای مدیریت و ساده‌سازی عملیات مختلف یک کسب‌وکار خرده‌فروشی طراحی شده است. این سیستم معمولاً شامل ویژگی‌هایی مانند مدیریت موجودی، فروش و صدور صورت‌حساب، مدیریت مشتریان، پیگیری کارکنان و گزارش‌گیری است. سیستم به صاحبان فروشگاه و مدیران کمک می‌کند تا سطوح موجودی را ردیابی کنند، تراکنش‌ها را به‌طور کارآمد پردازش کنند و گزارش‌هایی را برای تصمیم‌گیری‌های تجاری آگاهانه تولید کنند"
+
+msgid "Inventory"
+msgstr "موجودی"
+msgid "Our platform offers comprehensive Inventory Management, allowing you to track stock levels, manage reorders, and optimize inventory efficiently"
+msgstr "پلتفرم ما مدیریت موجودی کامل را ارائه می‌دهد که به شما امکان می‌دهد سطح موجودی را ردیابی، سفارشات مجدد را مدیریت و موجودی را به‌طور بهینه تنظیم کنید"
+
+msgid "Financial"
+msgstr "مالی"
+msgid "Our platform provides perfect financial management, ensuring seamless tracking of expenses, revenues, and financial reports"
+msgstr "پلتفرم ما مدیریت مالی ایده‌آل را ارائه می‌دهد که ردیابی هزینه‌ها، درآمدها و گزارش‌های مالی را به‌طور یکپارچه انجام می‌دهد"
+
+msgid "Report"
+msgstr "گزارش"
+msgid "Our platform offers perfect report generation with customizable date selection, providing detailed insights based on your needs"
+msgstr "پلتفرم ما تولید گزارش‌ ایده‌آل با انتخاب تاریخ قابل تنظیم را ارائه می‌دهد، که بینش‌های دقیقی بر اساس نیاز شما فراهم می‌کند"
+
+msgid "Daily Dashboard"
+msgstr "داشبورد روزانه"
+msgid "Our platform provides a Daily Dashboard, offering real-time insights into sales, inventory, and key metrics for better decision-making"
+msgstr "پلتفرم ما داشبورد روزانه را ارائه می‌دهد که بینش‌های لحظه‌ای از فروش، موجودی و معیارهای کلیدی برای تصمیم‌گیری بهتر فراهم می‌کند"
+
+msgid "Customers"
+msgstr "مشتریان"
+msgid "Our platform offers customer management, enabling you to track customer details, purchase history, and engagement for personalized services"
+msgstr "پلتفرم ما مدیریت مشتریان را ارائه می‌دهد که به شما امکان می‌دهد جزئیات مشتری، تاریخچه خرید و تعاملات را برای خدمات شخصی‌سازی شده ردیابی کنید"
+
+msgid "Invoice"
+msgstr "فاکتور"
+msgid "Our platform offers seamless invoice generation, allowing easy creation and management of invoices for every transaction"
+msgstr "پلتفرم ما تولید فاکتور بدون دردسر را ارائه می‌دهد که ایجاد و مدیریت فاکتورها برای هر تراکنش را ساده می‌کند"
+
+msgid "Billing"
+msgstr "صورتحساب"
+msgid "Our platform provides efficient billing management, streamlining invoicing, payment tracking, and transaction processing"
+msgstr "پلتفرم ما مدیریت صورتحساب کارآمدی را ارائه می‌دهد که صدور فاکتور، ردیابی پرداخت‌ها و پردازش تراکنش‌ها را ساده می‌کند"
+
+msgid "Contact us"
+msgstr "تماس با ما"
+
+msgid "About us"
+msgstr "در باره ما"
+
+#Sign up translation
+msgid "Something went wrong. Please fix the below error"
+msgstr "مشکلی پیش آمده است. لطفاً خطای زیر را برطرف کنید"
+
+msgid "The user has been registered successfully"
+msgstr "کاربر با موفقیت ثبت شد"
+
+msgid "Sign Up to Manage Your Store Efficiently"
+msgstr "ثبت نام کنید تا فروشگاه خود را به صورت کارآمد مدیریت کنید"
+
+msgid "Already have an account ?"
+msgstr "آیا قبلاً حساب کاربری دارید؟"
+
+msgid "First Name"
+msgstr "نام"
+
+msgid "Last Name"
+msgstr "نام خانوادگی"
+
+msgid "Confrim Password"
+msgstr "تأیید رمز عبور"
+
+msgid "Invalid username or password"
+msgstr "نام کاربری یا رمز عبور نامعتبر است"
+
+msgid "Welcome !"
+msgstr "خوش آمدید !"
+
+#product view page
+
+msgid "Products"
+msgstr "محصولات"
+
+msgid "This page showcases all available products for sale"
+msgstr "این صفحه تمامی محصولات موجود برای فروش را نمایش می‌دهد"
+
+msgid "category"
+msgstr "دسته بندی"
+
+msgid "Quantity"
+msgstr "تعداد"
+
+msgid "Package"
+msgstr "بسته"
+
+msgid "Item Price"
+msgstr "قیمت فی دانه"
+
+msgid "Package Price"
+msgstr "قیمت فی بسته"
+
+msgid "ADD"
+msgstr "اضافه"
+
+msgid "--select--"
+msgstr "--انتخاب کردن--"
+
+msgid "Name"
+msgstr "نام"
+
+msgid "Search the products"
+msgstr "محصول خود را جستجو کنید"
+
+msgid "ALL"
+msgstr "همه"
+
+msgid "admin"
+msgstr "مدیر"
+
+#customer Cart translations
+msgid "Customer Cart"
+msgstr "سبد خرید مشتری"
+
+msgid "Make sure everything looks right before completing your order"
+msgstr "قبل از نهایی کردن سفارش، مطمئن شوید که همه چیز درست است"
+
+msgid "Looks like you haven’t added anything yet."
+msgstr "به نظر می‌رسد هنوز چیزی به سبد خریدتان اضافه نکرده‌اید."
+
+msgid "Let’s start shopping!"
+msgstr "!بیایید خرید را شروع کنیم"
+
+msgid "Your Cart is Empty"
+msgstr "سبد خرید شما خالی است"
+
+msgid "Customer Name"
+msgstr "نام مشتری"
+
+msgid "Phone"
+msgstr "تلفن"
+
+msgid "Address"
+msgstr "آدرس"
+
+msgid "Invoice Number"
+msgstr "شماره فاکتور"
+
+msgid "Total"
+msgstr "قیمت کل"
+
+msgid "Grand Total"
+msgstr "قیمت مجموعه قابل پرداخت"
+
+msgid "AFN"
+msgstr "افغانی"
+
+#cusotmer detisl for sale page
+msgid "Customer Details"
+msgstr "جزئیات مشتری"
+
+msgid "Please enter the customer details"
+msgstr "لطفاً جزئیات مشتری را وارد کنید"
+
+msgid "Full Name"
+msgstr "نام و تخلص"
+
+msgid "Adress"
+msgstr "آدرس"
+
+msgid "Proceed to Sale"
+msgstr "برو به بخش فروش"
+
+msgid "Customer has been added successfuly"
+msgstr "مشتری با موفقیت اضافه شد"
+
+msgid "Items added to Customer Cart"
+msgstr "مورد به سبد خرید مشتری اضافه شد"
+
+msgid "Paid Amount"
+msgstr "مبلغ پرداخت شده"
+
+msgid "Unpaid Amount"
+msgstr "مبلغ باقی مانده"
+
+msgid "Sold Products"
+msgstr "فروش شده"
+
+#Home page translateion
+ msgid "Overview of today’s sales and metrics"
+ msgstr "مروری بر فروش و معیارهای امروز"
+
+ msgid "Today's Sales Amount"
+ msgstr "میزان فروش امروز"
+
+ msgid "Total Paid Amount"
+ msgstr "مجموع مبلغ پرداخت‌شده"
+
+ msgid "Total Unpaid Amount"
+ msgstr "مجموع مبلغ پرداخت‌ نشده"
+
+ msgid "Today's Customers Count"
+ msgstr "تعداد مشتریان امروز"
+
+ msgid "Ten Best-Selling Products"
+ msgstr "ده پرفروش‌ترین محصولات"
+
+ msgid "An Overview of the Most Popular Products"
+ msgstr "مروری بر پرفروش‌ترین محصولات"
+
+ msgid "Total Units Sold"
+ msgstr "مجموع بسته‌های فروخته‌شده"
+
+ msgid "Category"
+ msgstr "دسته بندی"
+
+ msgid "Inventory Shortage"
+ msgstr "کمبود موجودی"
+
+ msgid "The following products have fallen below the minimum stock level and require immediate restocking to prevent supply disruptions."
+ msgstr "محصولات زیر از سطح حداقل موجودی پایین‌تر آمده‌اند و نیاز به تأمین فوری دارند تا از اختلال در عرضه جلوگیری شود."
+
+ msgid "Number of Remaining Packages"
+ msgstr "تعداد بسته های باقی مانده"
+
+#Purchase page translation
+msgid "Purchase Page"
+msgstr "صفحه خرید"
+
+msgid "Please use the form below to accurately enter the details of your purchased inventory items"
+msgstr "لطفاً از فورم زیر برای درج دقیق جزئیات اجناس خریداری‌شده استفاده نمایید."
+
+msgid "Available Products"
+msgstr "محصولات موجود"
+
+msgid "Code"
+msgstr "بار کد"
+
+msgid "Number of Items"
+msgstr "تعداد اقلام"
+
+msgid "Number of Packages"
+msgstr "تعداد بسته ها"
+
+msgid "Package Contain"
+msgstr "محتویات بسته"
+
+msgid "Package Purchase Price"
+msgstr "قیمت خرید بسته"
+
+msgid "Package Sale Price"
+msgstr "قیمت فروش بسته"
+
+msgid "Image"
+msgstr "تصویر"
+
+msgid "Description"
+msgstr "توضیحات"
+
+#products list translation
+msgid "Available Products List"
+msgstr "لیست محصولات موجود"
+
+msgid "Browse through the complete list of products available for purchase. You can view details, pricing, and availability for each item."
+msgstr "از طریق لیست کامل محصولات موجود برای خرید مرور کنید. شما می‌توانید جزئیات، قیمت‌ها و موجودیت هر کالا را مشاهده کنید."
+
+msgid "Total Purchase Price"
+msgstr "قیمت کل خرید"
+
+msgid "Item Sales Price"
+msgstr "قیمت فروش کالا"
+
+msgid "Stock"
+msgstr "موجودی"
+
+#sales summary page translation
+
+msgid "Sales Summary"
+msgstr "خلاصهٔ فروش"
+
+msgid "Bill Number"
+msgstr "نمبربل"
+
+msgid "Total Amount"
+msgstr "مجموع مبلغ"
+
+msgid "Item quantity"
+msgstr "تعداد جنس"
+
+msgid "Package quantity"
+msgstr "تعداد بسته"
+
+msgid "Total price"
+msgstr "قیمت مجموعی"
+
+msgid "Package price"
+msgstr "قیمت بسته"
+
+msgid "Item price"
+msgstr "قیمت جنس"
+
+msgid "Date"
+msgstr "تاریخ"
+
+msgid "Print"
+msgstr "چاپ"
+
+msgid "Products Sales Details"
+msgstr "جزئیات فروش محصولات"
+
+msgid "View detailed information about each product's sales, including quantities sold, total sales value, and customer details."
+msgstr "مشاهدهٔ اطلاعات دقیق در مورد فروش هر محصول، شامل تعداد فروش رفته، ارزش کل فروش، و جزئیات مشتری."
+
+msgid "Enter your bill number"
+msgstr "بل نمبر خود را وارد کنید"
+
+msgid "Return"
+msgstr "برگشت"
+
+#dashbaord translation
+msgid "Menu"
+msgstr "منو"
+
+msgid "Sales Overview"
+msgstr "مروری بر فروش"
+
+msgid "Income"
+msgstr "درآمد"
+
+msgid "Customer Overview"
+msgstr "مروری بر مشتریان"
+
+msgid "Return Items"
+msgstr "بازگشت کالاها"
+
+msgid "Expense"
+msgstr "هزینه"
+
+msgid "Number of Bills"
+msgstr "تعداد بل‌ها"
+
+msgid "View detailed insights into your customers' purchases and activities."
+msgstr "نمایی دقیق از خریدها و فعالیت‌های مشتریان خود را مشاهده کنید."
+
+msgid "Pay"
+msgstr "پرداخت"
+
+msgid "Paid"
+msgstr "پرداخت شده"
+
+msgid "Customers Billing Overview"
+msgstr "بررسی صورتحساب مشتری"
+
+msgid "Review customer purchases, payment status, and outstanding balances."
+msgstr "بررسی خریدهای مشتری، وضعیت پرداخت و مبالغ باقی‌مانده."
+
+msgid "Paid Category"
+msgstr "دسته بندی پرداخت شده ها"
+
+msgid "Unpaid Category"
+msgstr "دسته‌ بندی پرداخت‌ نشده ها"
+
+msgid "Status"
+msgstr "وضعیت"
+
+msgid "Management Page"
+msgstr "صفحه مدیریت"
+
+msgid "Enter your customer phone number"
+msgstr "شماره تلفن مشتری خود را وارد کنید"
+
+msgid "Go Back"
+msgstr "برگشت"
+
+msgid "Conversion factor to the base unit (e.g., 7 for Sir if base is KG). Leave blank if conversion is product-specific."
+msgstr "عامل تبدیل به واحد اصلی (مثلاً ۷ برای سیر اگر واحد اصلی کیلوگرام باشد). اگر تبدیل به واحد مخصوص محصول است، این قسمت را خالی بگذارید."
+
+msgid "Purchase Unit"
+msgstr "واحد خرید"
+
+msgid "Update Products"
+msgstr "به‌روزرسانی محصولات"
+
+msgid "Add Products"
+msgstr "افزودن محصولات"
+
+msgid "Unit"
+msgstr "واحد"
+
+msgid "Base Unit Settings"
+msgstr "تنظیم واحد اصلی"
+
+msgid "Produts Base Unit Settings"
+msgstr "تنظیمات واحد اصلی محصولات"
+
+msgid "Set the inventory base unit for your products"
+msgstr "واحد اصلی موجودی برای محصولات خود را تنظیم کنید"
+
+msgid "Add System Base Unit"
+msgstr "افزودن واحد اصلی سیستم"
+
+msgid "Update System Base Unit"
+msgstr "به‌روزرسانی واحد اصلی سیستم"
+
+msgid "System Base Units"
+msgstr "واحدهای اصلی سیستم"
+
+msgid "Is Weight Base"
+msgstr "آیا مبنای وزن است"
+
+msgid "Conversion to Base Unit"
+msgstr "تبدیل به واحد مبنا"
+
+msgid "The Summary Page offers a quick overview of the store’s key metrics, including inventory levels, sales, recent transactions, and pending orders—all in a clear, easy-to-read dashboard."
+msgstr "صفحه خلاصه یک نمای سریع از شاخص‌های کلیدی فروشگاه، از جمله موجودی کالا، فروش، تراکنش‌های اخیر و سفارشات در انتظار را در قالب یک داشبورد واضح و قابل فهم ارائه می‌دهد."
+
+msgid "Store Dashboard"
+msgstr "داشبورد فروشگاه"
+
+msgid "Enter your customer code"
+msgstr "کد مشتری خود را وارد کنید"
+
+msgid "Ignore Customer"
+msgstr "رد کردن مشتری"
+
+msgid "Customer Code"
+msgstr "کد مشتری"
+
+msgid "Scan or Enter Barcode"
+msgstr "بارکد را اسکن یا بارکد وارد کنید"
+
+msgid "To add a product to the shopping cart, scan its barcode or enter it in the input box"
+msgstr "برای افزودن یک محصول به سبد خرید، بارکد آن را اسکن کنید یا در کادر ورودی وارد نمایید"
+
+msgid "Use Product Search"
+msgstr "جستجوی محصول را استفاده کنید"
+
+msgid "Use Barcode Scanner"
+msgstr "از بارکود اسکنر استفاده کنید"
+
+msgid "Search product by its name of category"
+msgstr "محصول را بر اساس نام یا دسته‌بندی جستجو کنید"
+
+msgid "Enter product barcode"
+msgstr "بارکود محصول را وارد کنید"
+

@@ -1,0 +1,105 @@
+{% extends '_base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}
+    {% trans 'Purchase Page' %}
+{% endblock title %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-2xl font-semibold text-slate-900">{% trans 'Purchase Page' %}</p>
+            <p class="text-sm text-slate-500">{% trans 'Please use the form below to accurately enter the details of your purchased inventory items' %}</p>
+        </div>
+        <a href="{% url 'products_display' %}" class="inline-flex items-center justify-center rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">
+            {% trans 'Available Products' %}
+        </a>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="mb-6 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-slate-900">
+                {% if form.instance.id %}
+                {% trans 'Update Products' %}
+                {% else %}
+                {% trans 'Add Products' %}
+                {% endif %}
+            </h2>
+            <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700">{% trans 'Inventory Intake' %}</span>
+        </div>
+        <form 
+        action="{% if form.instance.id %}{% url 'update-products' pid=form.instance.id %}{% else %}{% url 'purchase' %}{% endif %}" 
+        method="POST" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+            <div class="space-y-2">
+                <label for="id_purchase_unit" class="text-sm font-medium text-slate-600">{% trans 'Purchase Unit' %}</label>
+                <p class="text-xs text-slate-400">{{form.purchase_unit.help_text}}</p>
+                {{form.purchase_unit}}
+            </div>
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div class="space-y-2">
+                    <label for="id_code" class="text-sm font-medium text-slate-600">{% trans 'Code' %}</label>
+                    <p class="text-xs text-slate-400">{{form.code.help_text}}</p>
+                    {{ form.code }}
+                </div>
+                <div class="space-y-2">
+                    <label for="id_name" class="text-sm font-medium text-slate-600">{% trans 'Name' %}</label>
+                    <p class="text-xs text-slate-400">{{form.name.help_text}}</p>
+                    {{ form.name }}
+                </div>
+                <div class="space-y-2">
+                    <label for="id_unit" class="text-sm font-medium text-slate-600">{% trans 'Unit' %}</label>
+                    <p class="text-xs text-slate-400">{{form.unit.help_text}}</p>
+                    {{form.unit}}
+                </div>
+                <div class="space-y-2">
+                    <label for="id_num_of_packages" class="text-sm font-medium text-slate-600">{% trans 'Number of Packages' %}</label>
+                    <p class="text-xs text-slate-400">{{form.num_of_packages.help_text}}</p>
+                    {{ form.num_of_packages }}
+                </div>
+                <div class="space-y-2">
+                    <label for="id_package_purchase_price" class="text-sm font-medium text-slate-600">{% trans 'Package Purchase Price' %}</label>
+                    <p class="text-xs text-slate-400">{{form.package_purchase_price.help_text}}</p>
+                    {{ form.package_purchase_price }}
+                </div>
+                <div class="space-y-2">
+                    <label for="id_category" class="text-sm font-medium text-slate-600">{% trans 'Category' %}</label>
+                    <p class="text-xs text-slate-400">{{form.category.help_text}}</p>
+                    {{ form.category }}
+                </div>
+                <div class="space-y-2">
+                    <label for="id_package_contain" class="text-sm font-medium text-slate-600">{% trans 'Package Contain' %}</label>
+                    <p class="text-xs text-slate-400">{{form.package_contain.help_text}}</p>
+                    {{ form.package_contain }}
+                </div>
+                <div class="space-y-2">
+                    <label for="id_package_sale_price" class="text-sm font-medium text-slate-600">{% trans 'Package Sale Price' %}</label>
+                    <p class="text-xs text-slate-400">{{form.package_sale_price.help_text}}</p>
+                    {{ form.package_sale_price }}
+                </div>
+                <div class="space-y-2">
+                    <label for="id_image" class="text-sm font-medium text-slate-600">{% trans 'Image' %}</label>
+                    <p class="text-xs text-slate-400">{{form.image.help_text}}</p>
+                    {{ form.image }}
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label for="id_description" class="text-sm font-medium text-slate-600">{% trans 'Description' %}</label>
+                <p class="text-xs text-slate-400">{{form.description.help_text}}</p>
+                {{ form.description }}
+            </div>
+            <div class="flex justify-center">
+                <button type="submit" class="rounded-xl bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                    {% if form.instance.id %}
+                    {% trans 'Update' %}
+                    {% else %}
+                    {% trans 'Purchase' %}
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

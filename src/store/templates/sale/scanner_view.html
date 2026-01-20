@@ -1,0 +1,103 @@
+{% extends '_base.html' %}
+{% load i18n %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+{% block title %}
+    {% trans 'Scanner' %}
+{% endblock title %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-2xl font-semibold text-slate-900">{% trans 'Scan or Enter Barcode' %}</p>
+            <p class="text-sm text-slate-500">{% trans 'To add a product to the shopping cart, scan its barcode or enter it in the input box' %}</p>
+        </div>
+        <a href="{% url 'products-view' %}" class="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            {% trans 'Use Product Search' %}
+        </a>
+    </div>
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <input type="text" 
+        id="barcodeInput"
+        placeholder="{% trans 'Enter product barcode' %}" 
+        class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200" autofocus />
+    </div>
+    <div id="status" class="text-sm font-medium text-slate-600"></div>
+    <div id="cartContainer"></div>
+    {% if customer|length < 1 %}
+    {% include 'partials/_customer_modal.html' %}
+    {% endif  %}
+<script>
+
+//   cart fragment for cart view
+ const input = document.getElementById('barcodeInput');
+
+  async function updateCartDisplay() {
+    const cartHTML = await fetch("{% url 'cart-fragment' %}")
+      .then(res => res.json())
+      .then(data => data.html);
+    document.getElementById('cartContainer').innerHTML = cartHTML;
+  }
+
+  input.addEventListener('change', async () => {
+    const barcode = input.value.trim();
+    input.value = '';
+
+    const response = await fetch('{% url "get-product-by-barcode" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: `barcode=${barcode}`
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      const product = result.product;
+
+      const cartResponse = await fetch('{% url "add-to-cart" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          product_id: product.id,
+          item_quantity: 1,
+          package_quantity: 0,
+          item_price: product.item_price,
+          package_price: product.package_price
+        })
+      });
+
+      const cartResult = await cartResponse.json();
+
+      if (cartResult.status === 200) {
+        document.getElementById('status').innerText = `${product.name} added to cart!`;
+        document.getElementById('cart_length').innerText = cartResult.cart_length;
+
+        // dY", Update the cart view
+        await updateCartDisplay();
+      } else {
+        document.getElementById('status').innerText = "Failed to add to cart.";
+      }
+
+    } else {
+      document.getElementById('status').innerText = result.message;
+    }
+  });
+
+  // Initial load of cart
+  window.addEventListener('DOMContentLoaded', updateCartDisplay);
+</script>
+
+
+
+</div>
+{% endblock content%}

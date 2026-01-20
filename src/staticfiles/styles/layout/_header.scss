@@ -1,0 +1,88 @@
+.navbar{
+    padding: 10px;
+    border: 1px solid #2e4256;
+    background-color: #2e4256;
+    color: white;
+    .nav-link-holder{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        .logo-holder{
+            img{
+                width: 100px;
+                height: 34px;
+            }
+        }
+        .nav-items{
+            display: inline;
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+            .nav-option{
+                display: inline;
+                position: relative;
+                padding: 0 10px;
+                .nav-link{
+                    text-decoration: none;
+                    color: inherit;
+                    cursor: pointer;
+                }
+                &:hover{
+                    color: orange;
+                }
+                
+            }
+        }
+    }
+}
+
+.menu-handler {
+    position: relative;
+
+    .menu {
+        position: absolute;
+        top: 100%; // Use 100% to align directly below the handler
+        left: 0;
+        border: 1px solid #39546d;
+        list-style-type: none;
+        padding: 10px 0px;
+        width: 8rem;
+        display: none;
+        background-color: #2e4256;
+        box-shadow: 3px 3px 16px #1e2c39;
+        z-index: 1000; // Ensure it stays above other elements
+        
+        .menu-item {
+            padding: 2px 5px;
+            font-size: 12px;
+            cursor: pointer;
+
+            a {
+                color: inherit;
+            }
+
+            &:hover {
+                background-color: teal;
+
+                a {
+                    color: white;
+                }
+            }
+        }
+    }
+
+    &:hover .menu {
+        display: block;
+    }
+}
+.badge-number{
+    padding: 3px 5px;
+    font-size: 8px;
+    background-color: red;
+    color: white;
+    border-radius: 50px;
+    margin: 0px 2px;
+    vertical-align: top;
+}

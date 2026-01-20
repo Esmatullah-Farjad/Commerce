@@ -1,0 +1,70 @@
+{% extends '_base.html' %}
+{% load i18n %}
+{% load static %}
+{% block title %}
+    {% trans 'Update Product' %}
+{% endblock title %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-2xl font-semibold text-slate-900">{% trans 'Update Product' %}</p>
+            <p class="text-sm text-slate-500">{% trans 'Edit your product details below' %}</p>
+        </div>
+        <a href="{% url 'products_display' %}" class="rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans 'Available Products' %}</a>
+    </div>
+
+    <form action="{% url 'manage_product' 'edit' product.id %}" method="POST" enctype="multipart/form-data" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        {% csrf_token %}
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div class="space-y-2">
+                <label for="id_category" class="text-sm font-medium text-slate-600">{% trans 'Category' %}</label>
+                {{ form.category }}
+            </div>
+            <div class="space-y-2">
+                <label for="id_code" class="text-sm font-medium text-slate-600">{% trans 'Code' %}</label>
+                {{ form.code }}
+            </div>
+            <div class="space-y-2">
+                <label for="id_name" class="text-sm font-medium text-slate-600">{% trans 'Name' %}</label>
+                {{ form.name }}
+            </div>
+            <div class="space-y-2">
+                <label for="id_package_contain" class="text-sm font-medium text-slate-600">{% trans 'Package Contain' %}</label>
+                {{ form.package_contain }}
+            </div>
+            <div class="space-y-2">
+                <label for="id_package_purchase_price" class="text-sm font-medium text-slate-600">{% trans 'Package Purchase Price' %}</label>
+                {{ form.package_purchase_price }}
+            </div>
+            <div class="space-y-2">
+                <label for="id_num_of_packages" class="text-sm font-medium text-slate-600">{% trans 'Number of Packages' %}</label>
+                {{ form.num_of_packages }}
+            </div>
+            <div class="space-y-2">
+                <label for="id_package_sale_price" class="text-sm font-medium text-slate-600">{% trans 'Package Sale Price' %}</label>
+                {{ form.package_sale_price }}
+            </div>
+            <div class="space-y-2">
+                <label for="id_image" class="text-sm font-medium text-slate-600">{% trans 'Update Image' %}</label>
+                {{ form.image }}
+                {% if product.image %}
+                <div class="mt-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
+                    <p class="font-medium text-slate-600">{% trans 'Current Image:' %}</p>
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="mt-2 h-24 w-24 rounded-xl object-cover">
+                </div>
+                {% endif %}
+            </div>
+            <div class="space-y-2 md:col-span-2 xl:col-span-3">
+                <label for="id_description" class="text-sm font-medium text-slate-600">{% trans 'Description' %}</label>
+                {{ form.description }}
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button type="submit" class="rounded-xl bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">{% trans 'Update Product' %}</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

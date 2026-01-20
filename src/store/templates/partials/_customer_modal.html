@@ -1,0 +1,32 @@
+{% load static %}
+{% load i18n %}
+<div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
+    <div class="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div class="space-y-1">
+            <h2 class="text-2xl font-semibold text-slate-900">{% trans 'Customer Details' %}</h2>
+            <p class="text-sm text-slate-500">{% trans 'Please enter the customer details' %}</p>
+        </div>
+        <div class="mt-4 space-y-2">
+            <label for="code" class="text-sm font-medium text-slate-600">{% trans 'Customer Code' %}</label>
+            <input 
+            type="number" 
+            name="code" 
+            id="code" 
+            class="input-field w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200" 
+            placeholder="{% trans 'Enter your customer code' %}"
+            hx-get="{% url 'check-customer' %}"  
+            hx-target="#customer-form"
+            hx-trigger="input"  
+            hx-params="*"/>
+        </div>
+        <form action="{% url 'create-customer' %}" method="POST" class="mt-4">
+            {% csrf_token %}
+            <div class="text-center">
+                <button type="submit" class="rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50" name="ignore">{% trans 'Ignore Customer' %}</button>
+            </div>
+        </form>
+        <div id="customer-form" class="mt-6">
+
+        </div>
+    </div>
+</div>

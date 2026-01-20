@@ -1,0 +1,33 @@
+{% load i18n %}
+{% load static %}
+{% if form.instance.id %}
+<p class="text-center">
+    <a href="{% url 'old-customer' form.instance.id %}" class="inline-flex items-center justify-center rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans 'Proceed to Sale' %}</a>
+</p>
+{% else %}
+<form action="{% url 'create-customer' %}" method='post'>
+    {% csrf_token %}
+    <div class="grid gap-4 sm:grid-cols-2">
+        <div class="space-y-2">
+            <label for="{{form.name.id_for_label}}" class="text-sm font-medium text-slate-600">{% trans 'Full Name' %}</label>
+            {{form.name}}
+            <p class="text-xs text-rose-500">{{form.name.errors}}</p>
+        </div>
+        <div class="space-y-2">
+            <label for="{{form.phone.id_for_label}}" class="text-sm font-medium text-slate-600">{% trans 'Phone' %}</label>
+            {{form.phone}}
+            <p class="text-xs text-rose-500">{{form.phone.errors}}</p>
+        </div>
+        <div class="space-y-2 sm:col-span-2">
+            <label for="{{form.address.id_for_label}}" class="text-sm font-medium text-slate-600">{% trans 'Adress' %}</label>
+            {{form.address}}
+            <p class="text-xs text-rose-500">{{form.address.errors}}</p>
+        </div>
+        <div class="sm:col-span-2">
+            <button type="submit" class="w-full rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">
+                {% trans 'Add Customer & Proceed to Sale' %}
+            </button>
+        </div>
+    </div>
+</form>
+{% endif %}

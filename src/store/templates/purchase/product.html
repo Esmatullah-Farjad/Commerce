@@ -1,0 +1,24 @@
+{% extends '_base.html' %}
+{% load i18n %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+{% block title %}
+    {% trans 'Products' %}
+{% endblock title %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-semibold text-slate-900">{% trans 'Available Products List' %}</h2>
+            <p class="text-sm text-slate-500">{% trans 'Browse through the complete list of products available for purchase. You can view details, pricing, and availability for each item.' %}</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'purchase' %}" class="rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans 'Purchase' %}</a>
+            <a href="#" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary-300 hover:text-primary-600">{% trans 'Doller Goods' %}</a>
+            <a href="#" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary-300 hover:text-primary-600">{% trans 'Afghani Goods' %}</a>
+        </div>
+    </div>
+    {% include 'partials/product_list.html' %}
+</div>
+{% endblock %}

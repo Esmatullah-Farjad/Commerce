@@ -1,0 +1,81 @@
+{% extends 'dashboard/dashboard-view.html' %}
+{% load i18n %}
+{% load static %}
+{% load custom_filters %}
+{% load jalali_tags %}
+{% block dashboard %}
+<div class="space-y-6">
+    <div class="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
+        <h1 class="text-2xl font-semibold text-slate-900">{% trans "Income Page" %}</h1>
+        <p class="text-sm text-slate-500">{% trans "Welcome to the Income Page" %}</p>
+    </div>
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+        <form action="{% url 'income' %}" method="post" class="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            {% csrf_token %}
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="space-y-2">
+                    <label for="date_created" class="text-sm font-medium text-slate-600">{% trans "Date" %}</label>
+                    {{form.date_created}}
+                </div>
+                <div class="space-y-2">
+                    <label for="source" class="text-sm font-medium text-slate-600">{% trans "Source" %}</label>
+                    {{form.source}}
+                </div>
+                <div class="space-y-2 sm:col-span-2">
+                    <label for="Amount" class="text-sm font-medium text-slate-600">{% trans "Amount" %}</label>
+                    {{form.amount}}
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label for="Description" class="text-sm font-medium text-slate-600">{% trans "Description" %}</label>
+                {{form.description}}
+            </div>
+            <div>
+                <button type="submit" class="w-full rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans "Save" %}</button>
+            </div>
+        </form>
+        <div class="space-y-4">
+            <div>
+                <p class="text-lg font-semibold text-slate-900">{% trans 'Other Income Records' %}</p>
+                <p class="text-sm text-slate-500">{% trans 'An Overview of the Other Income records' %}</p>
+            </div>
+            <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <table class="min-w-full text-left text-sm">
+                    <thead class="bg-slate-900 text-xs uppercase tracking-wide text-primary-100">
+                        <tr>
+                            <th class="px-4 py-3">{% trans 'Date' %}</th>
+                            <th class="px-4 py-3">{% trans 'Source' %}</th>
+                            <th class="px-4 py-3">{% trans 'Amount' %}</th>
+                            <th class="px-4 py-3">{% trans 'Description' %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for data in other_income %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3">{{data.date_created}}</td>
+                            <td class="px-4 py-3">{{data.source}}</td>
+                            <td class="px-4 py-3">{{data.amount}}</td>
+                            <td class="px-4 py-3">{{data.description}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $(".jalali-date-picker").pDatepicker({
+            format: 'YYYY-MM-DD',  // Set the desired date format
+            calendar: {
+                persian: {
+                    locale: 'fa'  // Set locale to Persian
+                }
+            },
+            autoClose: true,  // Automatically close when a date is selected
+            initialValue: false  // Don't set an initial value
+        });
+    });
+</script>
+{% endblock dashboard %}

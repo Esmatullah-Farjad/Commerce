@@ -1,0 +1,139 @@
+{% extends '_base.html' %} {% load i18n %} {% load static %} {% block title %}
+{% trans 'Home' %} {% endblock title %} {% block content %}
+<div class="space-y-8">
+  <section
+    class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+  >
+    <div>
+      <h2 class="text-2xl font-semibold text-slate-900">
+        {% trans 'Store Management System' %}
+      </h2>
+      <p class="mt-1 text-sm text-slate-500">
+        {% trans "Overview of today's sales and metrics" %}
+      </p>
+    </div>
+    <div
+      class="rounded-2xl bg-slate-900 px-4 py-3 text-xs uppercase tracking-[0.3em] text-primary-200"
+    >
+      {% trans 'Daily Snapshot' %}
+    </div>
+  </section>
+
+  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.2em] text-slate-400">
+        {% trans "Today's Sales Amount" %}
+      </p>
+      <p class="mt-2 text-2xl font-semibold text-slate-900">
+        {{ sales_details.total_sale|default:"0" }} {% trans 'AFN' %}
+      </p>
+    </div>
+    <div
+      class="rounded-2xl border border-primary-200 bg-primary-50 p-4 shadow-sm"
+    >
+      <p class="text-xs uppercase tracking-[0.2em] text-primary-600">
+        {% trans "Total Paid Amount" %}
+      </p>
+      <p class="mt-2 text-2xl font-semibold text-primary-900">
+        {{ sales_details.total_paid|default:"0" }} {% trans 'AFN' %}
+      </p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.2em] text-slate-400">
+        {% trans "Total Unpaid Amount" %}
+      </p>
+      <p class="mt-2 text-2xl font-semibold text-slate-900">
+        {{ sales_details.total_unpaid|default:"0" }} {% trans 'AFN' %}
+      </p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p class="text-xs uppercase tracking-[0.2em] text-slate-400">
+        {% trans "Today's Customers Count" %}
+      </p>
+      <p class="mt-2 text-2xl font-semibold text-slate-900">
+        {{ sales_details.total_customer|default:"0" }}
+      </p>
+    </div>
+  </section>
+
+  <section class="space-y-4">
+    <div>
+      <p class="text-lg font-semibold text-slate-900">
+        {% trans 'Ten Best-Selling Products' %}
+      </p>
+      <p class="text-sm text-slate-500">
+        {% trans 'An Overview of the Most Popular Products' %}
+      </p>
+    </div>
+    <div
+      class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm"
+    >
+      <table class="min-w-full text-left text-sm">
+        <thead
+          class="bg-slate-900 text-xs uppercase tracking-wide text-primary-100"
+        >
+          <tr>
+            <th class="px-4 py-3">#</th>
+            <th class="px-4 py-3">{% trans 'Name' %}</th>
+            <th class="px-4 py-3">{% trans 'Category' %}</th>
+            <th class="px-4 py-3">{% trans 'Total Units Sold' %}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for data in top_packages %}
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-3">{{forloop.counter}}</td>
+            <td class="px-4 py-3 font-medium text-slate-900">
+              {{data.product__name}}
+            </td>
+            <td class="px-4 py-3 text-slate-600">
+              {{data.product__category__name}}
+            </td>
+            <td class="px-4 py-3 text-slate-600">{{data.total_package_qty}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="space-y-4">
+    <div>
+      <p class="text-lg font-semibold text-slate-900">
+        {% trans 'Inventory Shortage' %}
+      </p>
+      <p class="text-sm text-slate-500">
+        {% trans 'The low stock product list.'%}
+      </p>
+    </div>
+    <div
+      class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm"
+    >
+      <table class="min-w-full text-left text-sm">
+        <thead
+          class="bg-slate-900 text-xs uppercase tracking-wide text-primary-100"
+        >
+          <tr>
+            <th class="px-4 py-3">#</th>
+            <th class="px-4 py-3">{% trans 'Name' %}</th>
+            <th class="px-4 py-3">{% trans 'Category' %}</th>
+            <th class="px-4 py-3">
+              {% trans 'Number of Remaining Packages' %}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for data in order_products %}
+          <tr class="hover:bg-slate-50">
+            <td class="px-4 py-3">{{forloop.counter}}</td>
+            <td class="px-4 py-3 font-medium text-slate-900">{{data.name}}</td>
+            <td class="px-4 py-3 text-slate-600">{{data.category}}</td>
+            <td class="px-4 py-3 text-slate-600">{{data.num_of_packages}}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock content %}

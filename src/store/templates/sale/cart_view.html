@@ -1,0 +1,17 @@
+{% extends '_base.html' %}
+{% load i18n %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+{% block title %}
+    {% trans 'Customer Cart' %}
+{% endblock title %}
+{% block content %}
+<div class="space-y-6">
+    <div class="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
+        <p class="text-2xl font-semibold text-slate-900">{% trans 'Customer Cart' %}</p>
+        <p class="text-sm text-slate-500">{% trans 'Make sure everything looks right before completing your order' %}</p>
+    </div>
+    {% include 'partials/_cart_table.html' %}
+</div>
+{% endblock content%}

@@ -1,0 +1,10 @@
+{% extends 'dashboard/dashboard-view.html' %}
+{% load i18n %}
+{% load static %}
+{% load custom_filters %}
+{% block dashboard %}
+<div class="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
+    <h1 class="text-2xl font-semibold text-slate-900">{% trans "Expense Page" %}</h1>
+    <p class="text-sm text-slate-500">{% trans "Welcome to the Expense Page" %}</p>
+</div>
+{% endblock dashboard %}

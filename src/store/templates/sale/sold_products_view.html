@@ -1,0 +1,68 @@
+{% extends '_base.html' %}
+{% load i18n %}
+{% load static %}
+{% load humanize %}
+{% load jalali_tags %}
+{% load custom_filters %}
+{% block title %}
+    {% trans "Sales Summary" %}
+{% endblock title %}
+{% block content %}
+<div class="space-y-6">
+    <div class="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
+        <h1 class="text-2xl font-semibold text-slate-900">{% trans 'Products Sales Details' %}</h1>
+        <p class="text-sm text-slate-500">{% trans "View detailed information about each product's sales, including quantities sold, total sales value, and customer details." %}</p>
+    </div>
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form action="{% url 'sold-products-view' %}" method="post" class="flex flex-col gap-3 sm:flex-row sm:items-end">
+            {% csrf_token %}
+            <div class="flex-1 space-y-2">
+                <label for="bill-number" class="text-sm font-medium text-slate-600">{% trans 'Bill Number' %}</label>
+                <input type="search" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-200" name="bill-number" id="bill-number" placeholder="{% trans 'Enter your bill number' %}">
+            </div>
+            <button type="submit" class="rounded-xl bg-primary-500 px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans 'Search' %}</button>
+        </form>
+    </div>
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <table class="min-w-full text-left text-sm">
+            <thead class="bg-slate-900 text-xs uppercase tracking-wide text-primary-100">
+                <tr>
+                    <th class="px-4 py-3">{% trans 'Bill Number' %}</th>
+                    <th class="px-4 py-3">{% trans 'Full Name' %}</th>
+                    <th class="px-4 py-3">{% trans 'Total Amount' %}</th>
+                    <th class="px-4 py-3">{% trans 'Paid Amount' %}</th>
+                    <th class="px-4 py-3">{% trans 'Unpaid Amount' %}</th>
+                    <th class="px-4 py-3">{% trans 'Date' %}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% if sold_products %}
+                {% for data in sold_products %}
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3">
+                        <a href="{% url 'sold-product-detail' data.id %}" class="font-semibold text-primary-600 hover:text-primary-500">{{data.bill_number}}</a>
+                    </td>
+                    <td class="px-4 py-3">{{data.customer.name}}</td>
+                    <td class="px-4 py-3">{{data.total_amount}}</td>
+                    <td class="px-4 py-3">{{data.paid_amount}}</td>
+                    <td class="px-4 py-3">{{data.unpaid_amount}}</td>
+                    <td class="px-4 py-3">{{data.created_at|jalali}}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-4 py-10">
+                        <div class="flex flex-col items-center gap-3 text-center">
+                            <img class="h-20 w-20 rounded-full object-cover" src="{% static 'image/empty.jpg' %}" alt="">
+                            <p class="text-lg font-semibold text-slate-800">{% trans 'No sales found' %}</p>
+                            <a href="{% url 'sold-products-view' %}" class="text-sm font-semibold text-primary-600">{% trans "Go back" %}</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content%}

@@ -1,0 +1,14 @@
+{% extends '_base.html' %}
+{% load i18n %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+{% block title %}
+    {% trans "Management Dashboard" %}
+{% endblock title %}
+{% block content %}
+<div class="space-y-6">
+    {% block dashboard %}
+    {% endblock dashboard %}
+</div>
+{% endblock content %}

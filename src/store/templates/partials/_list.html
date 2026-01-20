@@ -1,0 +1,32 @@
+{% load i18n %}
+{% load static %}
+{% load custom_filters %}
+<div class="list-holder">
+    <div class="heading">
+        <h3 class="title">{{reqeust.user.username}} {{request.user.username}}</h3>
+        <p class="text">{{request.user.email}}</p>
+    </div>
+    <ul class="unorder-list">
+        <li class="list-item {% if request.path == '/dashboard/summary' %}active{% endif %}">
+            <a href="{% url 'summary' %}">{% trans "Sales Overview" %}</a>
+        </li>
+        <li class="list-item {% if request.path == '/dashboard/base-unit' %}active{% endif %}" >
+            <a href="{% url 'base-unit' %}">{% trans "Base Unit Settings" %}</a>
+        </li>
+        <li class="list-item {% if request.path == '/dashboard/income' %}active{% endif %}" >
+            <a href="{% url 'income' %}">{% trans "Income" %}</a>
+        </li>
+        <li class="list-item {% if request.path == '/dashboard/expense' %}active{% endif %}">
+            <a href="{% url 'expense' %}">{% trans "Expense" %}</a>
+        </li>
+        <li class="list-item {% if request.path == '/dashboard/returned' %}active{% endif %}">
+            <a href="{% url 'returned' %}">{% trans "Return Items" %}</a>
+        </li>
+        <li class="list-item {% if request.path == '/dashboard/customer' %}active{% endif %}">
+            <a href="{% url 'customer' %}">{% trans "Customer Overview" %}</a>
+        </li>
+        <li class="list-item {% if request.path == '/dashboard/stock' %}active{% endif %}">
+            <a href="{% url 'stock-management' %}">{% trans "Stock Management" %}</a>
+        </li>
+    </ul>
+</div>

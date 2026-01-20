@@ -1,0 +1,151 @@
+{% load jalali_tags %}
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+
+    <style>
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('{% static 'font/Vazirmatn-Bold.woff2' %}') format('woff2'),
+                 url('{% static 'font/Vazirmatn-Regular.woff2' %}') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+          }
+        body{
+            font-family:'Vazirmatn',sans-serif;
+            font-size: 14pt;
+            direction: rtl;
+            text-align: right;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid teal;
+            padding: 10px;
+        }
+        .heading h1,h4,h5,p{
+            padding: 0px;
+            margin: 5px 0px;
+        }
+        .heading .badge{
+            padding: 3px 8px;
+            background-color: teal;
+            border-radius: 50px;
+            color: white;
+            margin: 0px 10px;
+        }
+        .heading .address{
+            background-color: teal;
+            border: 1px solid teal;
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            margin: 10px 0px;
+        }
+        .flex-container{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        table{
+            border-collapse: collapse;
+            border: 1px solid teal;
+            width: 100%;
+            font-size: 13px;
+        }
+        table thead,th{
+            border: 1px solid teal;
+            background-color: teal;
+            color: white;
+        }
+        table tbody tr, td{
+            border: 1px solid black;
+        }
+        .small-cell{
+            width: 10%;
+        }
+        .medium-cell{
+            width: 20%;
+        }
+        .normal-cell{
+            width: 40%;
+        }
+        .footer-text{
+            font-size: small;
+            text-align: start;
+        }
+        .btn{
+            background-color:teal;
+            padding:2px 8px;
+            margin: 0px 1px;
+            font-size:14px;
+            text-decoration: none;
+            color:white;
+        }
+        @media print {
+            #hidden-element {
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="heading">
+            <h1>خوراکه فروشی سلمان علی یعقوبی</h1>
+            <h4><span class="badge">عمده</span><i>Salman Ali Yaqobi Food Store</i><span class="badge">پرچون</span></h4>
+            <h5>عرضه کننده مواد ارتزاقی و نوشابه باب, شوینده باب و غیره</h5>
+            <span class="address">آدرس: چوک شهید مزاری, پل سوخته, داخل مارکیت محمدی</span>
+            <p>0766222777 - 0786244241</p>
+        </div>
+        <div class="flex-container">
+            <p>نمبر بل: {{sales_details.bill_number}}</p>
+            <p>اسم مشتری: {{sales_details.customer.name}}</p>
+            <p>تلفن: {{sales_details.customer.phone}}</p>
+            <p>آدرس: {{sales_details.customer.address}}</p>
+            <p>تاریخ: {{sales_details.created_at|jalali}}</p>
+        </div>
+        <div>
+            <table>
+                <thead>
+                    <th class="small-cell">شماره</th>
+                    <th>اسم جنس</th>
+                    <th>تعداد</th>
+                    <th>کارتن</th>
+                    <th>فیات</th>
+                    <th>جمله شد</th>
+                </thead>
+                <tbody>
+                    {% for data in sales_products %}
+                    <tr>
+                        <td class="small-cell">{{forloop.counter}}</td>
+                        <td class="normal-cell">{{data.product.name}}</td>
+                        <td class="small-cell">{{data.item_qty}}</td>
+                        <td class="small-cell">{{data.package_qty}}</td>
+                        <td class="small-cell">{{data.package_price}}</td>
+                        <td class="medium-cell">{{data.total_price}}</td>
+                    </tr>
+                    {% endfor %}
+                    
+                    <tr>
+                        <td colspan="2">جمله پول شد: {{calculate.total_amount}} {% trans 'AFN' %}</td>
+                        <td colspan="2">مبلغ پرداخت شده:  {{sales_details.paid_amount}} {% trans 'AFN' %}</td>
+                        <td colspan="2">مبلغ باقی مانده:  {{sales_details.unpaid_amount}} {% trans 'AFN' %}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="footer-text">
+                لطفا در حین خرید نوعیت و کیفیت مال خود را چک نمایید در غیر آن دوباره مجرا داده نمیشود. جنس فروخته شده واپس گرفته نمی شود.
+            </p>
+        </div>
+        <div id="hidden-element">
+            <a class="btn" href="#" onclick={window.print()}>{% trans 'Print' %}</a>
+            <a class="btn" href="{% url 'home' %}">{% trans 'Go Back' %}</a>
+        </div>
+    </div>
+</body>
+</html>

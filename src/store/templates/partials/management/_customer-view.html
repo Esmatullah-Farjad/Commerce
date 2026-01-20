@@ -1,0 +1,98 @@
+{% extends 'dashboard/dashboard-view.html' %}
+{% load i18n %}
+{% load static %}
+{% load custom_filters %}
+{% block dashboard %}
+<div class="space-y-6">
+    <div class="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
+        <h1 class="text-2xl font-semibold text-slate-900">{% trans 'Customers Billing Overview' %}</h1>
+        <p class="text-sm text-slate-500">{% trans 'Review customer purchases, payment status, and outstanding balances.' %}</p>
+    </div>
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+        <form action="{% url 'customer' %}" method="post" class="flex flex-col gap-3 sm:flex-row sm:items-end">
+            {% csrf_token %}
+            <div class="flex-1 space-y-2">
+                <label class="text-sm font-medium text-slate-600" for="phone">{% trans 'Phone' %}</label>
+                <input type="search" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-200" name="phone" id="phone" placeholder="{% trans 'Enter your customer phone number' %}">
+            </div>
+            <button type="submit" class="rounded-xl bg-primary-500 px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans 'Search' %}</button>
+        </form>
+
+        <div class="space-y-4">
+            <h2 class="text-lg font-semibold text-slate-900">{% trans "Unpaid Category" %}</h2>
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                <table class="min-w-full text-left text-sm">
+                    <thead class="bg-slate-900 text-xs uppercase tracking-wide text-primary-100">
+                        <tr>
+                            <th class="px-4 py-3">{% trans "Full Name" %}</th>
+                            <th class="px-4 py-3">{% trans "Phone" %}</th>
+                            <th class="px-4 py-3">{% trans "Address" %}</th>
+                            <th class="px-4 py-3">{% trans "Number of Bills" %}</th>
+                            <th class="px-4 py-3">{% trans "Total Amount" %}</th>
+                            <th class="px-4 py-3">{% trans "Total Paid Amount" %}</th>
+                            <th class="px-4 py-3">{% trans "Total Unpaid Amount" %}</th>
+                            <th class="px-4 py-3">{% trans "Status" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for data in customer_data  %}
+                        {% if data.total_unpaid > 0 %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3">{{data.customer.name}}</td>
+                            <td class="px-4 py-3">{{data.customer.phone}}</td>
+                            <td class="px-4 py-3">{{data.customer.address}}</td>
+                            <td class="px-4 py-3">{{data.bill_count}}</td>
+                            <td class="px-4 py-3">{{data.total_amount}}</td>
+                            <td class="px-4 py-3">{{data.total_paid}}</td>
+                            <td class="px-4 py-3">{{data.total_unpaid}}</td>
+                            <td class="px-4 py-3">
+                                <a href="{% url 'create-payment' data.customer.id %}" class="rounded-xl bg-primary-500 px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans "Pay" %}</a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <h2 class="text-lg font-semibold text-slate-900">{% trans "Paid Category" %}</h2>
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                <table class="min-w-full text-left text-sm">
+                    <thead class="bg-slate-900 text-xs uppercase tracking-wide text-primary-100">
+                        <tr>
+                            <th class="px-4 py-3">{% trans "Full Name" %}</th>
+                            <th class="px-4 py-3">{% trans "Phone" %}</th>
+                            <th class="px-4 py-3">{% trans "Address" %}</th>
+                            <th class="px-4 py-3">{% trans "Number of Bills" %}</th>
+                            <th class="px-4 py-3">{% trans "Total Amount" %}</th>
+                            <th class="px-4 py-3">{% trans "Total Paid Amount" %}</th>
+                            <th class="px-4 py-3">{% trans "Total Unpaid Amount" %}</th>
+                            <th class="px-4 py-3">{% trans "Status" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for data in customer_data  %}
+                        {% if data.total_unpaid <= 0 %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3">{{data.customer.name}}</td>
+                            <td class="px-4 py-3">{{data.customer.phone}}</td>
+                            <td class="px-4 py-3">{{data.customer.address}}</td>
+                            <td class="px-4 py-3">{{data.bill_count}}</td>
+                            <td class="px-4 py-3">{{data.total_amount}}</td>
+                            <td class="px-4 py-3">{{data.total_paid}}</td>
+                            <td class="px-4 py-3">{{data.total_unpaid}}</td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs font-semibold text-slate-500">{% trans "Paid" %}</span>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard %}
