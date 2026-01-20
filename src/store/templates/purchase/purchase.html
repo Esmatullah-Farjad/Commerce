@@ -1,105 +1,757 @@
-{% extends '_base.html' %}
-{% load i18n %}
-{% load static %}
-
-{% block title %}
-    {% trans 'Purchase Page' %}
-{% endblock title %}
-
-{% block content %}
-<div class="space-y-6">
-    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+{% extends '_base.html' %} {% load i18n %} {% load static %} {% block title %}
+{% trans 'Purchase Page' %} {% endblock title %} {% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="mb-8">
+      <div
+        class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6"
+      >
         <div>
-            <p class="text-2xl font-semibold text-slate-900">{% trans 'Purchase Page' %}</p>
-            <p class="text-sm text-slate-500">{% trans 'Please use the form below to accurately enter the details of your purchased inventory items' %}</p>
+          <div class="flex items-center gap-3 mb-3">
+            <div
+              class="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold text-slate-900">
+                {% trans 'Purchase Management' %}
+              </h1>
+              <p class="text-slate-600 mt-1">
+                {% trans 'Add new inventory items to your stock' %}
+              </p>
+            </div>
+          </div>
         </div>
-        <a href="{% url 'products_display' %}" class="inline-flex items-center justify-center rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">
-            {% trans 'Available Products' %}
-        </a>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a
+            href="{% url 'products_display' %}"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-3 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 hover:shadow-md transition-all"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              ></path>
+            </svg>
+            {% trans 'View Available Products' %}
+          </a>
+          {% if form.instance.id %}
+          <a
+            href="{% url 'purchase' %}"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-sm hover:bg-slate-800 hover:shadow-md transition-all"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              ></path>
+            </svg>
+            {% trans 'Add New Product' %}
+          </a>
+          {% endif %}
+        </div>
+      </div>
     </div>
 
-    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="mb-6 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-slate-900">
-                {% if form.instance.id %}
-                {% trans 'Update Products' %}
-                {% else %}
-                {% trans 'Add Products' %}
-                {% endif %}
-            </h2>
-            <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700">{% trans 'Inventory Intake' %}</span>
+    <!-- Main Form Card -->
+    <div
+      class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden"
+    >
+      <!-- Form Header -->
+      <div
+        class="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-8 py-6"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-primary-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-slate-900">
+                {% if form.instance.id %} {% trans 'Update Product
+                Information'%} {% else %} {% trans 'Add New Product to
+                Inventory' %} {% endif %}
+              </h2>
+              <p class="text-slate-600 text-sm">
+                {% trans 'Fill in the product details accurately for proper
+                inventory management' %}
+              </p>
+            </div>
+          </div>
+          <span
+            class="inline-flex items-center rounded-full bg-primary-50 px-4 py-2 text-sm font-semibold text-primary-700 ring-1 ring-inset ring-primary-600/20"
+          >
+            <svg
+              class="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              ></path>
+            </svg>
+            {% trans 'Inventory Intake' %}
+          </span>
         </div>
-        <form 
-        action="{% if form.instance.id %}{% url 'update-products' pid=form.instance.id %}{% else %}{% url 'purchase' %}{% endif %}" 
-        method="POST" enctype="multipart/form-data" class="space-y-6">
-        {% csrf_token %}
-            <div class="space-y-2">
-                <label for="id_purchase_unit" class="text-sm font-medium text-slate-600">{% trans 'Purchase Unit' %}</label>
-                <p class="text-xs text-slate-400">{{form.purchase_unit.help_text}}</p>
-                {{form.purchase_unit}}
+      </div>
+
+      <!-- Form Content -->
+      <div class="p-8">
+        <form
+          action="{% if form.instance.id %}{% url 'update-products' pid=form.instance.id %}{% else %}{% url 'purchase' %}{% endif %}"
+          method="POST"
+          enctype="multipart/form-data"
+          class="space-y-8"
+        >
+          {% csrf_token %}
+
+          <!-- Purchase Unit Section -->
+          <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+            <div class="mb-4">
+              <label
+                for="id_purchase_unit"
+                class="block text-sm font-semibold text-slate-900 mb-1"
+              >
+                {% trans 'Purchase Unit' %}
+              </label>
+              <p class="text-sm text-slate-500">
+                {{ form.purchase_unit.help_text }}
+              </p>
             </div>
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                <div class="space-y-2">
-                    <label for="id_code" class="text-sm font-medium text-slate-600">{% trans 'Code' %}</label>
-                    <p class="text-xs text-slate-400">{{form.code.help_text}}</p>
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <svg
+                  class="h-5 w-5 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  ></path>
+                </svg>
+              </div>
+              {{ form.purchase_unit }}
+            </div>
+          </div>
+
+          <!-- Product Details Grid -->
+          <div class="space-y-8">
+            <div>
+              <h3
+                class="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2"
+              >
+                <svg
+                  class="w-5 h-5 text-primary-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  ></path>
+                </svg>
+                {% trans 'Product Information' %}
+              </h3>
+              <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <!-- Code -->
+                <div class="space-y-3">
+                  <label
+                    for="id_code"
+                    class="block text-sm font-semibold text-slate-900"
+                  >
+                    {% trans 'Product Code' %}
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    {{ form.code.help_text }}
+                  </p>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    >
+                      <svg
+                        class="h-5 w-5 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                        ></path>
+                      </svg>
+                    </div>
                     {{ form.code }}
+                  </div>
                 </div>
-                <div class="space-y-2">
-                    <label for="id_name" class="text-sm font-medium text-slate-600">{% trans 'Name' %}</label>
-                    <p class="text-xs text-slate-400">{{form.name.help_text}}</p>
+
+                <!-- Name -->
+                <div class="space-y-3">
+                  <label
+                    for="id_name"
+                    class="block text-sm font-semibold text-slate-900"
+                  >
+                    {% trans 'Product Name' %}
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    {{ form.name.help_text }}
+                  </p>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    >
+                      <svg
+                        class="h-5 w-5 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        ></path>
+                      </svg>
+                    </div>
                     {{ form.name }}
+                  </div>
                 </div>
-                <div class="space-y-2">
-                    <label for="id_unit" class="text-sm font-medium text-slate-600">{% trans 'Unit' %}</label>
-                    <p class="text-xs text-slate-400">{{form.unit.help_text}}</p>
-                    {{form.unit}}
+
+                <!-- Unit -->
+                <div class="space-y-3">
+                  <label
+                    for="id_unit"
+                    class="block text-sm font-semibold text-slate-900"
+                  >
+                    {% trans 'Unit of Measurement' %}
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    {{ form.unit.help_text }}
+                  </p>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    >
+                      <svg
+                        class="h-5 w-5 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
+                        ></path>
+                      </svg>
+                    </div>
+                    {{ form.unit }}
+                  </div>
                 </div>
-                <div class="space-y-2">
-                    <label for="id_num_of_packages" class="text-sm font-medium text-slate-600">{% trans 'Number of Packages' %}</label>
-                    <p class="text-xs text-slate-400">{{form.num_of_packages.help_text}}</p>
+
+                <!-- Number of Packages -->
+                <div class="space-y-3">
+                  <label
+                    for="id_num_of_packages"
+                    class="block text-sm font-semibold text-slate-900"
+                  >
+                    {% trans 'Number of Packages' %}
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    {{ form.num_of_packages.help_text }}
+                  </p>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    >
+                      <svg
+                        class="h-5 w-5 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        ></path>
+                      </svg>
+                    </div>
                     {{ form.num_of_packages }}
+                  </div>
                 </div>
-                <div class="space-y-2">
-                    <label for="id_package_purchase_price" class="text-sm font-medium text-slate-600">{% trans 'Package Purchase Price' %}</label>
-                    <p class="text-xs text-slate-400">{{form.package_purchase_price.help_text}}</p>
+
+                <!-- Package Purchase Price -->
+                <div class="space-y-3">
+                  <label
+                    for="id_package_purchase_price"
+                    class="block text-sm font-semibold text-slate-900"
+                  >
+                    {% trans 'Package Purchase Price' %}
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    {{ form.package_purchase_price.help_text }}
+                  </p>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    >
+                      <svg
+                        class="h-5 w-5 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        ></path>
+                      </svg>
+                    </div>
                     {{ form.package_purchase_price }}
+                  </div>
                 </div>
-                <div class="space-y-2">
-                    <label for="id_category" class="text-sm font-medium text-slate-600">{% trans 'Category' %}</label>
-                    <p class="text-xs text-slate-400">{{form.category.help_text}}</p>
+
+                <!-- Category -->
+                <div class="space-y-3">
+                  <label
+                    for="id_category"
+                    class="block text-sm font-semibold text-slate-900"
+                  >
+                    {% trans 'Category' %}
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    {{ form.category.help_text }}
+                  </p>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    >
+                      <svg
+                        class="h-5 w-5 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                        ></path>
+                      </svg>
+                    </div>
                     {{ form.category }}
+                  </div>
                 </div>
-                <div class="space-y-2">
-                    <label for="id_package_contain" class="text-sm font-medium text-slate-600">{% trans 'Package Contain' %}</label>
-                    <p class="text-xs text-slate-400">{{form.package_contain.help_text}}</p>
+
+                <!-- Package Contain -->
+                <div class="space-y-3">
+                  <label
+                    for="id_package_contain"
+                    class="block text-sm font-semibold text-slate-900"
+                  >
+                    {% trans 'Package Contents' %}
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    {{ form.package_contain.help_text }}
+                  </p>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    >
+                      <svg
+                        class="h-5 w-5 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        ></path>
+                      </svg>
+                    </div>
                     {{ form.package_contain }}
+                  </div>
                 </div>
-                <div class="space-y-2">
-                    <label for="id_package_sale_price" class="text-sm font-medium text-slate-600">{% trans 'Package Sale Price' %}</label>
-                    <p class="text-xs text-slate-400">{{form.package_sale_price.help_text}}</p>
+
+                <!-- Package Sale Price -->
+                <div class="space-y-3">
+                  <label
+                    for="id_package_sale_price"
+                    class="block text-sm font-semibold text-slate-900"
+                  >
+                    {% trans 'Package Sale Price' %}
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    {{ form.package_sale_price.help_text }}
+                  </p>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    >
+                      <svg
+                        class="h-5 w-5 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        ></path>
+                      </svg>
+                    </div>
                     {{ form.package_sale_price }}
+                  </div>
                 </div>
-                <div class="space-y-2">
-                    <label for="id_image" class="text-sm font-medium text-slate-600">{% trans 'Image' %}</label>
-                    <p class="text-xs text-slate-400">{{form.image.help_text}}</p>
-                    {{ form.image }}
+
+                <!-- Image Upload -->
+                <div class="space-y-3">
+                  <label
+                    for="id_image"
+                    class="block text-sm font-semibold text-slate-900"
+                  >
+                    {% trans 'Product Image' %}
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    {{ form.image.help_text }}
+                  </p>
+                  <div class="relative">
+                    <div
+                      class="border-2 border-dashed border-slate-300 rounded-xl p-4 hover:border-primary-400 hover:bg-primary-50 transition-colors cursor-pointer"
+                      onclick="document.getElementById('id_image').click()"
+                    >
+                      <div
+                        class="flex flex-col items-center justify-center gap-2"
+                      >
+                        <svg
+                          class="h-10 w-10 text-slate-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          ></path>
+                        </svg>
+                        <span class="text-sm text-slate-600"
+                          >Click to upload image</span
+                        >
+                        <span class="text-xs text-slate-500"
+                          >PNG, JPG, GIF up to 5MB</span
+                        >
+                      </div>
+                      {{ form.image }}
+                    </div>
+                  </div>
                 </div>
+              </div>
             </div>
-            <div class="space-y-2">
-                <label for="id_description" class="text-sm font-medium text-slate-600">{% trans 'Description' %}</label>
-                <p class="text-xs text-slate-400">{{form.description.help_text}}</p>
-                {{ form.description }}
+
+            <!-- Description -->
+            <div class="space-y-3">
+              <label
+                for="id_description"
+                class="block text-sm font-semibold text-slate-900"
+              >
+                {% trans 'Product Description' %}
+              </label>
+              <p class="text-xs text-slate-500">
+                {{ form.description.help_text }}
+              </p>
+              <div class="relative">{{ form.description }}</div>
             </div>
-            <div class="flex justify-center">
-                <button type="submit" class="rounded-xl bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
-                    {% if form.instance.id %}
-                    {% trans 'Update' %}
-                    {% else %}
-                    {% trans 'Purchase' %}
-                    {% endif %}
-                </button>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="pt-6 border-t border-slate-200">
+            <div
+              class="flex flex-col sm:flex-row items-center justify-between gap-4"
+            >
+              <div class="text-sm text-slate-600">
+                {% if form.instance.id %}
+                <p>{% trans 'Updating existing product in inventory' %}</p>
+                {% else %}
+                <p>{% trans 'Adding new product to inventory' %}</p>
+                {% endif %}
+              </div>
+              <button
+                type="submit"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 px-8 py-3 text-sm font-semibold text-white shadow-lg hover:from-primary-700 hover:to-primary-800 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 transform hover:-translate-y-0.5"
+              >
+                {% if form.instance.id %}
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  ></path>
+                </svg>
+                {% trans 'Update Product' %} {% else %}
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  ></path>
+                </svg>
+                {% trans 'Add to Inventory' %} {% endif %}
+              </button>
             </div>
+          </div>
         </form>
+      </div>
     </div>
+
+    <!-- Quick Tips -->
+    <div
+      class="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6"
+    >
+      <div class="flex items-start gap-4">
+        <div class="flex-shrink-0">
+          <div
+            class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"
+          >
+            <svg
+              class="w-5 h-5 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+          </div>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-blue-900 mb-3">
+            {% trans 'Tips for Accurate Inventory Management' %}
+          </h3>
+          <ul class="grid md:grid-cols-2 gap-4">
+            <li class="flex items-start gap-2">
+              <svg
+                class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <span class="text-sm text-blue-800"
+                >Ensure product codes are unique and follow your company's
+                naming convention</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <svg
+                class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <span class="text-sm text-blue-800"
+                >Double-check purchase and sale prices for accurate profit
+                calculations</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <svg
+                class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <span class="text-sm text-blue-800"
+                >Upload clear product images for easy identification in
+                inventory</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <svg
+                class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <span class="text-sm text-blue-800"
+                >Use accurate package counts to maintain proper stock
+                levels</span
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<style>
+  /* Custom form styling */
+  input[type="text"],
+  input[type="number"],
+  input[type="file"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    background-color: white;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #1e293b;
+    transition: all 0.2s ease;
+  }
+
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+
+  textarea {
+    min-height: 120px;
+    padding: 1rem;
+  }
+
+  /* Error state styling */
+  input.error,
+  select.error,
+  textarea.error {
+    border-color: #ef4444;
+  }
+
+  input.error:focus,
+  select.error:focus,
+  textarea.error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  }
+
+  /* Placeholder styling */
+  ::placeholder {
+    color: #94a3b8;
+  }
+
+  /* Select arrow styling */
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+</style>
 {% endblock content %}
