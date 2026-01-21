@@ -4,87 +4,215 @@
 {% load humanize %}
 {% load jalali_tags %}
 {% load custom_filters %}
-{% block title %}
-    {% trans "Sales Summary" %}
-{% endblock title %}
-{% block content %}
-<div class="space-y-6">
-    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h2 class="text-2xl font-semibold text-slate-900">{% trans 'Sales Summary' %}</h2>
-            <p class="text-sm text-slate-500">{% trans 'Review the sale details and item breakdown' %}</p>
-        </div>
-        <a href="{% url 'print-invoice' sales_info.bill_number %}" class="rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans 'Print' %}</a>
-    </div>
-    <div class="grid gap-4 rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm sm:grid-cols-2 lg:grid-cols-3">
-        <div><strong class="text-slate-700">{% trans 'Bill Number' %} :</strong> {{sales_info.bill_number}}</div>
-        <div><strong class="text-slate-700">{% trans 'Full Name' %} :</strong> {{sales_info.customer.name}}</div>
-        <div><strong class="text-slate-700">{% trans 'Address' %} :</strong> {{sales_info.customer.address}}</div>
-        <div><strong class="text-slate-700">{% trans 'Phone' %} :</strong> {{sales_info.customer.phone}}</div>
-        <div><strong class="text-slate-700">{% trans 'Date' %} :</strong> {{sales_info.created_at|jalali}}</div>
-        <div><strong class="text-slate-700">{% trans 'Total Amount' %} :</strong> {{sales_info.total_amount}}</div>
-        <div><strong class="text-slate-700">{% trans 'Paid Amount' %} :</strong> {{sales_info.paid_amount}}</div>
-        <div><strong class="text-slate-700">{% trans 'Unpaid Amount' %} :</strong> {{sales_info.unpaid_amount}}</div>
-    </div>
-    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table class="min-w-full text-left text-sm">
-            <thead class="bg-slate-900 text-xs uppercase tracking-wide text-primary-100">
-                <tr>
-                    <th class="px-4 py-3">{% trans 'Name' %}</th>
-                    <th class="px-4 py-3">{% trans 'Item price' %}</th>
-                    <th class="px-4 py-3">{% trans 'Package price' %}</th>
-                    <th class="px-4 py-3">{% trans 'Item quantity' %}</th>
-                    <th class="px-4 py-3">{% trans 'Package quantity' %}</th>
-                    <th class="px-4 py-3">{% trans 'Total price' %}</th>
-                    <th class="px-4 py-3">{% trans 'Action' %}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-                {% if sales_products %}
-                {% for data in sales_products %}
-                <tr class="hover:bg-slate-50">
-                    <td class="px-4 py-3 font-medium text-slate-900">{{data.product.name}}</td>
-                    <td class="px-4 py-3">{{data.item_price}}</td>
-                    <td class="px-4 py-3">{{data.package_price}}</td>
-                    <td class="px-4 py-3">{{data.item_qty}}</td>
-                    <td class="px-4 py-3">{{data.package_qty}}</td>
-                    <td class="px-4 py-3">{{data.total_price}}</td>
-                    <td class="px-4 py-3">
-                        <a class="inline-flex items-center gap-2 rounded-xl border border-primary-200 px-3 py-2 text-xs font-semibold text-primary-600 transition hover:bg-primary-50"
-                        hx-get="{% url 'return-items' data.id %}" 
-                        hx-target="closest tr" 
-                        hx-swap="outerHTML swap:0.3s"
-                        hx-confirm="{% trans 'Are you sure you want to return this item?' %}"
-                        hx-on="returnSuccess: showSuccess()">
-                            {% trans "Return" %}
-                            <svg xmlns="http://www.w3.org/2000/svg" 
-                            fill="none" viewBox="0 0 24 24" 
-                            stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
-                            </svg>
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr>
-                    <td colspan="6" class="px-4 py-10">
-                        <div class="flex flex-col items-center gap-3 text-center">
-                            <img class="h-20 w-20 rounded-full object-cover" src="{% static 'image/empty.jpg' %}" alt="">
-                            <p class="text-lg font-semibold text-slate-800">{% trans 'No items found' %}</p>
-                            <a href="{% url 'sold-products-view' %}" class="text-sm font-semibold text-primary-600">{% trans "Go back" %}</a>
-                        </div>
-                    </td>
-                </tr>
-                {% endif %}
 
-            </tbody>
-        </table>
+{% block title %}{% trans "Sales Summary" %}{% endblock title %}
+
+{% block content %}
+<div class="space-y-4">
+
+  <!-- Header -->
+  <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 ring-1 ring-inset ring-teal-600/15">
+          <svg class="h-5 w-5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M9 14l6-6m0 0H9m6 0v6M5 20h14a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v14a1 1 0 001 1z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-semibold text-slate-900 leading-tight">{% trans 'Sales Summary' %}</h1>
+          <p class="mt-1 text-sm text-slate-600">{% trans 'Review sale details and item breakdown.' %}</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2">
+        <a
+          href="{% url 'sold-products-view' %}"
+          class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700
+                 hover:bg-slate-50 hover:text-slate-900"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          {% trans 'Back' %}
+        </a>
+
+        <a
+          href="{% url 'print-invoice' sales_info.bill_number %}"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white
+                 shadow-sm hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 9V4h12v5M6 18h12v2H6v-2zm0 0H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+          </svg>
+          {% trans 'Print Invoice' %}
+        </a>
+      </div>
     </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="grid gap-3 lg:grid-cols-3">
+    <!-- Left: key info -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+      <h2 class="text-sm font-semibold text-slate-900">{% trans 'Invoice Details' %}</h2>
+
+      <dl class="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-2 text-sm">
+        <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2 sm:border-0 sm:pb-0">
+          <dt class="text-slate-600">{% trans 'Bill Number' %}</dt>
+          <dd class="font-semibold text-slate-900 tabular-nums">{{ sales_info.bill_number }}</dd>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2 sm:border-0 sm:pb-0">
+          <dt class="text-slate-600">{% trans 'Date' %}</dt>
+          <dd class="font-medium text-slate-900">{{ sales_info.created_at|jalali }}</dd>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2 sm:border-0 sm:pb-0">
+          <dt class="text-slate-600">{% trans 'Full Name' %}</dt>
+          <dd class="font-medium text-slate-900">{{ sales_info.customer.name }}</dd>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2 sm:border-0 sm:pb-0">
+          <dt class="text-slate-600">{% trans 'Phone' %}</dt>
+          <dd class="font-medium text-slate-900">{{ sales_info.customer.phone }}</dd>
+        </div>
+
+        <div class="sm:col-span-2 flex items-center justify-between gap-3">
+          <dt class="text-slate-600">{% trans 'Address' %}</dt>
+          <dd class="font-medium text-slate-900 text-right">{{ sales_info.customer.address }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- Right: amounts -->
+    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+      <h2 class="text-sm font-semibold text-slate-900">{% trans 'Amounts' %}</h2>
+
+      <dl class="mt-3 space-y-2 text-sm">
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-600">{% trans 'Total Amount' %}</dt>
+          <dd class="font-semibold text-slate-900 tabular-nums">{{ sales_info.total_amount|intcomma }}</dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-600">{% trans 'Paid Amount' %}</dt>
+          <dd class="font-semibold text-slate-900 tabular-nums">{{ sales_info.paid_amount|intcomma }}</dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-600">{% trans 'Unpaid Amount' %}</dt>
+          <dd class="font-semibold text-slate-900 tabular-nums">{{ sales_info.unpaid_amount|intcomma }}</dd>
+        </div>
+
+        <div class="pt-2 border-t border-slate-200"></div>
+
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-700 font-semibold">{% trans 'Status' %}</dt>
+          {% if sales_info.unpaid_amount|default:0|add:0 > 0 %}
+            <dd class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800">
+              {% trans 'Partially Paid' %}
+            </dd>
+          {% else %}
+            <dd class="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-800">
+              {% trans 'Paid' %}
+            </dd>
+          {% endif %}
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Items table -->
+  <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+    <table class="min-w-full text-left text-sm">
+      <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-700 border-b border-slate-200">
+        <tr>
+          <th class="px-3 py-2.5">{% trans 'Name' %}</th>
+          <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans 'Item price' %}</th>
+          <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans 'Package price' %}</th>
+          <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans 'Item qty' %}</th>
+          <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans 'Package qty' %}</th>
+          <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans 'Total price' %}</th>
+          <th class="px-3 py-2.5 text-center w-28">{% trans 'Action' %}</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-slate-100">
+        {% if sales_products %}
+          {% for data in sales_products %}
+          <tr class="hover:bg-slate-50/70">
+            <td class="px-3 py-2.5 font-medium text-slate-900">{{ data.product.name }}</td>
+
+            <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.item_price|intcomma }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.package_price|intcomma }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.item_qty }}</td>
+            <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.package_qty }}</td>
+            <td class="px-3 py-2.5 text-right font-semibold tabular-nums text-slate-900">{{ data.total_price|intcomma }}</td>
+
+            <td class="px-3 py-2.5 text-center">
+              <a
+                class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700
+                       hover:bg-slate-50 hover:text-slate-900"
+                hx-get="{% url 'return-items' data.id %}"
+                hx-target="closest tr"
+                hx-swap="outerHTML swap:0.3s"
+                hx-confirm="{% trans 'Are you sure you want to return this item?' %}"
+                hx-on="returnSuccess: showSuccess()"
+              >
+                {% trans "Return" %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                </svg>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" class="px-4 py-10">
+              <div class="flex flex-col items-center gap-3 text-center">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 ring-1 ring-inset ring-slate-200">
+                  <svg class="h-6 w-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                      d="M20 12H4m16 0a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M4 12V9a2 2 0 012-2h12a2 2 0 012 2v3" />
+                  </svg>
+                </div>
+
+                <p class="text-base font-semibold text-slate-900">{% trans 'No items found' %}</p>
+                <a href="{% url 'sold-products-view' %}" class="text-sm font-semibold text-teal-700 hover:text-teal-800">
+                  {% trans "Go back" %}
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast"
+       class="pointer-events-none fixed bottom-6 right-6 z-40 hidden items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-lg">
+    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toastText">{% trans 'Return processed successfully!' %}</span>
+  </div>
+
 </div>
+
 <script>
-    function showSuccess() {
-        alert('Return processed successfully!');
-    }
+  function showSuccess() {
+    const toast = document.getElementById('toast');
+    toast.classList.remove('hidden');
+    toast.classList.add('flex');
+
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(() => {
+      toast.classList.add('hidden');
+      toast.classList.remove('flex');
+    }, 2000);
+  }
 </script>
-{% endblock content%}
+{% endblock content %}

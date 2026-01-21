@@ -57,7 +57,7 @@ class Products(models.Model):
     total_package_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=0)
     item_sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, default=0)  # in AFN
 
-    num_items = models.IntegerField(default=0)
+    num_items = models.IntegerField(default=0, null=True, blank=True)
     stock = models.IntegerField()
     image = models.ImageField(default='default.png', upload_to='item_images')
     description = models.TextField(max_length=200, null=True, blank=True)

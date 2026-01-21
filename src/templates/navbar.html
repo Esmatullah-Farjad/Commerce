@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load static %}
-<aside id="app-sidebar" class="fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-800 bg-slate-900 text-slate-100 shadow-2xl transition-transform duration-300">
-    <div class="flex h-full flex-col gap-6 px-6 py-6">
+<aside id="app-sidebar" class="fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-800 bg-slate-950 text-slate-100 shadow-2xl transition-transform duration-300">
+    <div class="flex h-full min-h-0 flex-col gap-6 px-6 py-6">
         <a href="{% url 'root-view' %}" class="flex items-center gap-3">
             <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-500/20 ring-1 ring-primary-400/50">
                 <img src="{% static 'image/logo.svg' %}" alt="Logo" class="h-6 w-6">
@@ -20,7 +20,7 @@
         </div>
         {% endif %}
 
-        <nav class="flex-1 space-y-1 text-sm">
+        <nav class="sidebar-scroll flex-1 space-y-1 overflow-y-auto pr-2 text-sm">
             <a href="{% url 'home' %}" class="flex items-center justify-between rounded-xl px-3 py-2 transition {% if request.path == '/home/' %}bg-primary-600 text-white shadow-lg shadow-primary-500/30{% else %}text-slate-200 hover:bg-slate-800 hover:text-white{% endif %}">
                 <span class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 text-primary-300">
@@ -84,14 +84,49 @@
                     <span id="cart_length">{{ cart_length|default:"0" }}</span>
                 </span>
             </a>
-            <a href="{% url 'sales-dashboard' %}" class="flex items-center justify-between rounded-xl px-3 py-2 transition {% if request.path|slice:":11" == '/dashboard/' %}bg-primary-600 text-white shadow-lg shadow-primary-500/30{% else %}text-slate-200 hover:bg-slate-800 hover:text-white{% endif %}">
-                <span class="flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 text-primary-300">
-                        <path d="M3 3.75A.75.75 0 0 1 3.75 3h16.5a.75.75 0 0 1 .75.75v14.25a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-3.75a1.5 1.5 0 0 0-1.5-1.5h-3a1.5 1.5 0 0 0-1.5 1.5V18a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 3 18V3.75Z" />
+            <details class="group rounded-xl border border-transparent transition {% if request.path|slice:":11" == '/dashboard/' or request.path == '/sales/dashboard' %}bg-primary-600/15 text-white ring-1 ring-primary-500/30{% else %}text-slate-200 hover:bg-slate-800 hover:text-white{% endif %}" {% if request.path|slice:":11" == '/dashboard/' or request.path == '/sales/dashboard' %}open{% endif %}>
+                <summary class="flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2">
+                    <span class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 text-primary-300">
+                            <path d="M3 3.75A.75.75 0 0 1 3.75 3h16.5a.75.75 0 0 1 .75.75v14.25a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-3.75a1.5 1.5 0 0 0-1.5-1.5h-3a1.5 1.5 0 0 0-1.5 1.5V18a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 3 18V3.75Z" />
+                        </svg>
+                        {% trans "Dashboard" %}
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 text-slate-400 transition group-open:rotate-180">
+                        <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
                     </svg>
-                    {% trans "Management" %}
-                </span>
-            </a>
+                </summary>
+                <div class="mt-2 space-y-1 pl-3 text-sm">
+                    <a href="{% url 'summary' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/summary' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
+                        {% trans "Sales Overview" %}
+                    </a>
+                    <a href="{% url 'base-unit' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/base-unit' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
+                        {% trans "Base Unit Settings" %}
+                    </a>
+                    <a href="{% url 'income' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/income' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
+                        {% trans "Income" %}
+                    </a>
+                    <a href="{% url 'expense' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/expense' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
+                        {% trans "Expense" %}
+                    </a>
+                    <a href="{% url 'returned' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/returned' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
+                        {% trans "Return Items" %}
+                    </a>
+                    <a href="{% url 'customer' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/customer' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
+                        {% trans "Customer Overview" %}
+                    </a>
+                    <a href="{% url 'stock-management' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/stock' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
+                        {% trans "Stock Management" %}
+                    </a>
+                </div>
+            </details>
             {% if request.user.is_superuser %}
             <a href="http://127.0.0.1:8000/admin" class="flex items-center justify-between rounded-xl px-3 py-2 transition text-slate-200 hover:bg-slate-800 hover:text-white">
                 <span class="flex items-center gap-3">

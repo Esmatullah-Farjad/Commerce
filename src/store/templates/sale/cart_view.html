@@ -3,15 +3,68 @@
 {% load static %}
 {% load humanize %}
 {% load custom_filters %}
-{% block title %}
-    {% trans 'Customer Cart' %}
-{% endblock title %}
+
+{% block title %}{% trans 'Customer Cart' %}{% endblock title %}
+
 {% block content %}
-<div class="space-y-6">
-    <div class="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
-        <p class="text-2xl font-semibold text-slate-900">{% trans 'Customer Cart' %}</p>
-        <p class="text-sm text-slate-500">{% trans 'Make sure everything looks right before completing your order' %}</p>
+<div class="space-y-4">
+
+  <!-- Header -->
+  <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 ring-1 ring-inset ring-teal-600/15">
+          <svg class="h-5 w-5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.2 6H19M7 13l-2-8m14 14a1 1 0 11-2 0 1 1 0 012 0zm-10 0a1 1 0 11-2 0 1 1 0 012 0z" />
+          </svg>
+        </div>
+
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-xl font-semibold text-slate-900 leading-tight">
+              {% trans 'Customer Cart' %}
+            </h1>
+            <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+              {% trans 'Checkout' %}
+            </span>
+          </div>
+          <p class="mt-1 text-sm text-slate-600">
+            {% trans 'Make sure everything looks right before completing your order.' %}
+          </p>
+        </div>
+      </div>
+
+      <!-- Optional action buttons -->
+      <div class="flex flex-col sm:flex-row gap-2">
+        <a
+          href="{% url 'products-view' %}"
+          class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700
+                 hover:bg-slate-50 hover:text-slate-900"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 19l-7-7 7-7" />
+          </svg>
+          {% trans 'Back to Products' %}
+        </a>
+
+        <a
+          href="{% url 'scanner-view' %}"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white
+                 shadow-sm hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+        >
+          <img src="{% static 'image/scanner.svg' %}" width="16" height="16" alt="">
+          {% trans 'Scan Item' %}
+        </a>
+      </div>
+
     </div>
-    {% include 'partials/_cart_table.html' %}
+  </div>
+
+  <!-- Cart Table -->
+  {% include 'partials/_cart_table.html' %}
+
 </div>
-{% endblock content%}
+{% endblock content %}

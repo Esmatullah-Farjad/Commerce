@@ -3,22 +3,80 @@
 {% load static %}
 {% load humanize %}
 {% load custom_filters %}
-{% block title %}
-    {% trans 'Products' %}
-{% endblock title %}
+
+{% block title %}{% trans 'Products' %}{% endblock title %}
+
 {% block content %}
-<div class="space-y-6">
-    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+<div class="space-y-4">
+
+  <!-- Header / Actions -->
+  <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+      <!-- Title -->
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 ring-1 ring-inset ring-teal-600/15">
+          <svg class="h-5 w-5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M20 12H4m16 0a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2v-6a2 2 0 012-2m16 0V9a2 2 0 00-2-2M4 12V9a2 2 0 012-2h12a2 2 0 012 2v3" />
+          </svg>
+        </div>
+
         <div>
-            <h2 class="text-2xl font-semibold text-slate-900">{% trans 'Available Products List' %}</h2>
-            <p class="text-sm text-slate-500">{% trans 'Browse through the complete list of products available for purchase. You can view details, pricing, and availability for each item.' %}</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-xl font-semibold text-slate-900 leading-tight">
+              {% trans 'Available Products' %}
+            </h2>
+            <span class="inline-flex items-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 ring-1 ring-inset ring-teal-600/15">
+              {% trans 'Inventory' %}
+            </span>
+          </div>
+          <p class="mt-1 text-sm text-slate-600 max-w-2xl">
+            {% trans 'Browse products, view pricing, and check availability.' %}
+          </p>
         </div>
-        <div class="flex flex-wrap gap-2">
-            <a href="{% url 'purchase' %}" class="rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans 'Purchase' %}</a>
-            <a href="#" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary-300 hover:text-primary-600">{% trans 'Doller Goods' %}</a>
-            <a href="#" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary-300 hover:text-primary-600">{% trans 'Afghani Goods' %}</a>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+        <!-- Filters (tabs style) -->
+        <div class="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+          <a
+            href="#"
+            class="rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
+          >
+            {% trans 'All' %}
+          </a>
+          <a
+            href="#"
+            class="rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
+          >
+            {% trans 'Dollar Goods' %}
+          </a>
+          <a
+            href="#"
+            class="rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
+          >
+            {% trans 'Afghani Goods' %}
+          </a>
+
+          
         </div>
+
+        <!-- Primary CTA -->
+        <a
+          href="{% url 'purchase' %}"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          {% trans 'New Purchase' %}
+        </a>
+      </div>
     </div>
-    {% include 'partials/product_list.html' %}
+  </div>
+
+  {% include 'partials/product_list.html' %}
 </div>
 {% endblock %}

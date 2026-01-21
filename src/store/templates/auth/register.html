@@ -1,31 +1,87 @@
 {% extends '_base.html' %}
 {% load i18n %}
 {% load static %}
-{% block title %}
-    {% trans 'Sign Up' %}
-{% endblock title %}
+
+{% block title %}{% trans 'Sign Up' %}{% endblock title %}
+
 {% block content %}
-<div class="flex justify-center">
-    <form action="{% url 'sign-up' %}" class="w-full max-w-lg space-y-5 rounded-3xl border border-slate-200 bg-white p-8 shadow-lg" method="post">
-        {% csrf_token %}
-        <div class="space-y-1">
-            <h1 class="text-2xl font-semibold text-slate-900">{% trans 'Sign Up' %}</h1>
-            <p class="text-sm text-slate-500">{% trans 'Sign Up to Manage Your Store Efficiently' %}</p>
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">
+  <div class="w-full max-w-lg">
+
+    <form
+      action="{% url 'sign-up' %}"
+      method="post"
+      class="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm"
+    >
+      {% csrf_token %}
+
+      <!-- Header -->
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 ring-1 ring-inset ring-teal-600/15">
+          <svg class="h-5 w-5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M18 9v3m0 0v3m0-3h3m-3 0h-3M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0v1H5v-1z" />
+          </svg>
         </div>
-        <div class="grid gap-4">
-            {% for field in form %}
-            <div class="space-y-2">
-                <label class="text-sm font-medium text-slate-600" for="{{field.id_for_label}}">{{field.label.title}}</label>
-                {{field}}
-                <p class="text-xs text-rose-500">{{field.errors}}</p>
+
+        <div class="flex-1">
+          <h1 class="text-xl font-semibold text-slate-900 leading-tight">{% trans 'Create account' %}</h1>
+          <p class="mt-1 text-sm text-slate-600">{% trans 'Sign up to manage your store efficiently.' %}</p>
+        </div>
+      </div>
+
+      <!-- Fields -->
+      <div class="mt-6 grid gap-4 sm:grid-cols-2">
+        {% for field in form %}
+          <div class="{% if field.name == 'address' or field.name == 'description' %}sm:col-span-2{% endif %}">
+            <label class="text-xs font-semibold text-slate-700" for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+
+            <div class="mt-2">
+              {{ field }}
             </div>
-            {% endfor %}
-        </div>
-        <button type="submit" class="w-full rounded-xl bg-primary-500 py-2 text-sm font-semibold text-slate-900 shadow-md shadow-primary-500/30 transition hover:bg-primary-400">{% trans 'Sign Up' %}</button>
-        <p class="text-center text-sm text-slate-500">
-            {% trans "Already have an account ?" %}
-            <a href="{% url 'sign-in' %}" class="font-medium text-primary-600 transition hover:text-primary-500">{% trans 'Sign In' %}</a>
-        </p>
+
+            {% if field.help_text %}
+              <p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>
+            {% endif %}
+
+            {% if field.errors %}
+              <p class="mt-1 text-xs font-semibold text-rose-600">
+                {{ field.errors|striptags }}
+              </p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        class="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 py-2.5 text-sm font-semibold text-white
+               shadow-sm hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 4v16m8-8H4" />
+        </svg>
+        {% trans 'Sign Up' %}
+      </button>
+
+      <!-- Footer -->
+      <p class="mt-5 text-center text-sm text-slate-600">
+        {% trans "Already have an account?" %}
+        <a href="{% url 'sign-in' %}" class="font-semibold text-teal-700 hover:text-teal-800">
+          {% trans 'Sign In' %}
+        </a>
+      </p>
     </form>
+
+    <p class="mt-4 text-center text-xs text-slate-500">
+      © {% now "Y" %} {% trans "Inventory Management System" %}
+    </p>
+  </div>
 </div>
+
+<!-- Optional: if your form fields don't already have Tailwind classes, you can style them globally in your form widgets -->
 {% endblock content %}

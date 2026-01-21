@@ -75,6 +75,29 @@ class RegistrationForm(UserCreationForm):
             'password1': _("Password"),
             'password2': _("Confrim Password")
         }
+        username = forms.CharField(
+        label="Username",
+        help_text="",   # 🔥 remove default long text
+        widget=forms.TextInput(attrs={
+            "class": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
+        })
+    )
+
+    password1 = forms.CharField(
+        label="Password",
+        help_text="",   # 🔥 remove default password rules block
+        widget=forms.PasswordInput(attrs={
+            "class": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
+        })
+    )
+
+    password2 = forms.CharField(
+        label="Confirm Password",
+        help_text="",
+        widget=forms.PasswordInput(attrs={
+            "class": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
+        })
+    )
     
     def clean_username(self):
         """check if username already exists"""

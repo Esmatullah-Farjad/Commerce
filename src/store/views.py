@@ -47,6 +47,8 @@ def landing(request):
     return render(request, "landing-page.html")
 
 def Home(request):
+    if not request.user.is_authenticated:
+        return redirect("landing")
     order_products = Products.objects.filter(num_of_packages__lt=10)
     today_date = date.today()
     sales_details = (

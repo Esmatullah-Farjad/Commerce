@@ -3,79 +3,174 @@
 {% load static %}
 {% load custom_filters %}
 {% load jalali_tags %}
+
 {% block dashboard %}
-<div class="space-y-6">
-    <div class="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
-        <h1 class="text-2xl font-semibold text-slate-900">{% trans "Income Page" %}</h1>
-        <p class="text-sm text-slate-500">{% trans "Welcome to the Income Page" %}</p>
+<div class="space-y-4">
+
+  <!-- Header -->
+  <div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+    <div class="flex items-start gap-3">
+      <div class="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 ring-1 ring-inset ring-teal-600/15">
+        <svg class="h-5 w-5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+        </svg>
+      </div>
+
+      <div>
+        <h1 class="text-xl font-semibold text-slate-900 leading-tight">{% trans "Income" %}</h1>
+        <p class="mt-1 text-sm text-slate-600">{% trans "Record other income and review previous entries." %}</p>
+      </div>
     </div>
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        <form action="{% url 'income' %}" method="post" class="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            {% csrf_token %}
-            <div class="grid gap-4 sm:grid-cols-2">
-                <div class="space-y-2">
-                    <label for="date_created" class="text-sm font-medium text-slate-600">{% trans "Date" %}</label>
-                    {{form.date_created}}
-                </div>
-                <div class="space-y-2">
-                    <label for="source" class="text-sm font-medium text-slate-600">{% trans "Source" %}</label>
-                    {{form.source}}
-                </div>
-                <div class="space-y-2 sm:col-span-2">
-                    <label for="Amount" class="text-sm font-medium text-slate-600">{% trans "Amount" %}</label>
-                    {{form.amount}}
-                </div>
+  </div>
+
+  <!-- Layout -->
+  <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
+
+    <!-- Form Card -->
+    <form
+      action="{% url 'income' %}"
+      method="post"
+      class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+    >
+      {% csrf_token %}
+
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-slate-900">{% trans "Add Income Record" %}</h2>
+        <span class="text-xs text-slate-500">{% trans "All fields are saved immediately" %}</span>
+      </div>
+
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <!-- Date -->
+        <div>
+          <label for="date_created" class="text-xs font-semibold text-slate-700">{% trans "Date" %}</label>
+          <div class="mt-2 relative">
+            <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+              <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 7V3m8 4V3M5 11h14M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </span>
+            <div class="[&_.jalali-date-picker]:pl-10">
+              {{ form.date_created }}
             </div>
-            <div class="space-y-2">
-                <label for="Description" class="text-sm font-medium text-slate-600">{% trans "Description" %}</label>
-                {{form.description}}
-            </div>
-            <div>
-                <button type="submit" class="w-full rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans "Save" %}</button>
-            </div>
-        </form>
-        <div class="space-y-4">
-            <div>
-                <p class="text-lg font-semibold text-slate-900">{% trans 'Other Income Records' %}</p>
-                <p class="text-sm text-slate-500">{% trans 'An Overview of the Other Income records' %}</p>
-            </div>
-            <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table class="min-w-full text-left text-sm">
-                    <thead class="bg-slate-900 text-xs uppercase tracking-wide text-primary-100">
-                        <tr>
-                            <th class="px-4 py-3">{% trans 'Date' %}</th>
-                            <th class="px-4 py-3">{% trans 'Source' %}</th>
-                            <th class="px-4 py-3">{% trans 'Amount' %}</th>
-                            <th class="px-4 py-3">{% trans 'Description' %}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for data in other_income %}
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-4 py-3">{{data.date_created}}</td>
-                            <td class="px-4 py-3">{{data.source}}</td>
-                            <td class="px-4 py-3">{{data.amount}}</td>
-                            <td class="px-4 py-3">{{data.description}}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+          </div>
         </div>
+
+        <!-- Source -->
+        <div>
+          <label for="source" class="text-xs font-semibold text-slate-700">{% trans "Source" %}</label>
+          <div class="mt-2">
+            {{ form.source }}
+          </div>
+        </div>
+
+        <!-- Amount -->
+        <div class="sm:col-span-2">
+          <label for="Amount" class="text-xs font-semibold text-slate-700">{% trans "Amount" %}</label>
+          <div class="mt-2 relative">
+            <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-xs font-semibold text-slate-500">
+              AFN
+            </span>
+            <div class="[&_input]:pl-12">
+              {{ form.amount }}
+            </div>
+          </div>
+          <p class="mt-1 text-xs text-slate-500">{% trans "Enter the total income amount." %}</p>
+        </div>
+
+        <!-- Description -->
+        <div class="sm:col-span-2">
+          <label for="Description" class="text-xs font-semibold text-slate-700">{% trans "Description" %}</label>
+          <div class="mt-2">
+            {{ form.description }}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-4 border-t border-slate-100">
+        <button
+          type="submit"
+          class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white
+                 shadow-sm hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 4v16m8-8H4" />
+          </svg>
+          {% trans "Save" %}
+        </button>
+      </div>
+    </form>
+
+    <!-- Records -->
+    <div class="space-y-3">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-semibold text-slate-900">{% trans 'Other Income Records' %}</h2>
+          <p class="mt-1 text-sm text-slate-600">{% trans 'Latest income entries' %}</p>
+        </div>
+
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+          {{ other_income|length }} {% trans 'records' %}
+        </span>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <table class="min-w-full text-left text-sm">
+          <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-700 border-b border-slate-200">
+            <tr>
+              <th class="px-3 py-2.5 whitespace-nowrap">{% trans 'Date' %}</th>
+              <th class="px-3 py-2.5">{% trans 'Source' %}</th>
+              <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans 'Amount' %}</th>
+              <th class="px-3 py-2.5">{% trans 'Description' %}</th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-slate-100 bg-white">
+            {% for data in other_income %}
+            <tr class="hover:bg-slate-50/70">
+              <td class="px-3 py-2.5 whitespace-nowrap text-slate-700">{{ data.date_created }}</td>
+              <td class="px-3 py-2.5 font-medium text-slate-900">{{ data.source }}</td>
+              <td class="px-3 py-2.5 text-right tabular-nums text-slate-900">
+                {{ data.amount }}
+              </td>
+              <td class="px-3 py-2.5 text-slate-700">
+                <span class="line-clamp-2">{{ data.description }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="px-6 py-10">
+                <div class="flex flex-col items-center gap-2 text-center">
+                  <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 ring-1 ring-inset ring-slate-200">
+                    <svg class="h-6 w-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8" />
+                    </svg>
+                  </div>
+                  <p class="text-sm font-semibold text-slate-900">{% trans "No income records yet" %}</p>
+                  <p class="text-xs text-slate-500">{% trans "Add your first income entry using the form." %}</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
+
+  </div>
 </div>
+
 <script>
-    $(document).ready(function () {
-        $(".jalali-date-picker").pDatepicker({
-            format: 'YYYY-MM-DD',  // Set the desired date format
-            calendar: {
-                persian: {
-                    locale: 'fa'  // Set locale to Persian
-                }
-            },
-            autoClose: true,  // Automatically close when a date is selected
-            initialValue: false  // Don't set an initial value
-        });
+  $(document).ready(function () {
+    $(".jalali-date-picker").pDatepicker({
+      format: 'YYYY-MM-DD',
+      calendar: { persian: { locale: 'fa' } },
+      autoClose: true,
+      initialValue: false
     });
+  });
 </script>
 {% endblock dashboard %}
