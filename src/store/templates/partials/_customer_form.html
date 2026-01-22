@@ -1,33 +1,86 @@
 {% load i18n %}
 {% load static %}
+
 {% if form.instance.id %}
-<p class="text-center">
-    <a href="{% url 'old-customer' form.instance.id %}" class="inline-flex items-center justify-center rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">{% trans 'Proceed to Sale' %}</a>
-</p>
-{% else %}
-<form action="{% url 'create-customer' %}" method='post'>
-    {% csrf_token %}
-    <div class="grid gap-4 sm:grid-cols-2">
-        <div class="space-y-2">
-            <label for="{{form.name.id_for_label}}" class="text-sm font-medium text-slate-600">{% trans 'Full Name' %}</label>
-            {{form.name}}
-            <p class="text-xs text-rose-500">{{form.name.errors}}</p>
-        </div>
-        <div class="space-y-2">
-            <label for="{{form.phone.id_for_label}}" class="text-sm font-medium text-slate-600">{% trans 'Phone' %}</label>
-            {{form.phone}}
-            <p class="text-xs text-rose-500">{{form.phone.errors}}</p>
-        </div>
-        <div class="space-y-2 sm:col-span-2">
-            <label for="{{form.address.id_for_label}}" class="text-sm font-medium text-slate-600">{% trans 'Adress' %}</label>
-            {{form.address}}
-            <p class="text-xs text-rose-500">{{form.address.errors}}</p>
-        </div>
-        <div class="sm:col-span-2">
-            <button type="submit" class="w-full rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400">
-                {% trans 'Add Customer & Proceed to Sale' %}
-            </button>
-        </div>
+
+<!-- Existing customer found -->
+<div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+  <div class="flex items-start gap-3">
+    <div class="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 6L9 17l-5-5"></path>
+      </svg>
     </div>
-</form>
+
+    <div class="flex-1">
+      <p class="text-sm font-semibold text-slate-900">{% trans 'Customer found' %}</p>
+      <p class="mt-1 text-sm text-slate-600">
+        {% trans 'This customer already exists. You can proceed to sale.' %}
+      </p>
+
+      <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <a href="{% url 'old-customer' form.instance.id %}"
+           class="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-primary-400 focus:outline-none focus:ring-4 focus:ring-primary-100">
+          {% trans 'Proceed to Sale' %}
+        </a>
+
+        <span class="text-xs text-slate-500">
+          {% trans 'Or change the code to search another customer.' %}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+
+<!-- New customer form -->
+<div class="">
+  <div class="mb-4">
+    <p class="text-sm font-semibold text-slate-900">{% trans 'New customer' %}</p>
+    <p class="mt-1 text-sm text-slate-500">{% trans 'No customer found. Please fill the details below.' %}</p>
+  </div>
+
+  <form action="{% url 'create-customer' %}" method="post" class="space-y-4">
+    {% csrf_token %}
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="space-y-2">
+        <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-slate-700">
+          {% trans 'Full Name' %}
+        </label>
+        {{ form.name }}
+        {% if form.name.errors %}
+          <p class="text-xs text-rose-600">{{ form.name.errors }}</p>
+        {% endif %}
+      </div>
+
+      <div class="space-y-2">
+        <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-slate-700">
+          {% trans 'Phone' %}
+        </label>
+        {{ form.phone }}
+        {% if form.phone.errors %}
+          <p class="text-xs text-rose-600">{{ form.phone.errors }}</p>
+        {% endif %}
+      </div>
+
+      <div class="space-y-2 sm:col-span-2">
+        <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-slate-700">
+          {% trans 'Address' %}
+        </label>
+        {{ form.address }}
+        {% if form.address.errors %}
+          <p class="text-xs text-rose-600">{{ form.address.errors }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <button type="submit"
+            class="w-full rounded-xl bg-teal-500 px-4 py-2 text-sm font-semibold text-slate-100 shadow-sm transition hover:bg-primary-400 focus:outline-none focus:ring-4 focus:ring-primary-100">
+      {% trans 'Add Customer & Proceed to Sale' %}
+    </button>
+  </form>
+</div>
+
 {% endif %}

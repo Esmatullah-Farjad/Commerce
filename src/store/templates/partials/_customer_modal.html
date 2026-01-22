@@ -1,32 +1,110 @@
 {% load static %}
 {% load i18n %}
-<div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
-    <div class="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
-        <div class="space-y-1">
-            <h2 class="text-2xl font-semibold text-slate-900">{% trans 'Customer Details' %}</h2>
-            <p class="text-sm text-slate-500">{% trans 'Please enter the customer details' %}</p>
-        </div>
-        <div class="mt-4 space-y-2">
-            <label for="code" class="text-sm font-medium text-slate-600">{% trans 'Customer Code' %}</label>
-            <input 
-            type="number" 
-            name="code" 
-            id="code" 
-            class="input-field w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200" 
-            placeholder="{% trans 'Enter your customer code' %}"
-            hx-get="{% url 'check-customer' %}"  
-            hx-target="#customer-form"
-            hx-trigger="input"  
-            hx-params="*"/>
-        </div>
-        <form action="{% url 'create-customer' %}" method="POST" class="mt-4">
-            {% csrf_token %}
-            <div class="text-center">
-                <button type="submit" class="rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50" name="ignore">{% trans 'Ignore Customer' %}</button>
-            </div>
-        </form>
-        <div id="customer-form" class="mt-6">
 
-        </div>
+<div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
+  <div class="w-full max-w-2xl overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-200">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+      <div>
+        <h2 class="text-xl sm:text-2xl font-semibold text-slate-900">
+          {% trans 'Customer Details' %}
+        </h2>
+        <p class="mt-1 text-sm text-slate-500">
+          {% trans 'Search by customer code to continue, or create a new customer.' %}
+        </p>
+      </div>
+
+      <!-- Optional close button (if you later add dismiss logic) -->
+      <button type="button"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700">
+        <span class="sr-only">Close</span>
+        ✕
+      </button>
     </div>
+
+    <!-- Body -->
+    <div class="px-4 py-4">
+      <!-- Search box -->
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <label for="code" class="block text-sm font-medium text-slate-700">
+          {% trans 'Customer Code' %}
+        </label>
+
+        <div class="mt-2 flex items-center gap-3">
+          <div class="relative flex-1">
+            <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+              <!-- search icon -->
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 21l-4.35-4.35"></path>
+                <circle cx="11" cy="11" r="7"></circle>
+              </svg>
+            </span>
+
+            <input
+              type="number"
+              name="code"
+              id="code"
+              class="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-100"
+              placeholder="{% trans 'Enter your customer code' %}"
+              hx-get="{% url 'check-customer' %}"
+              hx-target="#customer-form"
+              hx-trigger="input changed delay:350ms"
+              hx-params="*"
+            />
+          </div>
+
+          <!-- Small helper badge -->
+          <span class="hidden sm:inline-flex items-center rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+            {% trans 'Auto-check' %}
+          </span>
+        </div>
+
+        <p class="mt-2 text-xs text-slate-500">
+          {% trans 'Tip: Start typing to instantly check the customer.' %}
+        </p>
+      </div>
+
+      <!-- HTMX Result -->
+      <div class="mt-6">
+        <div class="mb-3 flex items-center justify-between">
+          <p class="text-sm font-semibold text-slate-900">{% trans 'Result' %}</p>
+
+          <!-- Loading state -->
+          <div id="customer-loading"
+               class="hidden items-center gap-2 text-xs text-slate-500"
+               hx-indicator>
+            <span class="h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600"></span>
+            {% trans 'Checking...' %}
+          </div>
+        </div>
+
+        <div id="customer-form" class="rounded-2xl border border-slate-200 bg-white p-4">
+          <p class="text-sm text-slate-500">
+            {% trans 'Enter a customer code above to load details or show the new customer form.' %}
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer actions -->
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <form action="{% url 'create-customer' %}" method="POST" class="w-full sm:w-auto">
+          {% csrf_token %}
+          <button
+            type="submit"
+            name="ignore"
+            class="w-full sm:w-auto rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 shadow-sm transition hover:bg-rose-50 focus:outline-none focus:ring-4 focus:ring-rose-100"
+          >
+            {% trans 'Ignore Customer' %}
+          </button>
+        </form>
+
+        <p class="text-xs text-slate-500">
+          {% trans 'Ignoring will proceed without linking a customer.' %}
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script src="{% static 'js/htmx.min.js' %}"></script>
