@@ -20,7 +20,6 @@ __pycache__/
 db.sqlite3
 /media/
 staticfiles/  # Only ignore if using `collectstatic`
-static/
 .DS_Store
 
 # Ignore secret settings files

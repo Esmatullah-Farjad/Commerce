@@ -1,0 +1,222 @@
+.input-field{
+    width: 100%;
+    height: 34px;
+    border: 1px solid lightgray;
+    outline: none;
+    border-radius: 5px;
+    padding-left: 5px;
+    &:focus{
+        border: 1px solid #0abab5;
+    }
+}
+
+.btn{
+    width: auto;
+    height: 34px;
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor:  pointer;
+    
+}
+.btn-teal{
+    background-color: #0abab5;
+    color: white;
+    font-size: 12px;
+    border: 1px solid #30d5c8;
+    padding: 4px 8px;
+    transition: all 0.3s;
+    &:hover{
+        background-color: teal;
+    }
+}
+.btn-red{
+    background-color: #df1008;
+    color: white;
+    font-size: 12px;
+    border: 1px solid #df1008;
+    padding: 4px 8px;
+    transition: all 0.3s;
+    &:hover{
+        background-color: #a52824;
+    }
+}
+.btn-gray{
+    background-color: rgb(236, 234, 234);
+    color: inherit;
+    font-size: 12px;
+    border: 1px solid rgb(236, 234, 234);
+    padding: 4px 8px;
+    transition: all 0.3s;
+    &:hover{
+        background-color: lightgray;
+    }
+}
+.btn-link{
+    background-color: #0abab5;
+    color: white;
+    font-size: 12px;
+    border: 1px solid #30d5c8;
+    width: 20%;
+    height: 36px;
+}
+
+.btn-gradient{
+    background-image: linear-gradient(135deg, #FF7E5F, #FF6FB4);
+    color: white;
+    margin: 1rem 0rem;
+}
+.field-error-message{
+    padding: 0px;
+    margin: 0px;
+    font-size: 10px;
+    color: rgb(228, 14, 14);
+}
+
+// login form
+.login-form{
+    border: 1px solid orange;
+    border-radius: 5px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 32%;
+    margin: 1rem auto;
+    .heading{
+        text-align: center;
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+        .title{
+            padding:0px;
+            margin:0px;
+        }
+        .text{
+            padding:0px;
+            margin:0px;
+            font-weight: 400;
+            color: gray;
+        }
+    }
+    .label-text{
+        margin-top: 5px;
+        font-size: 14px;
+    }
+    .btn-teal{
+        margin-top: 2rem;
+    }
+}
+// signup form
+.signup-form{
+    width: 35%;
+}
+
+// Purchase form code
+.purchase-form {
+    padding: 2rem;
+}
+
+.form-input-field{
+    width: 100%;
+    height: 34px;
+    border: 1px solid lightgray;
+    outline: none;
+    border-radius: 5px;
+    padding-left: 5px;
+    &:focus{
+        border: 1px solid #0abab5;
+    }
+}
+
+.flex-box-form{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 5px;
+    .field-col{
+        text-align: start;
+        .lable{
+        font-size: 12px;
+        font-weight: 600;
+    }
+    }
+}
+
+.help-text{
+    padding: 0px;
+    margin: 0px;
+    font-weight: 400;
+    color: gray;
+    font-size: 10px;
+    display: inline-block;
+}
+.btn-holder{
+    text-align: center;
+    margin: 1.5rem auto;
+}
+
+.grid-container{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 10px 0px;
+}
+// management page styling
+.sub-container{
+    .card-container{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+        .card{
+            border: 1px solid rgb(248, 247, 247);
+            background-color: rgb(241, 241, 241);
+            border-radius: 4px;
+            padding:  15px 10px;
+            text-align: start;
+            height: 80px;
+            .title{
+                padding: 0px;
+                margin: 0px;
+                font-size: 14px;
+                font-weight: 600;
+                color: gray;
+            }
+            .text{
+                font-weight: 500;
+                color: teal;
+            }
+        }
+    }
+}
+
+.scanner-input-box{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 1rem 0px;
+    .search-input{
+        width: 50%;
+        height: 34px;
+        border: 2px solid lightgray;
+        outline: none;
+        border-radius: 5px;
+        padding-left: 5px;
+        &:focus{
+            border: 2px solid skyblue;
+        }
+    }
+}
+.select-input{
+    width: 100%;
+    height: 34px;
+    border: 1px solid lightgray;
+    outline: none;
+    border-radius: 5px;
+    padding-left: 5px;
+    &:focus{
+        border: 1px solid #0abab5;
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "commerce-tailwind",
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i src/static/styles/tailwind-input.css -o src/static/styles/tailwind.css --minify",
+    "watch:css": "tailwindcss -i src/static/styles/tailwind-input.css -o src/static/styles/tailwind.css --watch"
+  }
+}

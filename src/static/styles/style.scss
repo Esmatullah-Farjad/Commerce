@@ -1,0 +1,52 @@
+/* style.scss */
+
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/static/fonts/Vazirmatn/Vazirmatn-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/static/fonts/Vazirmatn/Vazirmatn-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/static/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/static/fonts/Poppins/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+* {
+  font-family: 'Vazirmatn', sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+a{
+    text-decoration: none;
+    color:#0056b3;
+}
+@import 'layout/common';
+@import 'layout/footer';
+@import 'layout/header';
+
+// components styling
+@import 'component/button';
+@import 'component/table';
+// variable
+@import 'component/variable';
+// form element
+
+@import 'component/form';

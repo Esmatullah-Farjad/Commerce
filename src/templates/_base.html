@@ -9,6 +9,7 @@
         {% block title %}
         {% endblock title %}
     </title>
+    <link rel="stylesheet" href="{% static 'styles/tailwind.css' %}">
     <style>
         @font-face {
             font-family: "Vazirmatn";
@@ -80,30 +81,6 @@
             }
         }
     </style>
-    <script>
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: "#ecfdfb",
-                            100: "#d1faf4",
-                            200: "#a7f3ea",
-                            300: "#5eead4",
-                            400: "#2dd4bf",
-                            500: "#14b8a6",
-                            600: "#0d9488",
-                            700: "#0f766e",
-                            800: "#115e59",
-                            900: "#134e4a"
-                        }
-                    }
-                }
-            }
-        };
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-white text-slate-900 antialiased">
     <div id="app-shell" class="relative min-h-screen">
@@ -187,3 +164,6 @@
     </script>
 </body>
 </html>
+
+
+{% comment %} Run npm install, then npm run build:css to generate tailwind.css (this is the file the template now loads). {% endcomment %}
