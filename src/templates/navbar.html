@@ -97,14 +97,13 @@
                     </svg>
                 </summary>
                 <div class="mt-2 space-y-1 pl-3 text-sm">
+                    <p class="px-3 pt-2 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-400">{% trans "Overview" %}</p>
                     <a href="{% url 'summary' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/summary' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
                         <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
-                        {% trans "Sales Overview" %}
+                        {% trans "Sales Summary" %}
                     </a>
-                    <a href="{% url 'base-unit' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/base-unit' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
-                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
-                        {% trans "Base Unit Settings" %}
-                    </a>
+
+                    <p class="px-3 pt-3 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-400">{% trans "Finance" %}</p>
                     <a href="{% url 'income' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/income' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
                         <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
                         {% trans "Income" %}
@@ -113,6 +112,8 @@
                         <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
                         {% trans "Expense" %}
                     </a>
+
+                    <p class="px-3 pt-3 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-400">{% trans "Operations" %}</p>
                     <a href="{% url 'returned' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/returned' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
                         <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
                         {% trans "Return Items" %}
@@ -120,6 +121,10 @@
                     <a href="{% url 'customer' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/customer' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
                         <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
                         {% trans "Customer Overview" %}
+                    </a>
+                    <a href="{% url 'base-unit' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/base-unit' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
+                        {% trans "Base Unit Settings" %}
                     </a>
                     <a href="{% url 'stock-management' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/stock' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
                         <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>

@@ -1,0 +1,215 @@
+{% extends 'dashboard/dashboard-view.html' %}
+{% load i18n %}
+{% load static %}
+{% load custom_filters %}
+
+{% block dashboard %}
+
+<!-- Header -->
+<div class="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm mb-6">
+  <div class="flex items-start gap-3">
+    <div class="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 ring-1 ring-inset ring-teal-600/15">
+      <svg class="h-5 w-5 text-teal-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+
+    <div>
+      <h1 class="text-xl font-semibold text-slate-900 leading-tight">{% trans 'Customers Billing Account' %}</h1>
+      <p class="mt-1 text-sm text-slate-600">{% trans 'Review customer account and process the payment.' %}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Main card -->
+<div class="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
+
+  <!-- Customer Info -->
+  <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900">{% trans "Customer Bill" %}</h2>
+      <p class="text-sm text-gray-500">{% trans "Account summary & payment" %}</p>
+    </div>
+
+    <div class="text-sm text-gray-700">
+      <div class="font-semibold text-gray-900">{{ customer.name }}</div>
+      {% if customer.phone %}
+        <div>{% trans "Phone" %}: <span class="text-gray-600">{{ customer.phone }}</span></div>
+      {% endif %}
+      {% if customer.address %}
+        <div>{% trans "Address" %}: <span class="text-gray-600">{{ customer.address }}</span></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="rounded-xl border border-gray-200 p-4">
+      <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Total" %}</div>
+      <div class="mt-1 text-lg font-semibold text-gray-900">{{ total_amount }}</div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 p-4">
+      <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Paid" %}</div>
+      <div class="mt-1 text-lg font-semibold text-gray-900">{{ total_paid }}</div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 p-4">
+      <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Unpaid" %}</div>
+      <div class="mt-1 text-lg font-semibold {% if total_due > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+        {{ total_due }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sales table -->
+  <div class="space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="text-base font-semibold text-gray-900">{% trans "Sales Details" %}</h3>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl border border-gray-200">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+          <tr>
+            <th class="px-4 py-3 text-left font-medium">#</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Invoice" %}</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Date" %}</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Total" %}</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Paid" %}</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Unpaid" %}</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Due" %}</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Status" %}</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-gray-200">
+          {% for s in sales_details %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-3 text-gray-700">{{ forloop.counter }}</td>
+              <td class="px-4 py-3 text-gray-900 font-medium">
+                {{ s.invoice_no|default:s.id }}
+              </td>
+              <td class="px-4 py-3 text-gray-700">{{ s.date|date:"Y-m-d" }}</td>
+              <td class="px-4 py-3 text-gray-700">{{ s.total_amount }}</td>
+              <td class="px-4 py-3 text-gray-700">{{ s.paid_amount }}</td>
+              <td class="px-4 py-3 text-gray-700">{{ s.unpaid_amount }}</td>
+              <td class="px-4 py-3 font-medium {% if s.unpaid_amount > 0 %}text-red-600{% else %}text-gray-700{% endif %}">
+                {{ s.unpaid_amount }}
+              </td>
+              <td class="px-4 py-3">
+                {% if s.unpaid_amount and s.unpaid_amount != "0" %}
+                  <span class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-200">
+                    {% trans "Unpaid" %}
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-200">
+                    {% trans "Paid" %}
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="px-4 py-10 text-center text-gray-500">
+                {% trans "No sales found for this customer." %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Payment box -->
+<div class="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5">
+  {% if total_due > 0 %}
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h3 class="text-base font-semibold text-gray-900">{% trans "Pay Unpaid Amount" %}</h3>
+        <p class="text-sm text-gray-600">{% trans "Submit a payment to reduce the outstanding balance." %}</p>
+      </div>
+
+      <span class="inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-200">
+        {% trans "Balance" %}: {{ total_due }}
+      </span>
+    </div>
+
+    <form method="post" action="{% url 'create-payment' customer.id %}" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      {% csrf_token %}
+
+      <!-- Show the current balance read-only (not part of form) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Unpaid Balance" %}</label>
+        <input
+          type="text"
+          value="{{ total_due }}"
+          readonly
+          class="w-full rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 text-gray-700 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.payment_amount.label }}
+        </label>
+        {{ form.payment_amount }}
+        {% if form.payment_amount.errors %}
+          <p class="mt-1 text-xs text-red-600">{{ form.payment_amount.errors|striptags }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.payment_method.label }}
+        </label>
+        {{ form.payment_method }}
+        {% if form.payment_method.errors %}
+          <p class="mt-1 text-xs text-red-600">{{ form.payment_method.errors|striptags }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.note.label }}
+        </label>
+        {{ form.note }}
+        {% if form.note.errors %}
+          <p class="mt-1 text-xs text-red-600">{{ form.note.errors|striptags }}</p>
+        {% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="md:col-span-2">
+          <p class="text-sm text-red-600">{{ form.non_field_errors|striptags }}</p>
+        </div>
+      {% endif %}
+
+      <div class="md:col-span-2 flex items-center justify-end gap-3 pt-2">
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+        >
+          {% trans "Submit Payment" %}
+        </button>
+      </div>
+    </form>
+
+  {% else %}
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h3 class="text-base font-semibold text-gray-900">{% trans "Payment Status" %}</h3>
+        <p class="text-sm text-gray-600">{% trans "All invoices are fully paid." %}</p>
+      </div>
+
+      <span class="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-200">
+        {% trans "Paid" %} ✅
+      </span>
+    </div>
+  {% endif %}
+</div>
+
+
+</div>
+
+{% endblock dashboard %}

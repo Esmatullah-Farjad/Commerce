@@ -15,12 +15,11 @@ from decimal import Decimal
 
 
 from store.filters import ProductsFilter, SalesDetailsFilter
-from .models import BaseUnit, Category, Customer, ExchangeRate, OtherIncome, Products, SalesDetails, SalesProducts
-from .forms import BaseUnitForm, CustomerForm, ExchangeRateForm, OtherIncomeForm, PurchaseForm, RegistrationForm
-from .models import Category, Products
-from .forms import PurchaseForm, RegistrationForm
+from .models import BaseUnit, Category, Customer, ExchangeRate, OtherIncome, Expense, Products, SalesDetails, SalesProducts
+from .forms import BaseUnitForm, CustomerForm, CustomerPaymentForm, ExchangeRateForm, OtherIncomeForm, ExpenseForm, PurchaseForm, RegistrationForm
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import authenticate, login, logout
+import jdatetime
 
 
 import json
@@ -577,37 +576,99 @@ def income(request):
     return render(request, 'partials/management/_income-view.html', context)
 
 def expense(request):
-    return render(request, 'partials/management/_expense-view.html')
+    form = ExpenseForm()
+    today_date = date.today()
+    expenses = Expense.objects.filter(date_created=today_date).order_by('-id')
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Expense has been added successfully"))
+        else:
+            messages.error(request, _("Something went wrong. Please try again"))
+    context = {
+        'form': form,
+        'expenses': expenses
+    }
+    return render(request, 'partials/management/_expense-view.html', context)
 
 def summary(request):
     sales = SalesDetails.objects.all().order_by('-created_at')
     sales_filter = SalesDetailsFilter(request.GET, queryset=sales)
-    print(request.GET)
-    totals = sales.aggregate(
-    total_paid_amount=Sum('paid_amount'),
-    total_unpaid_amount=Sum('unpaid_amount'),
-    total_sale_value=Sum(
+    filtered_sales = sales_filter.qs
+    totals = filtered_sales.aggregate(
+        total_paid_amount=Sum('paid_amount'),
+        total_unpaid_amount=Sum('unpaid_amount'),
+        total_sale_value=Sum(
             ExpressionWrapper(
                 F('paid_amount') + F('unpaid_amount'),
                 output_field=DecimalField()
             )
         )
     )
+    total_customers = filtered_sales.aggregate(
+        total_customer=Count('customer', distinct=True)
+    )
+
+    def _parse_jalali_date(value):
+        try:
+            year, month, day = map(int, value.split('-'))
+            jalali_date = jdatetime.date(year, month, day)
+            return jalali_date.togregorian()
+        except Exception:
+            return None
+
+    from_date = _parse_jalali_date(request.GET.get('from_date', ''))
+    to_date = _parse_jalali_date(request.GET.get('to_date', ''))
+
+    income_qs = OtherIncome.objects.all()
+    expense_qs = Expense.objects.all()
+
+    if from_date:
+        income_qs = income_qs.filter(date_created__gte=from_date)
+        expense_qs = expense_qs.filter(date_created__gte=from_date)
+    if to_date:
+        income_qs = income_qs.filter(date_created__lte=to_date)
+        expense_qs = expense_qs.filter(date_created__lte=to_date)
+
+    income_totals = income_qs.aggregate(total_amount=Sum('amount'))
+    expense_totals = expense_qs.aggregate(total_amount=Sum('amount'))
 
     # Access values
     total_paid = totals['total_paid_amount'] or 0
     total_unpaid = totals['total_unpaid_amount'] or 0
     total_value = totals['total_sale_value'] or 0
+    total_customer = total_customers['total_customer'] or 0
+    total_income = income_totals['total_amount'] or 0
+    total_expense = expense_totals['total_amount'] or 0
+    net_balance = total_income - total_expense
     context= {
-        "sales":sales,
+        "sales": filtered_sales,
         "filter":sales_filter,
         "total_paid": total_paid,
         "total_unpaid": total_unpaid,
-        "total_value" :total_value
+        "total_value" :total_value,
+        "total_customer": total_customer,
+        "total_income": total_income,
+        "total_expense": total_expense,
+        "net_balance": net_balance,
     }
     return render(request, 'partials/management/_summary-view.html',context)
 def returned(request):
-    return render(request, 'partials/management/_return-view.html')
+    bill_query = request.GET.get('bill')
+    customer_query = request.GET.get('customer')
+    sales = SalesDetails.objects.select_related('customer').order_by('-created_at')
+    if bill_query:
+        sales = sales.filter(bill_number__icontains=bill_query)
+    if customer_query:
+        sales = sales.filter(customer__name__icontains=customer_query)
+    recent_sales = sales[:30]
+    context = {
+        "recent_sales": recent_sales,
+        "bill_query": bill_query or "",
+        "customer_query": customer_query or "",
+    }
+    return render(request, 'partials/management/_return-view.html', context)
 
 def base_unit(request):
     form = BaseUnitForm()
@@ -738,9 +799,90 @@ def customer(request):
 def sales_dashboard(request):
     return redirect('summary')
 
+
+
+
 def create_payment(request, cid):
     customer = get_object_or_404(Customer, pk=cid)
-    pass
+
+    sales_details = (
+        SalesDetails.objects
+        .filter(customer=customer)
+        .order_by("-id")
+    )
+
+    # totals for UI + payment box
+    totals = sales_details.aggregate(
+        total_amount=Sum("total_amount"),
+        total_paid=Sum("paid_amount"),
+        total_unpaid=Sum("unpaid_amount"),
+    )
+    total_amount = int(totals["total_amount"] or 0)
+    total_paid = int(totals["total_paid"] or 0)
+    total_due = int(totals["total_unpaid"] or 0)
+
+    if request.method == "POST":
+        form = CustomerPaymentForm(request.POST)
+        if form.is_valid():
+            paid_amount = int(form.cleaned_data["payment_amount"])
+
+            if paid_amount <= 0:
+                messages.error(request, "Payment amount must be greater than 0.")
+                return redirect("create-payment", cid=customer.id)
+
+            with transaction.atomic():
+                # Save payment + attach customer
+                payment = form.save(commit=False)
+                payment.customer = customer
+                payment.save()
+
+                # Lock and update the LAST SalesDetails record only (overall unpaid stored there)
+                last_sale = (
+                    SalesDetails.objects
+                    .select_for_update()
+                    .filter(customer=customer)
+                    .order_by("-id")
+                    .first()
+                )
+
+                if not last_sale:
+                    messages.error(request, "No sales record found for this customer.")
+                    return redirect("create-payment", cid=customer.id)
+
+                current_unpaid = int(last_sale.unpaid_amount or 0)
+
+                if paid_amount > current_unpaid:
+                    messages.error(request, f"Payment cannot be greater than unpaid amount ({current_unpaid}).")
+                    return redirect("create-payment", cid=customer.id)
+
+                last_sale.unpaid_amount = current_unpaid - paid_amount
+
+                # Optional: also increase paid_amount on last_sale (if you use it)
+                if last_sale.paid_amount is None:
+                    last_sale.paid_amount = 0
+                last_sale.paid_amount = int(last_sale.paid_amount) + paid_amount
+
+                last_sale.save(update_fields=["unpaid_amount", "paid_amount"])
+
+            messages.success(request, "Customer payment added successfully.")
+            return redirect("create-payment", cid=customer.id)
+    else:
+        form = CustomerPaymentForm()
+
+    context = {
+        "customer": customer,
+        "sales_details": sales_details,
+        "total_amount": total_amount,
+        "total_paid": total_paid,
+        "total_due": total_due,
+        "has_unpaid": total_due > 0,
+        "form": form,
+    }
+    return render(request, "partials/management/_customer-account.html", context)
+
+
+
+
 
 
 # Bar code scanner view

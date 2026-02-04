@@ -1,5 +1,5 @@
 from django import forms
-from .models import BaseUnit, ExchangeRate, OtherIncome, Products, Customer
+from .models import BaseUnit, CustomerPayment, ExchangeRate, OtherIncome, Products, Customer, Expense
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
@@ -156,6 +156,30 @@ class OtherIncomeForm(forms.ModelForm):
             visible.field.widget.attrs['placeholder'] = _(visible.field.label)
 
 
+class ExpenseForm(forms.ModelForm):
+    class Meta:
+        model = Expense
+        fields = "__all__"
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super(ExpenseForm, self).__init__(*args, **kwargs)
+        self.fields['date_created'].widget = forms.DateInput(
+                attrs={
+                    'type': 'date',
+                    'class': BASE_INPUT_CLASSES,
+                }
+            )
+        if 'date_created' in self.fields:
+            self.fields['date_created'].widget.attrs.update({
+                'class': f"jalali-date-picker {BASE_INPUT_CLASSES}",
+                'autocomplete': 'off',
+            })
+        for visible in self.visible_fields():
+            apply_tailwind_classes(visible.field)
+            visible.field.widget.attrs['placeholder'] = _(visible.field.label)
+
+
 class BaseUnitForm(forms.ModelForm):
     class Meta:
         model = BaseUnit
@@ -167,3 +191,16 @@ class BaseUnitForm(forms.ModelForm):
         for visible in self.visible_fields():
             apply_tailwind_classes(visible.field)
             visible.field.widget.attrs['placeholder'] = _(visible.field.label)
+
+class CustomerPaymentForm(forms.ModelForm):
+    class Meta:
+        model = CustomerPayment
+        fields = ["payment_amount", "payment_method", "note"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        base = "w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+        self.fields["payment_amount"].widget.attrs.update({"class": base, "min": "1"})
+        self.fields["payment_method"].widget.attrs.update({"class": base})
+        self.fields["note"].widget.attrs.update({"class": base, "rows": 2})

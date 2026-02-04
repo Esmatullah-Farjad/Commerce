@@ -158,3 +158,27 @@ class Expense(models.Model):
 
     def __str__(self):
         return self.category
+    
+class CustomerPayment(models.Model):
+    PAYMENT_METHOD = [
+        ('cash', 'Cash'),
+        ('bank_transfer', 'Bank Transfer'),
+        ('hesab_pay', 'Hesab Pay'),
+        ('hawala', 'Hawala'),
+    ]
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.SET_NULL,   
+        null=True,                   
+        blank=True,
+        related_name='payments'
+    )
+    payment_amount = models.IntegerField()
+    payment_method = models.CharField(max_length=255, choices=PAYMENT_METHOD, default='cash')
+    note = models.TextField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        customer_name = self.customer.name if self.customer else "Deleted Customer"
+        return f"{customer_name} - {self.get_payment_method_display()} - {self.payment_amount}"
