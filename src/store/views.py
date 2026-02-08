@@ -15,9 +15,10 @@ from decimal import Decimal
 
 
 from store.filters import ProductsFilter, SalesDetailsFilter
-from .models import BaseUnit, Category, Customer, ExchangeRate, OtherIncome, Expense, Products, SalesDetails, SalesProducts
+from .models import BaseUnit, Branch, BranchMember, BranchStock, Category, Customer, ExchangeRate, OtherIncome, Expense, Products, SalesDetails, SalesProducts, Store, Tenant, TenantMember
 from .forms import BaseUnitForm, CustomerForm, CustomerPaymentForm, ExchangeRateForm, OtherIncomeForm, ExpenseForm, PurchaseForm, RegistrationForm
 from django.utils.translation import gettext_lazy as _
+from django.utils.text import slugify
 from django.contrib.auth import authenticate, login, logout
 import jdatetime
 
@@ -26,6 +27,30 @@ import json
 from django.http import HttpResponse, JsonResponse
 
 # Create your views here.
+def _active_tenant(request):
+    return getattr(request, "tenant", None)
+
+def _active_branch(request):
+    return getattr(request, "branch", None)
+
+def _apply_branch_stock(products, branch):
+    if not products or not branch:
+        return
+    product_ids = [p.id for p in products]
+    stock_map = {
+        stock.product_id: stock
+        for stock in BranchStock.objects.filter(branch=branch, product_id__in=product_ids)
+    }
+    for product in products:
+        stock = stock_map.get(product.id)
+        if stock:
+            product.stock = stock.stock
+            product.num_of_packages = stock.num_of_packages
+            product.num_items = stock.num_items
+        else:
+            product.stock = 0
+            product.num_of_packages = 0
+            product.num_items = 0
 def switch_language(request, lang_code):
     if lang_code in dict(settings.LANGUAGES):  # ✅ Ensure the language is valid
         activate(lang_code)
@@ -48,11 +73,17 @@ def landing(request):
 def Home(request):
     if not request.user.is_authenticated:
         return redirect("landing")
-    order_products = Products.objects.filter(num_of_packages__lt=10)
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    order_products = (
+        Products.objects
+        .filter(tenant=tenant, branch_stocks__branch=branch, branch_stocks__num_of_packages__lt=10)
+        .distinct()
+    )
     today_date = date.today()
     sales_details = (
         SalesDetails.objects
-        .filter(user=request.user, created_at__date=today_date)
+        .filter(tenant=tenant, branch=branch, user=request.user, created_at__date=today_date)
         .aggregate(
             total_sale=Sum('total_amount'),
             total_paid=Sum('paid_amount'),
@@ -63,7 +94,12 @@ def Home(request):
     
     top_packages = (
         SalesProducts.objects
-        .filter(sale_detail__user=request.user, sale_detail__created_at__date=today_date)
+        .filter(
+            sale_detail__tenant=tenant,
+            sale_detail__branch=branch,
+            sale_detail__user=request.user,
+            sale_detail__created_at__date=today_date,
+        )
         .values('product__name','product__category__name')  # Group by product name
         .annotate(total_package_qty=Sum('package_qty'))  # Calculate total package quantity for each product
         .order_by('-total_package_qty')[:10]  # Order by total package quantity in descending order
@@ -83,8 +119,17 @@ def signin(request):
         if user is not None:
             login(request, user)
             messages.success(request, _("Welcome !"))
-            return redirect('home')
+            return redirect('select-tenant')
         else:
+            try:
+                from django.contrib.auth import get_user_model
+                UserModel = get_user_model()
+                existing = UserModel.objects.filter(email=email).first() or UserModel.objects.filter(username=email).first()
+                if existing and not existing.is_active:
+                    messages.error(request, _("Your account is inactive. Please contact an admin for activation."))
+                    return render(request, 'auth/login.html')
+            except Exception:
+                pass
             messages.error(request, _("Invalid username or password"))
     return render(request, 'auth/login.html')
 
@@ -93,7 +138,38 @@ def signup(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+
+            client_name = form.cleaned_data.get("client_name")
+            store_name = form.cleaned_data.get("store_name")
+            branch_name = form.cleaned_data.get("branch_name")
+            branch_address = form.cleaned_data.get("branch_address") or ""
+
+            base_slug = slugify(client_name) or "client"
+            slug = base_slug
+            counter = 1
+            while Tenant.objects.filter(slug=slug).exists():
+                counter += 1
+                slug = f"{base_slug}-{counter}"
+
+            tenant = Tenant.objects.create(name=client_name, slug=slug, is_active=True)
+            store = Store.objects.create(tenant=tenant, name=store_name)
+            branch = Branch.objects.create(store=store, name=branch_name, address=branch_address)
+
+            TenantMember.objects.get_or_create(
+                tenant=tenant,
+                user=user,
+                defaults={"role": "owner", "is_owner": True},
+            )
+            BranchMember.objects.get_or_create(
+                branch=branch,
+                user=user,
+                defaults={"role": "admin"},
+            )
+            messages.success(request, _("Account created. Your account is pending admin activation."))
+            return redirect("sign-in")
             messages.success(request, _("The user has been registered successfully"))
             
         else:
@@ -101,7 +177,7 @@ def signup(request):
            
     register_form = form
     context = {
-        'form':register_form
+        'form':register_form,
     }
     return render(request, 'auth/register.html', context)
 
@@ -109,13 +185,92 @@ def signout(request):
     logout(request) 
     return redirect('sign-in') 
 
+
+def select_tenant(request):
+    if not request.user.is_authenticated:
+        return redirect("sign-in")
+
+    memberships = (
+        TenantMember.objects
+        .select_related("tenant")
+        .filter(user=request.user, tenant__is_active=True)
+        .order_by("tenant__name")
+    )
+    tenants = [m.tenant for m in memberships]
+
+    if request.method == "POST":
+        tenant_id = request.POST.get("tenant_id")
+        allowed = next((m for m in memberships if str(m.tenant_id) == str(tenant_id)), None)
+        if not allowed:
+            messages.error(request, _("Invalid tenant selection."))
+            return redirect("select-tenant")
+        tenant_id = allowed.tenant_id
+
+        request.session["active_tenant_id"] = tenant_id
+        request.session.pop("active_branch_id", None)
+        request.session.pop("cart", None)
+        request.session.pop("customer", None)
+
+        branches = Branch.objects.filter(store__tenant_id=tenant_id, is_active=True)
+        if branches.count() == 1:
+            request.session["active_branch_id"] = branches.first().id
+            return redirect("home")
+
+        return redirect("select-branch")
+
+    context = {
+        "tenants": tenants,
+    }
+    return render(request, "tenancy/select_tenant.html", context)
+
+
+def select_branch(request):
+    if not request.user.is_authenticated:
+        return redirect("sign-in")
+
+    tenant_id = request.session.get("active_tenant_id")
+    if not tenant_id:
+        return redirect("select-tenant")
+    if not TenantMember.objects.filter(user=request.user, tenant_id=tenant_id).exists():
+        request.session.pop("active_tenant_id", None)
+        return redirect("select-tenant")
+
+    member_branch_ids = (
+        BranchMember.objects
+        .filter(user=request.user, branch__store__tenant_id=tenant_id)
+        .values_list("branch_id", flat=True)
+    )
+    if member_branch_ids.exists():
+        branches = Branch.objects.filter(id__in=list(member_branch_ids), is_active=True).select_related("store")
+    else:
+        branches = Branch.objects.filter(store__tenant_id=tenant_id, is_active=True).select_related("store")
+
+    if request.method == "POST":
+        branch_id = request.POST.get("branch_id")
+        branch = branches.filter(id=branch_id).first()
+        if not branch:
+            messages.error(request, _("Invalid branch selection."))
+            return redirect("select-branch")
+
+        request.session["active_branch_id"] = branch.id
+        request.session.pop("cart", None)
+        request.session.pop("customer", None)
+        return redirect("home")
+
+    context = {
+        "branches": branches,
+    }
+    return render(request, "tenancy/select_branch.html", context)
+
 # views.py
 
 
 def purchase(request):
-    form = PurchaseForm()
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    form = PurchaseForm(tenant=tenant)
     if request.method == 'POST':
-        form = PurchaseForm(request.POST, request.FILES)
+        form = PurchaseForm(request.POST, request.FILES, tenant=tenant)
 
         if form.is_valid():
             cd = form.cleaned_data
@@ -127,7 +282,7 @@ def purchase(request):
 
             # Calculate USD equivalent of AFN sale price (for USD products)
             usd_package_sale_price = None
-            rate = ExchangeRate.objects.last()
+            rate = ExchangeRate.objects.filter(tenant=tenant).last()
             usd_rate = rate.usd_to_afn if rate else Decimal('1')
 
             if purchase_unit and purchase_unit.code.lower() == 'usd':
@@ -136,30 +291,44 @@ def purchase(request):
             # Basic calculations
             total_package_price = Decimal(package_purchase_price) * num_of_packages
             stock = package_contain * num_of_packages
+            num_items = stock % package_contain
             item_sale_price = round(Decimal(package_sale_price_afn) / package_contain, 2)
 
             product = form.save(commit=False)
             product.total_package_price = total_package_price
             product.stock = stock
+            product.num_of_packages = num_of_packages
+            product.num_items = num_items
             product.item_sale_price = item_sale_price
             product.usd_package_sale_price = usd_package_sale_price
-            product.user = request.user
+            product.tenant = tenant
             product.save()
+
+            BranchStock.objects.update_or_create(
+                branch=branch,
+                product=product,
+                defaults={
+                    "stock": stock,
+                    "num_of_packages": num_of_packages,
+                    "num_items": num_items,
+                },
+            )
 
             messages.success(request, "Product added successfully!")
             return redirect('purchase')
         else:
             messages.error(request, f"Something went wrong. Please fix the below errors: {form.errors}")
 
-    purchase = Products.objects.all().order_by('-id')
+    purchase = Products.objects.filter(tenant=tenant).order_by('-id')
 
     # Pagination
     p = Paginator(purchase, 14)
     page_number = request.GET.get('page')
     page_obj = p.get_page(page_number or 1)
+    _apply_branch_stock(list(page_obj.object_list), branch)
 
     context = {
-        'category': Category.objects.all(),
+        'category': Category.objects.filter(tenant=tenant),
         'page_obj': page_obj,
         'num': range(1, 100),
         'form': form
@@ -169,7 +338,9 @@ def purchase(request):
 
 
 def products_display(request):
-    product = Products.objects.all().order_by('-id')
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    product = Products.objects.filter(tenant=tenant).order_by('-id')
     p = Paginator(product, 14)
     page_number = request.GET.get('page')
     try:
@@ -179,15 +350,17 @@ def products_display(request):
     except EmptyPage:
         page_obj = p.page(p.num_pages)
     # paginator end
+    _apply_branch_stock(list(page_obj.object_list), branch)
     context = {'page_obj':page_obj,'flag':'list'}
     return render(request, 'purchase/product.html', context)
 
 def update_products(request, pid):
-    product = get_object_or_404(Products, pk=pid)
+    tenant = _active_tenant(request)
+    product = get_object_or_404(Products, pk=pid, tenant=tenant)
 
-    form = PurchaseForm(instance=product)
+    form = PurchaseForm(instance=product, tenant=tenant)
     if request.method == 'POST':
-        form = PurchaseForm(request.POST, request.FILES, instance=product)
+        form = PurchaseForm(request.POST, request.FILES, instance=product, tenant=tenant)
         if form.is_valid():
             package_purchase_price = form.cleaned_data['package_purchase_price']
             package_contain = form.cleaned_data.get('package_contain')
@@ -216,22 +389,26 @@ def update_products(request, pid):
     return render(request, 'purchase/purchase.html', context)
 
 def delete_products(request, pid):
-    product = get_object_or_404(Products, pk=pid)
+    tenant = _active_tenant(request)
+    product = get_object_or_404(Products, pk=pid, tenant=tenant)
     if product:
         product.delete()
         messages.success(request, _("Product deleted successfully"))
     return redirect("products_display")
 
 def products_view(request):
-    categories = Category.objects.all()
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    categories = Category.objects.filter(tenant=tenant)
     customer = request.session.get('customer', {})
     customer_list = []
-    products_queryset = Products.objects.select_related('category')
+    products_queryset = Products.objects.filter(tenant=tenant).select_related('category')
 
     products_filter = ProductsFilter(
         request.GET,
         request=request,
-        queryset=products_queryset
+        queryset=products_queryset,
+        tenant=tenant,
     )
 
     # Handle session customer data
@@ -242,8 +419,10 @@ def products_view(request):
     # paginator = Paginator(products_filter.qs, 10)  # Show 10 products per page
     # page_number = request.GET.get('page')
     # page_obj = paginator.get_page(page_number)
+    products = list(products_filter.qs)
+    _apply_branch_stock(products, branch)
     context = {
-        'products': products_filter.qs,
+        'products': products,
         'categories': categories,
         'filter_form': products_filter,
         'customer': customer_list
@@ -251,9 +430,10 @@ def products_view(request):
     return render(request, 'sale/product_view.html', context)
 
 def check_customer(request):
+    tenant = _active_tenant(request)
     code = request.GET.get("code")
     try:
-        existing_customer = Customer.objects.get(id=code)
+        existing_customer = Customer.objects.get(id=code, tenant=tenant)
         customer_session = request.session.get('customer', {})
         customer_session[existing_customer.id] = existing_customer.name
         request.session['customer'] = customer_session
@@ -263,13 +443,15 @@ def check_customer(request):
     return render(request, "partials/_customer_form.html", {"form": form})
 
 def create_customer(request):
+    tenant = _active_tenant(request)
     form = CustomerForm()
     if request.method == 'POST':
         if 'ignore' in request.POST:
             customer, created = Customer.objects.get_or_create(
-            name="متفرقه",
-            phone="0000000",  # Put phone in quotes if it's a CharField
-            defaults={"address": "------"}
+                tenant=tenant,
+                name="متفرقه",
+                phone="0000000",  # Put phone in quotes if it's a CharField
+                defaults={"address": "------"},
             )
 
             existing_customer = get_object_or_404(Customer, pk=customer.id)
@@ -281,8 +463,9 @@ def create_customer(request):
         else:
             form = CustomerForm(request.POST)
             if form.is_valid():
-               
-                new_customer = form.save()
+                new_customer = form.save(commit=False)
+                new_customer.tenant = tenant
+                new_customer.save()
                 # Add to session
                 customer_session = request.session.get('customer', {})
                 customer_session[new_customer.id] = new_customer.name
@@ -304,7 +487,8 @@ def create_customer(request):
     return render(request, 'sale/product_view.html', context)
 
 def old_customer(request, pk):
-    customer = get_object_or_404(Customer, pk=pk)
+    tenant = _active_tenant(request)
+    customer = get_object_or_404(Customer, pk=pk, tenant=tenant)
     customer_session = request.session.get('customer', {})
     customer_session[customer.id] = customer.name
     request.session['customer'] = customer_session
@@ -312,11 +496,15 @@ def old_customer(request, pk):
     return redirect('products-view')
 
 def search_products(request):
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
     search = request.GET.get('search')
-    products = Products.objects.select_related('category')
+    products = Products.objects.filter(tenant=tenant).select_related('category')
     product_list = (
         products.filter(category__name__istartswith=search) | products.filter(name__istartswith=search)
     )
+    product_list = list(product_list)
+    _apply_branch_stock(product_list, branch)
     context = {
         'products':product_list
     }
@@ -356,7 +544,8 @@ def add_to_cart(request):
         package_price = data.get('package_price', 0)
 
         # Validate product existence
-        product = Products.objects.filter(id=product_id).first()
+        tenant = _active_tenant(request)
+        product = Products.objects.filter(id=product_id, tenant=tenant).first()
         if not product:
             return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
 
@@ -382,7 +571,9 @@ def safe_int(value, default=0):
         return default
 
 def print_invoice(request, sales_id):
-    sales_details = get_object_or_404(SalesDetails, bill_number=sales_id)
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    sales_details = get_object_or_404(SalesDetails, bill_number=sales_id, tenant=tenant, branch=branch)
     
     sales_product = SalesProducts.objects.filter(sale_detail=sales_details)
 
@@ -397,11 +588,13 @@ def print_invoice(request, sales_id):
     return render(request, 'partials/_print_invoice.html', context)
 
 def cart_view(request):
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
     # Retrieve cart and customer from session
     cart = request.session.get('cart', {})
     customer_session = request.session.get('customer', {})
     cart_details = []
-    product_update_stock = []
+    stock_updates = []
     grand_total = 0
     pre_unpaid_amount = 0
     total = 0
@@ -411,8 +604,18 @@ def cart_view(request):
 
     # Fetch all products at once
     product_ids = [item['product_id'] for item in cart.values()]
-    products = Products.objects.filter(pk__in=product_ids).select_related()
+    products = Products.objects.filter(pk__in=product_ids, tenant=tenant).select_related()
     product_mapping = {product.id: product for product in products}
+    branch_stocks = BranchStock.objects.filter(branch=branch, product_id__in=product_ids)
+    stock_mapping = {stock.product_id: stock for stock in branch_stocks}
+    missing_ids = [pid for pid in product_ids if pid not in stock_mapping]
+    if missing_ids:
+        BranchStock.objects.bulk_create(
+            [BranchStock(branch=branch, product_id=pid, stock=0, num_of_packages=0, num_items=0) for pid in missing_ids],
+            ignore_conflicts=True,
+        )
+        branch_stocks = BranchStock.objects.filter(branch=branch, product_id__in=product_ids)
+        stock_mapping = {stock.product_id: stock for stock in branch_stocks}
 
     # Build cart details
     for item in cart.values():
@@ -428,11 +631,17 @@ def cart_view(request):
         # Calculate stock updates
         package_contain = safe_int(product.package_contain, 1)  # Default to 1 to avoid division by zero
         sold_stock = (package_quantity * package_contain) + item_quantity
-        new_stock = safe_int(product.stock) - sold_stock
-        product.stock = new_stock
-        product.num_of_packages = new_stock // package_contain
-        product.num_items = new_stock % package_contain
-        product_update_stock.append(product)
+        stock_row = stock_mapping.get(product.id)
+        current_stock = safe_int(stock_row.stock if stock_row else 0)
+        new_stock = current_stock - sold_stock
+        if stock_row:
+            stock_row.stock = new_stock
+            stock_row.num_of_packages = new_stock // package_contain
+            stock_row.num_items = new_stock % package_contain
+            stock_updates.append(stock_row)
+        product.stock = current_stock
+        product.num_of_packages = safe_int(stock_row.num_of_packages if stock_row else 0)
+        product.num_items = safe_int(stock_row.num_items if stock_row else 0)
 
         # Calculate subtotal and cart details
         sub_total = round((item_quantity * item_price) + (package_quantity * package_price),2)
@@ -450,9 +659,9 @@ def cart_view(request):
     customer_instance = None
     if customer_session:
         customer_pk = list(customer_session.keys())[0]
-        customer_instance = Customer.objects.filter(pk=customer_pk).first() 
+        customer_instance = Customer.objects.filter(pk=customer_pk, tenant=tenant).first() 
         if customer_instance:
-            pre_unpaid = SalesDetails.objects.filter(customer=customer_instance).aggregate(
+            pre_unpaid = SalesDetails.objects.filter(customer=customer_instance, tenant=tenant, branch=branch).aggregate(
                 total_unpaid=Sum('unpaid_amount')
             )
             pre_unpaid_amount = pre_unpaid['total_unpaid'] or 0
@@ -464,11 +673,13 @@ def cart_view(request):
             paid_amount = safe_int(request.POST.get('paid', 0))
             unpaid_amount = grand_total - paid_amount
            
-            SalesDetails.objects.filter(customer=customer_instance, unpaid_amount__gt=0).update(unpaid_amount=0)
+            SalesDetails.objects.filter(customer=customer_instance, tenant=tenant, branch=branch, unpaid_amount__gt=0).update(unpaid_amount=0)
             # Create SalesDetails instance
             with transaction.atomic():
                 sales_details = SalesDetails.objects.create(
                     user = request.user,
+                    tenant=tenant,
+                    branch=branch,
                     customer=customer_instance,
                     total_amount=grand_total,
                     paid_amount=paid_amount,
@@ -476,7 +687,8 @@ def cart_view(request):
                 )
                 
                 # Bulk update product stock
-                Products.objects.bulk_update(product_update_stock, ['stock', 'num_of_packages', 'num_items'])
+                if stock_updates:
+                    BranchStock.objects.bulk_update(stock_updates, ['stock', 'num_of_packages', 'num_items'])
 
                 # Bulk create SalesProducts
                 sales_products = [
@@ -511,8 +723,13 @@ def cart_view(request):
     return render(request, 'sale/cart_view.html', context)
 
 def sold_products_view(request):
-    sales_details = SalesDetails.objects.select_related("customer").prefetch_related(
-       "sale_detail"
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    sales_details = (
+        SalesDetails.objects
+        .select_related("customer")
+        .prefetch_related("sale_detail")
+        .filter(tenant=tenant, branch=branch)
     )
     if request.method == 'POST':
         bill_number = request.POST.get('bill-number')
@@ -525,7 +742,9 @@ def sold_products_view(request):
     return render(request, 'sale/sold_products_view.html', context)
 
 def sold_product_detail(request, pk):
-    sales_id = get_object_or_404(SalesDetails, pk=pk)
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    sales_id = get_object_or_404(SalesDetails, pk=pk, tenant=tenant, branch=branch)
    
     sales_products = SalesProducts.objects.filter(sale_detail=pk).select_related('product')
 
@@ -537,7 +756,14 @@ def sold_product_detail(request, pk):
 
 def return_items(request, pk):
     # Get the returned product or raise 404
-    returned_product = get_object_or_404(SalesProducts, id=pk)
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    returned_product = get_object_or_404(
+        SalesProducts,
+        id=pk,
+        sale_detail__tenant=tenant,
+        sale_detail__branch=branch,
+    )
     
     # Calculate new quantities
     returned_pkg = safe_int(returned_product.package_qty)
@@ -546,10 +772,15 @@ def return_items(request, pk):
     
     # Use atomic transaction to prevent race conditions
     with transaction.atomic():
-        # Update product quantities
-        product.num_of_packages = safe_int(product.num_of_packages) + returned_pkg
-        product.num_items = safe_int(product.num_items) + returned_item
-        product.save() 
+        stock_row, created = BranchStock.objects.get_or_create(
+            branch=branch,
+            product=product,
+            defaults={"stock": 0, "num_of_packages": 0, "num_items": 0},
+        )
+        stock_row.num_of_packages = safe_int(stock_row.num_of_packages) + returned_pkg
+        stock_row.num_items = safe_int(stock_row.num_items) + returned_item
+        stock_row.stock = (stock_row.num_of_packages * safe_int(product.package_contain)) + stock_row.num_items
+        stock_row.save()
         returned_product.delete()
         return HttpResponse('', headers={'HX-Trigger': 'returnSuccess'})
 
@@ -559,13 +790,18 @@ def return_items(request, pk):
 
 # dashboard contaner view
 def income(request):
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
     form = OtherIncomeForm()
     today_date = date.today()
-    other_income = OtherIncome.objects.filter(date_created=today_date)
+    other_income = OtherIncome.objects.filter(tenant=tenant, branch=branch, date_created=today_date)
     if request.method == 'POST':
         form = OtherIncomeForm(request.POST)
         if form.is_valid():
-            form.save()
+            income_obj = form.save(commit=False)
+            income_obj.tenant = tenant
+            income_obj.branch = branch
+            income_obj.save()
             messages.success(request, _("Income has been added successfully"))
         else:
             messages.error(request, _("Something went wrong. Please try again"))
@@ -576,13 +812,18 @@ def income(request):
     return render(request, 'partials/management/_income-view.html', context)
 
 def expense(request):
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
     form = ExpenseForm()
     today_date = date.today()
-    expenses = Expense.objects.filter(date_created=today_date).order_by('-id')
+    expenses = Expense.objects.filter(tenant=tenant, branch=branch, date_created=today_date).order_by('-id')
     if request.method == 'POST':
         form = ExpenseForm(request.POST)
         if form.is_valid():
-            form.save()
+            expense_obj = form.save(commit=False)
+            expense_obj.tenant = tenant
+            expense_obj.branch = branch
+            expense_obj.save()
             messages.success(request, _("Expense has been added successfully"))
         else:
             messages.error(request, _("Something went wrong. Please try again"))
@@ -593,7 +834,9 @@ def expense(request):
     return render(request, 'partials/management/_expense-view.html', context)
 
 def summary(request):
-    sales = SalesDetails.objects.all().order_by('-created_at')
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    sales = SalesDetails.objects.filter(tenant=tenant, branch=branch).order_by('-created_at')
     sales_filter = SalesDetailsFilter(request.GET, queryset=sales)
     filtered_sales = sales_filter.qs
     totals = filtered_sales.aggregate(
@@ -621,8 +864,8 @@ def summary(request):
     from_date = _parse_jalali_date(request.GET.get('from_date', ''))
     to_date = _parse_jalali_date(request.GET.get('to_date', ''))
 
-    income_qs = OtherIncome.objects.all()
-    expense_qs = Expense.objects.all()
+    income_qs = OtherIncome.objects.filter(tenant=tenant, branch=branch)
+    expense_qs = Expense.objects.filter(tenant=tenant, branch=branch)
 
     if from_date:
         income_qs = income_qs.filter(date_created__gte=from_date)
@@ -657,7 +900,9 @@ def summary(request):
 def returned(request):
     bill_query = request.GET.get('bill')
     customer_query = request.GET.get('customer')
-    sales = SalesDetails.objects.select_related('customer').order_by('-created_at')
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    sales = SalesDetails.objects.select_related('customer').filter(tenant=tenant, branch=branch).order_by('-created_at')
     if bill_query:
         sales = sales.filter(bill_number__icontains=bill_query)
     if customer_query:
@@ -671,12 +916,15 @@ def returned(request):
     return render(request, 'partials/management/_return-view.html', context)
 
 def base_unit(request):
+    tenant = _active_tenant(request)
     form = BaseUnitForm()
-    base_units = BaseUnit.objects.all()
+    base_units = BaseUnit.objects.filter(tenant=tenant)
     if request.method == 'POST':
         form = BaseUnitForm(request.POST)
         if form.is_valid():
-            form.save()
+            unit = form.save(commit=False)
+            unit.tenant = tenant
+            unit.save()
             messages.success(request, _("Unit has been saved successfully"))
             return redirect('base-unit')
         else:
@@ -690,8 +938,9 @@ def base_unit(request):
     return render(request, 'partials/management/_base_unit-view.html',context)
 
 def update_base_unit(request, unit_id):
-    baseunit = get_object_or_404(BaseUnit, pk=unit_id)
-    base_units = BaseUnit.objects.all()
+    tenant = _active_tenant(request)
+    baseunit = get_object_or_404(BaseUnit, pk=unit_id, tenant=tenant)
+    base_units = BaseUnit.objects.filter(tenant=tenant)
     if request.method == 'POST':
         form = BaseUnitForm(request.POST, instance=baseunit)
         if form.is_valid():
@@ -710,7 +959,8 @@ def update_base_unit(request, unit_id):
     return render(request, 'partials/management/_base_unit-view.html', context)
 
 def delete_base_unit(request, unit_id):
-    baseunit = get_object_or_404(BaseUnit, pk=unit_id)
+    tenant = _active_tenant(request)
+    baseunit = get_object_or_404(BaseUnit, pk=unit_id, tenant=tenant)
     # Delete the object
     deleted_count = baseunit.delete()  # delete() returns (number_of_deleted_objects, details)
     # Check if the object was deleted successfully
@@ -725,9 +975,11 @@ def delete_base_unit(request, unit_id):
 # stock management view
 
 def stock_management(request):
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
     currency_filter = request.GET.get('currency')
 
-    products = Products.objects.all().order_by('-id')
+    products = Products.objects.filter(tenant=tenant).order_by('-id')
 
     if currency_filter == 'usd':
         products = products.filter(purchase_unit__code__iexact='usd')
@@ -746,12 +998,15 @@ def stock_management(request):
         page_obj = p.page(1)
     except EmptyPage:
         page_obj = p.page(p.num_pages)
-    exchange_rate = ExchangeRate.objects.last()
+    _apply_branch_stock(list(page_obj.object_list), branch)
+    exchange_rate = ExchangeRate.objects.filter(tenant=tenant).last()
     exchange_form = ExchangeRateForm(instance=exchange_rate)
     if request.method == 'POST':
         exchange_form = ExchangeRateForm(request.POST, instance=exchange_rate)
         if exchange_form.is_valid():
-            exchange_form.save()
+            rate = exchange_form.save(commit=False)
+            rate.tenant = tenant
+            rate.save()
             messages.success(request, _("Exchange rate has been updated successfully"))
         else:
             messages.error(request, _("Something went wrong. Please try again"))
@@ -769,14 +1024,16 @@ def stock_management(request):
 
 
 def customer(request):
-    customers = Customer.objects.all()
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    customers = Customer.objects.filter(tenant=tenant)
     # Add customer sales details (paid, unpaid, bill count) for each customer
     if request.method == 'POST':
         phone = request.POST.get('phone')
         customers = customers.filter(phone=phone)
     customer_data = []
     for customer in customers:
-        sales_data = SalesDetails.objects.filter(customer=customer).aggregate(
+        sales_data = SalesDetails.objects.filter(customer=customer, tenant=tenant, branch=branch).aggregate(
             total_amount=Sum('total_amount'),
             total_paid=Sum('paid_amount'),
             total_unpaid=Sum('unpaid_amount'),
@@ -803,11 +1060,13 @@ def sales_dashboard(request):
 
 
 def create_payment(request, cid):
-    customer = get_object_or_404(Customer, pk=cid)
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
+    customer = get_object_or_404(Customer, pk=cid, tenant=tenant)
 
     sales_details = (
         SalesDetails.objects
-        .filter(customer=customer)
+        .filter(customer=customer, tenant=tenant, branch=branch)
         .order_by("-id")
     )
 
@@ -834,13 +1093,15 @@ def create_payment(request, cid):
                 # Save payment + attach customer
                 payment = form.save(commit=False)
                 payment.customer = customer
+                payment.tenant = tenant
+                payment.branch = branch
                 payment.save()
 
                 # Lock and update the LAST SalesDetails record only (overall unpaid stored there)
                 last_sale = (
                     SalesDetails.objects
                     .select_for_update()
-                    .filter(customer=customer)
+                    .filter(customer=customer, tenant=tenant, branch=branch)
                     .order_by("-id")
                     .first()
                 )
@@ -893,7 +1154,8 @@ def get_product_by_barcode(request):
         if not barcode:
             return JsonResponse({'status': 'error', 'message': 'No barcode provided'}, status=400)
 
-        product = Products.objects.filter(code=barcode).first()
+        tenant = _active_tenant(request)
+        product = Products.objects.filter(code=barcode, tenant=tenant).first()
         if not product:
             return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
 
@@ -924,6 +1186,8 @@ def scanner_view(request):
 # cart fragment for cart view
 
 def cart_fragment(request):
+    tenant = _active_tenant(request)
+    branch = _active_branch(request)
     cart = request.session.get('cart', {})
     customer_session = request.session.get('customer', {})
     cart_details = []
@@ -939,8 +1203,10 @@ def cart_fragment(request):
 
     # Reuse logic from cart_view
     product_ids = [item['product_id'] for item in cart.values()]
-    products = Products.objects.filter(pk__in=product_ids)
+    products = Products.objects.filter(pk__in=product_ids, tenant=tenant)
     product_mapping = {product.id: product for product in products}
+    branch_stocks = BranchStock.objects.filter(branch=branch, product_id__in=product_ids)
+    stock_mapping = {stock.product_id: stock for stock in branch_stocks}
 
     for item in cart.values():
         product = product_mapping.get(safe_int(item.get('product_id')))
@@ -951,6 +1217,9 @@ def cart_fragment(request):
         package_quantity = safe_int(item.get('package_quantity'))
         item_price = safe_int(item.get('item_price'), 0)
         package_price = safe_int(item.get('package_price'), 0)
+
+        stock_row = stock_mapping.get(product.id)
+        product.stock = safe_int(stock_row.stock if stock_row else 0)
 
         sub_total = (item_quantity * item_price) + (package_quantity * package_price)
         grand_total += sub_total
@@ -966,7 +1235,7 @@ def cart_fragment(request):
     customer_instance = None
     if customer_session:
         customer_pk = list(customer_session.keys())[0]
-        customer_instance = Customer.objects.filter(pk=customer_pk).first()
+        customer_instance = Customer.objects.filter(pk=customer_pk, tenant=tenant).first()
 
     html = render_to_string('partials/_cart_table.html', {
         'cart_details': cart_details,

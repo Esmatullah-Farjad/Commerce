@@ -34,7 +34,7 @@ class EmailBackend(ModelBackend):
             # TODO: Handle with proper message
             return None
 
-        if user.check_password(password):
+        if user.check_password(password) and user.is_active:
             return user
 
     def get_user(self, user_id):

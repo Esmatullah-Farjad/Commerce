@@ -1,4 +1,5 @@
 from django import forms
+from django import forms
 from .models import BaseUnit, CustomerPayment, ExchangeRate, OtherIncome, Products, Customer, Expense
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
@@ -39,10 +40,15 @@ def apply_tailwind_classes(field):
 class PurchaseForm(forms.ModelForm):
     class Meta:
         model = Products
-        exclude = ['stock', 'total_package_price', 'item_sale_price', 'usd_package_sale_price']
+        exclude = ['tenant', 'stock', 'total_package_price', 'item_sale_price', 'usd_package_sale_price']
     
     def __init__(self, *args, **kwargs):
+        tenant = kwargs.pop("tenant", None)
         super(PurchaseForm, self).__init__(*args, **kwargs)
+        if tenant:
+            self.fields["category"].queryset = self.fields["category"].queryset.filter(tenant=tenant)
+            self.fields["unit"].queryset = self.fields["unit"].queryset.filter(tenant=tenant)
+            self.fields["purchase_unit"].queryset = self.fields["purchase_unit"].queryset.filter(tenant=tenant)
         for visible in self.visible_fields():
             apply_tailwind_classes(visible.field)
             visible.field.widget.attrs['placeholder'] = _(visible.field.label)
@@ -50,58 +56,80 @@ class PurchaseForm(forms.ModelForm):
 class ExchangeRateForm(forms.ModelForm):
     class Meta:
         model = ExchangeRate
-        fields = "__all__"
+        exclude = ["tenant"]
         widgets = {
             "usd_to_afn": forms.NumberInput(
                 attrs={"step": "0.01", "class": BASE_INPUT_CLASSES}
             ),
         }
 class RegistrationForm(UserCreationForm):
+    client_name = forms.CharField(
+        label=_('Client Name'),
+        help_text=_('Your company or client name.'),
+    )
+    store_name = forms.CharField(
+        label=_('Main Store Name'),
+        help_text=_('The main store or brand name.'),
+    )
+    branch_name = forms.CharField(
+        label=_('Main Branch Name'),
+        help_text=_('Your primary branch or location name.'),
+    )
+    branch_address = forms.CharField(
+        label=_('Branch Address'),
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 2}),
+    )
+
     class Meta:
         model = User
         fields = [
-            "username",
-            "first_name",
-            "last_name",
-            "email",
-            "password1",
-            "password2",
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'client_name',
+            'store_name',
+            'branch_name',
+            'branch_address',
+            'password1',
+            'password2',
         ]
         labels = {
             'username': _('Username'),
             'first_name': _('First Name'),
             'last_name': _('Last Name'),
-            'email': _("Email"),
-            'password1': _("Password"),
-            'password2': _("Confrim Password")
+            'email': _('Email'),
+            'password1': _('Password'),
+            'password2': _('Confrim Password')
         }
         username = forms.CharField(
-        label="Username",
-        help_text="",   # 🔥 remove default long text
+        label='Username',
+        help_text='',   # remove default long text
         widget=forms.TextInput(attrs={
-            "class": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
+            'class': 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-200'
         })
     )
 
     password1 = forms.CharField(
-        label="Password",
-        help_text="",   # 🔥 remove default password rules block
+        label='Password',
+        help_text='',   # remove default password rules block
         widget=forms.PasswordInput(attrs={
-            "class": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
+            'class': 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-200'
         })
     )
 
     password2 = forms.CharField(
-        label="Confirm Password",
-        help_text="",
+        label='Confirm Password',
+        help_text='',
         widget=forms.PasswordInput(attrs={
-            "class": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
+            'class': 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-200'
         })
     )
-    
+
     def clean_username(self):
         """check if username already exists"""
-        username = self.cleaned_data.get("username")
+        username = self.cleaned_data.get('username')
         qs = User.objects.filter(username__iexact=username)
         if qs.exists():
             raise forms.ValidationError(f"Username {username} already exists, please choose another.")
@@ -109,21 +137,25 @@ class RegistrationForm(UserCreationForm):
 
     def clean_email(self):
         """check if email already exists"""
-        email = self.cleaned_data.get("email")
+        email = self.cleaned_data.get('email')
         qs = User.objects.filter(email__iexact=email)
         if qs.exists():
             raise forms.ValidationError(f"Email {email} already exists, please choose another.")
         return email
-        
+
     def __init__(self, *args, **kwargs):
-        super(RegistrationForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        self.fields['client_name'].widget = forms.TextInput(attrs={'class': BASE_INPUT_CLASSES})
+        self.fields['store_name'].widget = forms.TextInput(attrs={'class': BASE_INPUT_CLASSES})
+        self.fields['branch_name'].widget = forms.TextInput(attrs={'class': BASE_INPUT_CLASSES})
+        self.fields['branch_address'].widget.attrs.update({'class': BASE_TEXTAREA_CLASSES})
         for visible in self.visible_fields():
             apply_tailwind_classes(visible.field)
 
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = "__all__"
+        exclude = ["tenant"]
     def __init__(self, *args, **kwargs):
         super(CustomerForm, self).__init__(*args, **kwargs)
         for visible in self.visible_fields():
@@ -134,7 +166,7 @@ class OtherIncomeForm(forms.ModelForm):
     class Meta:
         model = OtherIncome
         field = "__all__"
-        exclude = ()
+        exclude = ("tenant", "branch")
 
         
     def __init__(self, *args, **kwargs):
@@ -160,7 +192,7 @@ class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
         fields = "__all__"
-        exclude = ()
+        exclude = ("tenant", "branch")
 
     def __init__(self, *args, **kwargs):
         super(ExpenseForm, self).__init__(*args, **kwargs)
@@ -184,7 +216,7 @@ class BaseUnitForm(forms.ModelForm):
     class Meta:
         model = BaseUnit
         fields = "__all__"
-        exclude = ()
+        exclude = ("tenant",)
 
     def __init__(self, *args, **kwargs):
         super(BaseUnitForm, self).__init__(*args, **kwargs)

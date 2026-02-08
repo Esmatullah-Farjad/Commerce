@@ -1,4 +1,5 @@
 import json
+from .models import BranchMember, TenantMember
 
 def cart_context(request):
     try:
@@ -12,12 +13,32 @@ def cart_context(request):
         # Calculate cart length
         cart_length = len(cart) if cart else 0
 
+        tenant_membership = None
+        branch_membership = None
+        if request.user.is_authenticated:
+            tenant_id = request.session.get("active_tenant_id")
+            if tenant_id:
+                tenant_membership = TenantMember.objects.filter(
+                    user=request.user,
+                    tenant_id=tenant_id,
+                ).select_related("tenant").first()
+            branch_id = request.session.get("active_branch_id")
+            if branch_id:
+                branch_membership = BranchMember.objects.filter(
+                    user=request.user,
+                    branch_id=branch_id,
+                ).select_related("branch").first()
+
         return {
-            "cart_length": cart_length
+            "cart_length": cart_length,
+            "tenant_membership": tenant_membership,
+            "branch_membership": branch_membership,
         }
 
     except Exception as e:
         print("Context Processor Error:", e)
         return {
-            "cart_length": 0  # Return a safe default if an error occurs
+            "cart_length": 0,
+            "tenant_membership": None,
+            "branch_membership": None,
         }

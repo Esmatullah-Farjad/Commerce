@@ -26,6 +26,16 @@ urlpatterns = [
         views.signout,
         name="sign-out",
     ),
+    path(
+        'tenancy/select-tenant',
+        views.select_tenant,
+        name='select-tenant',
+    ),
+    path(
+        'tenancy/select-branch',
+        views.select_branch,
+        name='select-branch',
+    ),
     # sale page
     path(
         'products/sale',

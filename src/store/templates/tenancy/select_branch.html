@@ -1,0 +1,60 @@
+{% extends '_base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Select Branch' %}{% endblock title %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">
+  <div class="w-full max-w-xl">
+    <form method="post" class="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+      {% csrf_token %}
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 ring-1 ring-inset ring-slate-900/10">
+          <svg class="h-5 w-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M12 3v18m9-9H3" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h1 class="text-xl font-semibold text-slate-900 leading-tight">{% trans 'Select Branch' %}</h1>
+          <p class="mt-1 text-sm text-slate-600">{% trans 'Choose where you are operating today.' %}</p>
+        </div>
+      </div>
+
+      <div class="mt-6 space-y-3">
+        {% if branches %}
+          {% for branch in branches %}
+          <label class="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 hover:border-slate-300">
+            <input
+              type="radio"
+              name="branch_id"
+              value="{{ branch.id }}"
+              class="h-4 w-4 text-slate-900"
+              {% if forloop.first %}checked{% endif %}
+            />
+            <div>
+              <div class="text-sm font-semibold text-slate-900">{{ branch.name }}</div>
+              <div class="text-xs text-slate-500">{{ branch.store.name }}</div>
+            </div>
+          </label>
+          {% endfor %}
+        {% else %}
+          <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {% trans 'No branches found. Ask an admin to create a branch.' %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-6 flex items-center justify-end">
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          {% if not branches %}disabled{% endif %}
+        >
+          {% trans 'Continue' %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock content %}

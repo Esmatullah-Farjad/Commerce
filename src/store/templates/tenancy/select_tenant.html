@@ -1,0 +1,60 @@
+{% extends '_base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Select Tenant' %}{% endblock title %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">
+  <div class="w-full max-w-xl">
+    <form method="post" class="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+      {% csrf_token %}
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 ring-1 ring-inset ring-slate-900/10">
+          <svg class="h-5 w-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h1 class="text-xl font-semibold text-slate-900 leading-tight">{% trans 'Select Tenant' %}</h1>
+          <p class="mt-1 text-sm text-slate-600">{% trans 'Choose the workspace you want to manage.' %}</p>
+        </div>
+      </div>
+
+      <div class="mt-6 space-y-3">
+        {% if tenants %}
+          {% for tenant in tenants %}
+          <label class="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 hover:border-slate-300">
+            <input
+              type="radio"
+              name="tenant_id"
+              value="{{ tenant.id }}"
+              class="h-4 w-4 text-slate-900"
+              {% if forloop.first %}checked{% endif %}
+            />
+            <div>
+              <div class="text-sm font-semibold text-slate-900">{{ tenant.name }}</div>
+              <div class="text-xs text-slate-500">/{{ tenant.slug }}/</div>
+            </div>
+          </label>
+          {% endfor %}
+        {% else %}
+          <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {% trans 'No tenants found for your account. Ask an admin to add you to a tenant.' %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-6 flex items-center justify-end">
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          {% if not tenants %}disabled{% endif %}
+        >
+          {% trans 'Continue' %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock content %}

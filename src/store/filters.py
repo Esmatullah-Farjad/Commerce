@@ -11,6 +11,12 @@ class ProductsFilter(django_filters.FilterSet):
         model = Products
         fields = ["category"]
 
+    def __init__(self, *args, **kwargs):
+        tenant = kwargs.pop("tenant", None)
+        super().__init__(*args, **kwargs)
+        if tenant:
+            self.filters["category"].queryset = Category.objects.filter(tenant=tenant)
+
 
 # filters.py
 import django_filters

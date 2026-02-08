@@ -33,7 +33,7 @@
       <!-- Fields -->
       <div class="mt-6 grid gap-4 sm:grid-cols-2">
         {% for field in form %}
-          <div class="{% if field.name == 'address' or field.name == 'description' %}sm:col-span-2{% endif %}">
+          <div class="{% if field.name == 'address' or field.name == 'description' or field.name == 'client_name' or field.name == 'store_name' or field.name == 'branch_name' or field.name == 'branch_address' %}sm:col-span-2{% endif %}">
             <label class="text-xs font-semibold text-slate-700" for="{{ field.id_for_label }}">
               {{ field.label }}
             </label>

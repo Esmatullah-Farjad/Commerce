@@ -132,7 +132,7 @@
                     </a>
                 </div>
             </details>
-            {% if request.user.is_superuser %}
+            {% if request.user.is_superuser or tenant_membership and tenant_membership.role == 'owner' or tenant_membership and tenant_membership.role == 'admin' %}
             <a href="http://127.0.0.1:8000/admin" class="flex items-center justify-between rounded-xl px-3 py-2 transition text-slate-200 hover:bg-slate-800 hover:text-white">
                 <span class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 text-primary-300">
