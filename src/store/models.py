@@ -82,6 +82,54 @@ class BranchMember(models.Model):
         return f"{self.user.username} @ {self.branch}"
 
 
+class StoreMember(models.Model):
+    ROLE_CHOICES = [
+        ("admin", "Admin"),
+        ("manager", "Manager"),
+        ("staff", "Staff"),
+    ]
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="memberships")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="store_memberships")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="staff")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("store", "user")
+
+    def __str__(self):
+        return f"{self.user.username} @ {self.store.name}"
+
+
+class UserOnboarding(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("active", "Active"),
+    ]
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="onboarding")
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="onboarding_requests")
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="onboarding_requests")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    assigned_branch = models.ForeignKey(
+        Branch,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="onboarded_users",
+    )
+    requested_at = models.DateTimeField(auto_now_add=True)
+    activated_at = models.DateTimeField(null=True, blank=True)
+    activated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="activated_users",
+    )
+
+    def __str__(self):
+        return f"{self.user.username} - {self.tenant.name} ({self.status})"
+
+
 class Category(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="categories", null=True, blank=True)
     name = models.CharField(max_length=50)
@@ -94,6 +142,14 @@ class BaseUnit(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="base_units", null=True, blank=True)
     name = models.CharField(max_length=50)
     is_weight_base = models.BooleanField(default=False)
+    base_unit = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="derived_units",
+        help_text=_("Select the base unit this converts to (optional)."),
+    )
     conversion_to_base = models.FloatField(
         null=True, blank=True,
         help_text= _("Conversion factor to the base unit (e.g., 7 for Sir if base is KG). Leave blank if conversion is product-specific.")
@@ -101,7 +157,7 @@ class BaseUnit(models.Model):
         )
     
     def __str__(self):
-        return f"{self.name} {self.conversion_to_base}"
+        return self.name
     
 class PurchaseUnit(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="purchase_units", null=True, blank=True)
@@ -122,12 +178,17 @@ from decimal import Decimal
 
 class Products(models.Model):
     NUMBER_CHOICES = [(i, str(i)) for i in range(1, 201)]
+    CURRENCY_CHOICES = [
+        ("usd", "USD"),
+        ("afn", "AFN"),
+    ]
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="products", null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     code = models.IntegerField(null=True, default=0)
     name = models.CharField(max_length=100)
     unit = models.ForeignKey(BaseUnit, on_delete=models.CASCADE, null=True, blank=True)
     purchase_unit = models.ForeignKey(PurchaseUnit, on_delete=models.CASCADE, null=True, blank=True)
+    currency_category = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default="afn")
 
     package_contain = models.PositiveBigIntegerField(choices=NUMBER_CHOICES)
     package_purchase_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)  # entered in USD or AFN
@@ -298,6 +359,86 @@ class BranchStock(models.Model):
 
     def __str__(self):
         return f"{self.branch} - {self.product.name}"
+
+
+class StoreStock(models.Model):
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="stock_levels")
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="store_stocks")
+    stock = models.IntegerField(default=0)
+    num_of_packages = models.IntegerField(default=0)
+    num_items = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("store", "product")
+
+    def __str__(self):
+        return f"{self.store} - {self.product.name}"
+
+
+class TenantStock(models.Model):
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="stock_levels")
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="tenant_stocks")
+    stock = models.IntegerField(default=0)
+    num_of_packages = models.IntegerField(default=0)
+    num_items = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("tenant", "product")
+
+    def __str__(self):
+        return f"{self.tenant} - {self.product.name}"
+
+
+class InventoryTransfer(models.Model):
+    SCOPE_CHOICES = [
+        ("tenant", "Tenant"),
+        ("store", "Store"),
+        ("branch", "Branch"),
+    ]
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="inventory_transfers")
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="inventory_transfers")
+    from_scope = models.CharField(max_length=20, choices=SCOPE_CHOICES)
+    to_scope = models.CharField(max_length=20, choices=SCOPE_CHOICES)
+    from_store = models.ForeignKey(Store, on_delete=models.SET_NULL, null=True, blank=True, related_name="transfers_out")
+    from_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name="transfers_out")
+    to_store = models.ForeignKey(Store, on_delete=models.SET_NULL, null=True, blank=True, related_name="transfers_in")
+    to_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name="transfers_in")
+    package_qty = models.IntegerField(default=0)
+    item_qty = models.IntegerField(default=0)
+    total_items = models.IntegerField(default=0)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="inventory_transfers")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.product.name} {self.from_scope} -> {self.to_scope} ({self.total_items})"
+
+
+class InventoryMovement(models.Model):
+    MOVEMENT_CHOICES = [
+        ("purchase", "Purchase"),
+        ("transfer_in", "Transfer In"),
+        ("transfer_out", "Transfer Out"),
+        ("adjustment", "Adjustment"),
+    ]
+    SCOPE_CHOICES = InventoryTransfer.SCOPE_CHOICES
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="inventory_movements")
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="inventory_movements")
+    scope = models.CharField(max_length=20, choices=SCOPE_CHOICES)
+    store = models.ForeignKey(Store, on_delete=models.SET_NULL, null=True, blank=True, related_name="inventory_movements")
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name="inventory_movements")
+    movement_type = models.CharField(max_length=20, choices=MOVEMENT_CHOICES)
+    package_qty = models.IntegerField(default=0)
+    item_qty = models.IntegerField(default=0)
+    total_items = models.IntegerField(default=0)
+    transfer = models.ForeignKey(InventoryTransfer, on_delete=models.SET_NULL, null=True, blank=True, related_name="movements")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="inventory_movements")
+    created_at = models.DateTimeField(auto_now_add=True)
+    note = models.CharField(max_length=255, blank=True, default="")
+
+    def __str__(self):
+        return f"{self.product.name} {self.movement_type} ({self.total_items})"
 
 
 class StockTransfer(models.Model):

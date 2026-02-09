@@ -15,7 +15,10 @@ class ProductsFilter(django_filters.FilterSet):
         tenant = kwargs.pop("tenant", None)
         super().__init__(*args, **kwargs)
         if tenant:
-            self.filters["category"].queryset = Category.objects.filter(tenant=tenant)
+            if Category.objects.filter(tenant=tenant).exists():
+                self.filters["category"].queryset = Category.objects.filter(tenant=tenant)
+            else:
+                self.filters["category"].queryset = Category.objects.filter(tenant__isnull=True)
 
 
 # filters.py

@@ -45,7 +45,7 @@
     <form
       action="{% if form.instance.id %}{% url 'update-base-unit' unit_id=form.instance.id %}{% else %}{% url 'base-unit' %}{% endif %}"
       method="post"
-      class="grid gap-4 md:grid-cols-3"
+      class="grid gap-4 md:grid-cols-4"
     >
       {% csrf_token %}
 
@@ -69,6 +69,17 @@
         </div>
         {% if form.is_weight_base.help_text %}
           <p class="mt-1 text-xs text-slate-500">{{ form.is_weight_base.help_text }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Base unit -->
+      <div class="md:col-span-1">
+        <label class="text-xs font-semibold text-slate-700">{% trans 'Base Unit' %}</label>
+        <div class="mt-2">
+          {{ form.base_unit }}
+        </div>
+        {% if form.base_unit.help_text %}
+          <p class="mt-1 text-xs text-slate-500">{{ form.base_unit.help_text }}</p>
         {% endif %}
       </div>
 
@@ -127,6 +138,7 @@
             <tr>
               <th class="px-3 py-2.5">{% trans "Name" %}</th>
               <th class="px-3 py-2.5">{% trans "Weight Base" %}</th>
+              <th class="px-3 py-2.5">{% trans "Base Unit" %}</th>
               <th class="px-3 py-2.5 text-right">{% trans "Conversion" %}</th>
               <th class="px-3 py-2.5 text-center w-28">{% trans "Action" %}</th>
             </tr>
@@ -146,6 +158,14 @@
                   <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700">
                     {% trans "No" %}
                   </span>
+                {% endif %}
+              </td>
+
+              <td class="px-3 py-2.5 text-slate-700">
+                {% if data.base_unit %}
+                  {{ data.base_unit.name }}
+                {% else %}
+                  <span class="text-xs text-slate-400">{% trans 'Self' %}</span>
                 {% endif %}
               </td>
 
@@ -180,7 +200,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="4" class="px-6 py-10 text-center">
+              <td colspan="5" class="px-6 py-10 text-center">
                 <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
                   <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 ring-1 ring-inset ring-slate-200">
                     <svg class="h-6 w-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

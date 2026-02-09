@@ -10,6 +10,7 @@
           <th class="px-3 py-2.5 w-16">{% trans 'Image' %}</th>
           <th class="px-3 py-2.5">{% trans 'Name' %}</th>
           <th class="px-3 py-2.5">{% trans 'Category' %}</th>
+          <th class="px-3 py-2.5">{% trans 'Currency' %}</th>
           <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans 'Package Contain' %}</th>
           <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans 'Package Sale Price' %}</th>
           <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans 'Item Sales Price' %}</th>
@@ -45,6 +46,13 @@
           </td>
 
           <td class="px-3 py-2 text-slate-700">{{ item.category }}</td>
+          <td class="px-3 py-2">
+            {% if item.currency_category == 'usd' %}
+              <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">USD</span>
+            {% else %}
+              <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">AFN</span>
+            {% endif %}
+          </td>
 
           <td class="px-3 py-2 text-right tabular-nums text-slate-700">{{ item.package_contain }}</td>
           <td class="px-3 py-2 text-right tabular-nums text-slate-700">{{ item.package_sale_price }}</td>
@@ -101,7 +109,7 @@
     <div>
       {% if page_obj.has_previous %}
       <a
-        href="?page={{ page_obj.previous_page_number }}"
+        href="?{% if currency_filter and currency_filter != 'all' %}currency={{ currency_filter }}&{% endif %}page={{ page_obj.previous_page_number }}"
         class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50 hover:text-slate-900"
       >
         {% trans 'Previous' %}
@@ -117,7 +125,7 @@
     <div>
       {% if page_obj.has_next %}
       <a
-        href="?page={{ page_obj.next_page_number }}"
+        href="?{% if currency_filter and currency_filter != 'all' %}currency={{ currency_filter }}&{% endif %}page={{ page_obj.next_page_number }}"
         class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50 hover:text-slate-900"
       >
         {% trans 'Next' %}

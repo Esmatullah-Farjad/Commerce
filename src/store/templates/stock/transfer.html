@@ -1,0 +1,108 @@
+{% extends '_base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Transfer Stock' %}{% endblock title %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-6rem)] flex items-start justify-center px-4 py-8">
+  <div class="w-full max-w-2xl space-y-6">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-900">{% trans 'Transfer Inventory' %}</h1>
+      <p class="mt-1 text-sm text-slate-600">{% trans 'Move stock between tenant, store, and branch locations.' %}</p>
+    </div>
+
+    <form method="post" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+      {% csrf_token %}
+
+      <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+        {% if from_scope == 'branch' %}
+          {% trans 'Transfers will be sent from your branch:' %} <span class="font-semibold text-slate-900">{{ from_branch.name }}</span>
+        {% elif from_scope == 'store' %}
+          {% trans 'Transfers will be sent from your store:' %} <span class="font-semibold text-slate-900">{{ from_store.name }}</span>
+        {% endif %}
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <label class="text-xs font-semibold text-slate-700" for="{{ form.product.id_for_label }}">{{ form.product.label }}</label>
+          <div class="mt-2">{{ form.product }}</div>
+          {% if form.product.errors %}
+            <p class="mt-1 text-xs font-semibold text-rose-600">{{ form.product.errors|striptags }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-700">{% trans 'Quantity' %}</label>
+          <div class="mt-2 grid grid-cols-2 gap-3">
+            <div>
+              {{ form.package_qty }}
+              <p class="mt-1 text-xs text-slate-500">{% trans 'Packages' %}</p>
+            </div>
+            <div>
+              {{ form.item_qty }}
+              <p class="mt-1 text-xs text-slate-500">{% trans 'Items' %}</p>
+            </div>
+          </div>
+          {% if form.package_qty.errors %}
+            <p class="mt-1 text-xs font-semibold text-rose-600">{{ form.package_qty.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <label class="text-xs font-semibold text-slate-700" for="{{ form.from_scope.id_for_label }}">{{ form.from_scope.label }}</label>
+          <div class="mt-2">{{ form.from_scope }}</div>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-700" for="{{ form.to_scope.id_for_label }}">{{ form.to_scope.label }}</label>
+          <div class="mt-2">{{ form.to_scope }}</div>
+        </div>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <label class="text-xs font-semibold text-slate-700" for="{{ form.from_store.id_for_label }}">{{ form.from_store.label }}</label>
+          <div class="mt-2">{{ form.from_store }}</div>
+          {% if form.from_store.errors %}
+            <p class="mt-1 text-xs font-semibold text-rose-600">{{ form.from_store.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-700" for="{{ form.to_store.id_for_label }}">{{ form.to_store.label }}</label>
+          <div class="mt-2">{{ form.to_store }}</div>
+          {% if form.to_store.errors %}
+            <p class="mt-1 text-xs font-semibold text-rose-600">{{ form.to_store.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <label class="text-xs font-semibold text-slate-700" for="{{ form.from_branch.id_for_label }}">{{ form.from_branch.label }}</label>
+          <div class="mt-2">{{ form.from_branch }}</div>
+          {% if form.from_branch.errors %}
+            <p class="mt-1 text-xs font-semibold text-rose-600">{{ form.from_branch.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-700" for="{{ form.to_branch.id_for_label }}">{{ form.to_branch.label }}</label>
+          <div class="mt-2">{{ form.to_branch }}</div>
+          {% if form.to_branch.errors %}
+            <p class="mt-1 text-xs font-semibold text-rose-600">{{ form.to_branch.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+        <button
+          type="submit"
+          class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+        >
+          {% trans 'Transfer Stock' %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock content %}

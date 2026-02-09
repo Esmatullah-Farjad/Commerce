@@ -1,0 +1,56 @@
+{% extends '_base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Pending Users' %}{% endblock title %}
+
+{% block content %}
+<div class="space-y-6">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-900">{% trans 'Pending user requests' %}</h1>
+      <p class="mt-1 text-sm text-slate-600">
+        {% trans 'Review new registrations and assign a branch before activation.' %}
+      </p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600">
+      {% trans 'Tenant' %}: {{ tenant.name }}
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    {% if pending_users %}
+      <div class="divide-y divide-slate-100">
+        {% for onboarding in pending_users %}
+          <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="space-y-1">
+              <p class="text-sm font-semibold text-slate-900">
+                {{ onboarding.user.get_full_name|default:onboarding.user.username }}
+              </p>
+              <p class="text-xs text-slate-500">{{ onboarding.user.email }}</p>
+              <div class="flex flex-wrap gap-2 text-xs text-slate-600">
+                <span class="rounded-full bg-slate-100 px-2 py-0.5">{% trans 'Store' %}: {{ onboarding.store.name }}</span>
+                <span class="rounded-full bg-slate-100 px-2 py-0.5">{% trans 'Requested' %}: {{ onboarding.requested_at|date:"M d, Y H:i" }}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                {% trans 'Pending' %}
+              </span>
+              <a
+                href="{% url 'activate-user' onboarding.id %}"
+                class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800"
+              >
+                {% trans 'Activate & assign branch' %}
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="px-6 py-8 text-center text-sm text-slate-500">
+        {% trans 'No pending users for this tenant right now.' %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock content %}

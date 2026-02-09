@@ -86,7 +86,37 @@
               </div>
             </div>
             <div class="relative">
-              {{ form.purchase_unit }}
+              <select
+                id="id_purchase_unit"
+                name="purchase_unit"
+                class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm"
+              >
+                <option value="">{% trans 'Select purchase unit' %}</option>
+                {% with selected_purchase=form.purchase_unit.value %}
+                  {% for unit in form.purchase_unit.field.queryset %}
+                    <option
+                      value="{{ unit.id }}"
+                      data-currency="{% if unit.code|lower == 'usd' %}usd{% else %}afn{% endif %}"
+                      {% if selected_purchase and selected_purchase|stringformat:"s" == unit.id|stringformat:"s" %}selected{% endif %}
+                    >
+                      {{ unit.name }} ({{ unit.code|default:""|upper }})
+                    </option>
+                  {% endfor %}
+                {% endwith %}
+              </select>
+              {% if form.purchase_unit.errors %}
+                <p class="mt-1 text-xs font-semibold text-rose-600">{{ form.purchase_unit.errors|striptags }}</p>
+              {% endif %}
+            </div>
+
+            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600">
+              <span class="rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                {% trans 'Currency Category' %}
+              </span>
+              <span id="currency-badge" class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                AFN
+              </span>
+              <span id="currency-hint" class="text-slate-500">{% trans 'Auto-set from purchase unit.' %}</span>
             </div>
           </div>
 
@@ -113,6 +143,7 @@
               <div>
                 <label for="id_unit" class="block text-sm font-semibold text-slate-900">{% trans 'Unit of Measurement' %}</label>
                 <p class="text-xs text-slate-500 mt-0.5">{{ form.unit.help_text }}</p>
+                <p class="text-xs text-slate-500 mt-0.5">{% trans 'Base unit shown in the list (e.g., Box (Base: Piece)).' %}</p>
                 <div class="mt-2">{{ form.unit }}</div>
               </div>
 
@@ -279,4 +310,27 @@
     padding-right: 2.2rem;
   }
 </style>
+
+<script>
+  (function () {
+    const purchaseUnitSelect = document.getElementById("id_purchase_unit");
+    const badge = document.getElementById("currency-badge");
+    if (!purchaseUnitSelect || !badge) return;
+
+    const updateBadge = () => {
+      const option = purchaseUnitSelect.selectedOptions[0];
+      const currency = option ? option.getAttribute("data-currency") : null;
+      if (currency === "usd") {
+        badge.textContent = "USD";
+        badge.className = "rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700";
+      } else {
+        badge.textContent = "AFN";
+        badge.className = "rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700";
+      }
+    };
+
+    purchaseUnitSelect.addEventListener("change", updateBadge);
+    updateBadge();
+  })();
+</script>
 {% endblock content %}

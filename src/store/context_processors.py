@@ -1,5 +1,6 @@
 import json
 from .models import BranchMember, TenantMember
+from .permissions import can_transfer_stock
 
 def cart_context(request):
     try:
@@ -15,6 +16,7 @@ def cart_context(request):
 
         tenant_membership = None
         branch_membership = None
+        can_transfer = False
         if request.user.is_authenticated:
             tenant_id = request.session.get("active_tenant_id")
             if tenant_id:
@@ -28,11 +30,18 @@ def cart_context(request):
                     user=request.user,
                     branch_id=branch_id,
                 ).select_related("branch").first()
+            if tenant_membership:
+                can_transfer = can_transfer_stock(
+                    request.user,
+                    tenant_membership.tenant,
+                    active_branch_id=branch_id,
+                )
 
         return {
             "cart_length": cart_length,
             "tenant_membership": tenant_membership,
             "branch_membership": branch_membership,
+            "can_transfer": can_transfer,
         }
 
     except Exception as e:

@@ -2,7 +2,7 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.urls import resolve
 
-from .models import Branch, Tenant, TenantMember
+from .models import Branch, BranchMember, Tenant, TenantMember
 
 TENANT_SESSION_KEY = "active_tenant_id"
 BRANCH_SESSION_KEY = "active_branch_id"
@@ -85,7 +85,9 @@ class BranchMiddleware:
             )
 
         if not branch:
-            return redirect("select-branch")
+            if tenant and BranchMember.objects.filter(user=request.user, branch__store__tenant=tenant).exists():
+                return redirect("select-branch")
+            return self.get_response(request)
 
         request.branch = branch
         return self.get_response(request)

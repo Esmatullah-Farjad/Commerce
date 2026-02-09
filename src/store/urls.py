@@ -36,6 +36,16 @@ urlpatterns = [
         views.select_branch,
         name='select-branch',
     ),
+    path(
+        'tenancy/pending-users',
+        views.pending_users,
+        name='pending-users',
+    ),
+    path(
+        'tenancy/pending-users/<int:onboarding_id>/activate',
+        views.activate_user,
+        name='activate-user',
+    ),
     # sale page
     path(
         'products/sale',
@@ -167,6 +177,11 @@ urlpatterns = [
         'dashboard/stock',
         views.stock_management,
         name='stock-management',
+    ),
+    path(
+        'inventory/transfer',
+        views.transfer_inventory,
+        name='transfer-inventory',
     ),
     # Bar code scanner url
     path(

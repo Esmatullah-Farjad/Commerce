@@ -3,6 +3,7 @@ import math
 from django.shortcuts import redirect, render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils.translation import activate
+from django.utils import timezone
 from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
@@ -15,10 +16,10 @@ from decimal import Decimal
 
 
 from store.filters import ProductsFilter, SalesDetailsFilter
-from .models import BaseUnit, Branch, BranchMember, BranchStock, Category, Customer, ExchangeRate, OtherIncome, Expense, Products, SalesDetails, SalesProducts, Store, Tenant, TenantMember
-from .forms import BaseUnitForm, CustomerForm, CustomerPaymentForm, ExchangeRateForm, OtherIncomeForm, ExpenseForm, PurchaseForm, RegistrationForm
+from .models import BaseUnit, Branch, BranchMember, BranchStock, Category, Customer, ExchangeRate, OtherIncome, Expense, Products, SalesDetails, SalesProducts, Store, StoreMember, StoreStock, Tenant, TenantMember, TenantStock, UserOnboarding, InventoryTransfer, InventoryMovement
+from .forms import BaseUnitForm, CustomerForm, CustomerPaymentForm, ExchangeRateForm, OtherIncomeForm, ExpenseForm, PurchaseForm, RegistrationForm, UserActivationForm, InventoryTransferForm
+from .permissions import can_transfer_stock, resolve_transfer_scope
 from django.utils.translation import gettext_lazy as _
-from django.utils.text import slugify
 from django.contrib.auth import authenticate, login, logout
 import jdatetime
 
@@ -33,6 +34,111 @@ def _active_tenant(request):
 def _active_branch(request):
     return getattr(request, "branch", None)
 
+def _resolve_inventory_scope(request, tenant, branch=None):
+    if branch:
+        return "branch", {"branch": branch}
+
+    store_member = (
+        StoreMember.objects
+        .select_related("store")
+        .filter(user=request.user, store__tenant=tenant, store__is_active=True)
+        .first()
+        if tenant and request.user.is_authenticated
+        else None
+    )
+    if store_member:
+        return "store", {"store": store_member.store}
+
+    onboarding = (
+        UserOnboarding.objects
+        .select_related("store")
+        .filter(user=request.user, tenant=tenant, status="active")
+        .order_by("-activated_at", "-requested_at")
+        .first()
+        if tenant and request.user.is_authenticated
+        else None
+    )
+    if onboarding and onboarding.store and onboarding.store.is_active:
+        return "store", {"store": onboarding.store}
+
+    return "tenant", {"tenant": tenant}
+
+
+def _split_stock(product, total_items):
+    package_contain = safe_int(getattr(product, "package_contain", 1), 1)
+    if package_contain <= 0:
+        package_contain = 1
+    num_packages = total_items // package_contain
+    num_items = total_items % package_contain
+    return num_packages, num_items
+
+
+def _set_stock(scope, product, total_items, tenant=None, store=None, branch=None):
+    num_packages, num_items = _split_stock(product, total_items)
+    defaults = {
+        "stock": total_items,
+        "num_of_packages": num_packages,
+        "num_items": num_items,
+    }
+    if scope == "branch":
+        BranchStock.objects.update_or_create(
+            branch=branch,
+            product=product,
+            defaults=defaults,
+        )
+    elif scope == "store":
+        StoreStock.objects.update_or_create(
+            store=store,
+            product=product,
+            defaults=defaults,
+        )
+    else:
+        TenantStock.objects.update_or_create(
+            tenant=tenant,
+            product=product,
+            defaults=defaults,
+        )
+
+
+def _adjust_stock(scope, product, delta_items, tenant=None, store=None, branch=None):
+    if scope == "branch":
+        row = (
+            BranchStock.objects
+            .select_for_update()
+            .filter(branch=branch, product=product)
+            .first()
+        )
+        if not row:
+            row = BranchStock(branch=branch, product=product, stock=0, num_of_packages=0, num_items=0)
+    elif scope == "store":
+        row = (
+            StoreStock.objects
+            .select_for_update()
+            .filter(store=store, product=product)
+            .first()
+        )
+        if not row:
+            row = StoreStock(store=store, product=product, stock=0, num_of_packages=0, num_items=0)
+    else:
+        row = (
+            TenantStock.objects
+            .select_for_update()
+            .filter(tenant=tenant, product=product)
+            .first()
+        )
+        if not row:
+            row = TenantStock(tenant=tenant, product=product, stock=0, num_of_packages=0, num_items=0)
+
+    new_total = safe_int(row.stock) + delta_items
+    if new_total < 0:
+        raise ValueError("Insufficient stock for this transfer.")
+    num_packages, num_items = _split_stock(product, new_total)
+    row.stock = new_total
+    row.num_of_packages = num_packages
+    row.num_items = num_items
+    row.save()
+    return row
+
 def _apply_branch_stock(products, branch):
     if not products or not branch:
         return
@@ -41,6 +147,39 @@ def _apply_branch_stock(products, branch):
         stock.product_id: stock
         for stock in BranchStock.objects.filter(branch=branch, product_id__in=product_ids)
     }
+    for product in products:
+        stock = stock_map.get(product.id)
+        if stock:
+            product.stock = stock.stock
+            product.num_of_packages = stock.num_of_packages
+            product.num_items = stock.num_items
+        else:
+            product.stock = 0
+            product.num_of_packages = 0
+            product.num_items = 0
+
+
+def _apply_scope_stock(products, scope, tenant=None, store=None, branch=None):
+    if not products:
+        return
+    product_ids = [p.id for p in products]
+    stock_map = {}
+    if scope == "branch" and branch:
+        stock_map = {
+            stock.product_id: stock
+            for stock in BranchStock.objects.filter(branch=branch, product_id__in=product_ids)
+        }
+    elif scope == "store" and store:
+        stock_map = {
+            stock.product_id: stock
+            for stock in StoreStock.objects.filter(store=store, product_id__in=product_ids)
+        }
+    elif scope == "tenant" and tenant:
+        stock_map = {
+            stock.product_id: stock
+            for stock in TenantStock.objects.filter(tenant=tenant, product_id__in=product_ids)
+        }
+
     for product in products:
         stock = stock_map.get(product.id)
         if stock:
@@ -75,6 +214,7 @@ def Home(request):
         return redirect("landing")
     tenant = _active_tenant(request)
     branch = _active_branch(request)
+    store = branch.store if branch else None
     order_products = (
         Products.objects
         .filter(tenant=tenant, branch_stocks__branch=branch, branch_stocks__num_of_packages__lt=10)
@@ -107,7 +247,9 @@ def Home(request):
     context = {
         'top_packages':top_packages,
         'sales_details':sales_details,
-        'order_products':order_products
+        'order_products':order_products,
+        'tenant': tenant,
+        'store': store,
     }
     return render(request, 'home.html', context)
 
@@ -119,6 +261,71 @@ def signin(request):
         if user is not None:
             login(request, user)
             messages.success(request, _("Welcome !"))
+            memberships = (
+                TenantMember.objects
+                .select_related("tenant")
+                .filter(user=user, tenant__is_active=True)
+                .order_by("tenant__name")
+            )
+            if memberships.count() == 1:
+                tenant_id = memberships.first().tenant_id
+                request.session["active_tenant_id"] = tenant_id
+
+                onboarding = (
+                    UserOnboarding.objects
+                    .select_related("store", "assigned_branch")
+                    .filter(user=user, tenant_id=tenant_id, status="active")
+                    .order_by("-activated_at", "-requested_at")
+                    .first()
+                )
+
+                branch_id = None
+                if onboarding and onboarding.assigned_branch_id:
+                    branch_id = onboarding.assigned_branch_id
+                elif onboarding and onboarding.store_id:
+                    store_branch = (
+                        Branch.objects
+                        .filter(store_id=onboarding.store_id, is_active=True)
+                        .order_by("name")
+                        .first()
+                    )
+                    if store_branch:
+                        branch_id = store_branch.id
+                if not branch_id:
+                    branch_membership = (
+                        BranchMember.objects
+                        .select_related("branch", "branch__store")
+                        .filter(user=user, branch__store__tenant_id=tenant_id, branch__is_active=True)
+                        .order_by("branch__store__name", "branch__name")
+                        .first()
+                    )
+                    if branch_membership:
+                        branch_id = branch_membership.branch_id
+
+                if not branch_id:
+                    first_branch = (
+                        Branch.objects
+                        .filter(store__tenant_id=tenant_id, is_active=True)
+                        .order_by("store__name", "name")
+                        .first()
+                    )
+                    if first_branch:
+                        branch_id = first_branch.id
+
+                if branch_id:
+                    request.session["active_branch_id"] = branch_id
+                else:
+                    request.session.pop("active_branch_id", None)
+
+                return redirect('home')
+
+            if memberships.count() > 1:
+                messages.info(request, _("Select the tenant you want to work in."))
+                return redirect('select-tenant')
+
+            messages.error(request, _("No tenant assigned to this account. Please contact an admin."))
+            request.session.pop("active_tenant_id", None)
+            request.session.pop("active_branch_id", None)
             return redirect('select-tenant')
         else:
             try:
@@ -142,31 +349,14 @@ def signup(request):
             user.is_active = False
             user.save()
 
-            client_name = form.cleaned_data.get("client_name")
-            store_name = form.cleaned_data.get("store_name")
-            branch_name = form.cleaned_data.get("branch_name")
-            branch_address = form.cleaned_data.get("branch_address") or ""
+            tenant = form.cleaned_data.get("tenant")
+            store = form.cleaned_data.get("store")
 
-            base_slug = slugify(client_name) or "client"
-            slug = base_slug
-            counter = 1
-            while Tenant.objects.filter(slug=slug).exists():
-                counter += 1
-                slug = f"{base_slug}-{counter}"
-
-            tenant = Tenant.objects.create(name=client_name, slug=slug, is_active=True)
-            store = Store.objects.create(tenant=tenant, name=store_name)
-            branch = Branch.objects.create(store=store, name=branch_name, address=branch_address)
-
-            TenantMember.objects.get_or_create(
+            UserOnboarding.objects.create(
+                user=user,
                 tenant=tenant,
-                user=user,
-                defaults={"role": "owner", "is_owner": True},
-            )
-            BranchMember.objects.get_or_create(
-                branch=branch,
-                user=user,
-                defaults={"role": "admin"},
+                store=store,
+                status="pending",
             )
             messages.success(request, _("Account created. Your account is pending admin activation."))
             return redirect("sign-in")
@@ -178,6 +368,8 @@ def signup(request):
     register_form = form
     context = {
         'form':register_form,
+        'tenants': form.fields["tenant"].queryset,
+        'stores': form.fields["store"].queryset,
     }
     return render(request, 'auth/register.html', context)
 
@@ -262,12 +454,245 @@ def select_branch(request):
     }
     return render(request, "tenancy/select_branch.html", context)
 
+
+def pending_users(request):
+    if not request.user.is_authenticated:
+        return redirect("sign-in")
+
+    tenant = _active_tenant(request)
+    if not tenant:
+        return redirect("select-tenant")
+
+    is_admin = request.user.is_superuser or TenantMember.objects.filter(
+        user=request.user,
+        tenant=tenant,
+        role__in=["owner", "admin"],
+    ).exists()
+    if not is_admin:
+        messages.error(request, _("You do not have permission to view pending users."))
+        return redirect("home")
+
+    pending = (
+        UserOnboarding.objects
+        .select_related("user", "tenant", "store")
+        .filter(tenant=tenant, status="pending")
+        .order_by("-requested_at")
+    )
+
+    context = {
+        "tenant": tenant,
+        "pending_users": pending,
+    }
+    return render(request, "tenancy/pending_users.html", context)
+
+
+def activate_user(request, onboarding_id):
+    if not request.user.is_authenticated:
+        return redirect("sign-in")
+
+    tenant = _active_tenant(request)
+    if not tenant:
+        return redirect("select-tenant")
+
+    is_admin = request.user.is_superuser or TenantMember.objects.filter(
+        user=request.user,
+        tenant=tenant,
+        role__in=["owner", "admin"],
+    ).exists()
+    if not is_admin:
+        messages.error(request, _("You do not have permission to activate users."))
+        return redirect("home")
+
+    onboarding = get_object_or_404(UserOnboarding, pk=onboarding_id, tenant=tenant)
+    if onboarding.status != "pending":
+        messages.info(request, _("This user is already processed."))
+        return redirect("pending-users")
+
+    form = UserActivationForm(
+        request.POST or None,
+        store=onboarding.store,
+        tenant=tenant,
+    )
+    branch_queryset = form.fields["branch"].queryset
+    has_branches = branch_queryset.exists()
+
+    if request.method == "POST":
+        if not has_branches:
+            messages.error(request, _("No branches available for this store. Please create one first."))
+        elif form.is_valid():
+            branch = form.cleaned_data["branch"]
+            with transaction.atomic():
+                onboarding.user.is_active = True
+                onboarding.user.save(update_fields=["is_active"])
+
+                TenantMember.objects.get_or_create(
+                    tenant=tenant,
+                    user=onboarding.user,
+                    defaults={"role": "staff", "is_owner": False},
+                )
+                BranchMember.objects.get_or_create(
+                    branch=branch,
+                    user=onboarding.user,
+                    defaults={"role": "staff"},
+                )
+
+                onboarding.status = "active"
+                onboarding.assigned_branch = branch
+                onboarding.activated_by = request.user
+                onboarding.activated_at = timezone.now()
+                onboarding.save(update_fields=["status", "assigned_branch", "activated_by", "activated_at"])
+
+            messages.success(request, _("User activated and branch assigned successfully."))
+            return redirect("pending-users")
+
+    context = {
+        "tenant": tenant,
+        "onboarding": onboarding,
+        "form": form,
+        "has_branches": has_branches,
+    }
+    return render(request, "tenancy/activate_user.html", context)
+
+
+def transfer_inventory(request):
+    if not request.user.is_authenticated:
+        return redirect("sign-in")
+
+    tenant = _active_tenant(request)
+    if not tenant:
+        return redirect("select-tenant")
+
+    if not can_transfer_stock(request.user, tenant, active_branch_id=request.session.get("active_branch_id")):
+        messages.error(request, _("You do not have permission to transfer stock."))
+        return redirect("home")
+
+    scope, scope_obj, role = resolve_transfer_scope(
+        request.user,
+        tenant,
+        active_branch_id=request.session.get("active_branch_id"),
+    )
+    if scope not in {"branch", "store"}:
+        messages.error(request, _("Transfers are only allowed from a branch or store location."))
+        return redirect("home")
+
+    form = InventoryTransferForm(
+        request.POST or None,
+        tenant=tenant,
+        fixed_from_scope=scope,
+        fixed_from_store=scope_obj.get("store"),
+        fixed_from_branch=scope_obj.get("branch"),
+    )
+    if request.method == "POST" and form.is_valid():
+        product = form.cleaned_data["product"]
+        from_scope = scope
+        to_scope = form.cleaned_data["to_scope"]
+        from_store = scope_obj.get("store")
+        from_branch = scope_obj.get("branch")
+        to_store = form.cleaned_data.get("to_store")
+        to_branch = form.cleaned_data.get("to_branch")
+        package_qty = safe_int(form.cleaned_data.get("package_qty"))
+        item_qty = safe_int(form.cleaned_data.get("item_qty"))
+
+        package_contain = safe_int(getattr(product, "package_contain", 1), 1)
+        total_items = (package_qty * package_contain) + item_qty
+        if total_items <= 0:
+            messages.error(request, _("Quantity must be greater than 0."))
+            return redirect("transfer-inventory")
+
+        if to_scope == from_scope:
+            messages.error(request, _("Transfers must be between a store and a branch."))
+            return redirect("transfer-inventory")
+        if to_scope == "store" and to_store and to_store.tenant_id != tenant.id:
+            messages.error(request, _("Invalid destination store."))
+            return redirect("transfer-inventory")
+        if to_scope == "branch" and to_branch and to_branch.store.tenant_id != tenant.id:
+            messages.error(request, _("Invalid destination branch."))
+            return redirect("transfer-inventory")
+
+        try:
+            with transaction.atomic():
+                _adjust_stock(
+                    from_scope,
+                    product,
+                    -total_items,
+                    tenant=tenant,
+                    store=from_store,
+                    branch=from_branch,
+                )
+                _adjust_stock(
+                    to_scope,
+                    product,
+                    total_items,
+                    tenant=tenant,
+                    store=to_store,
+                    branch=to_branch,
+                )
+
+                transfer = InventoryTransfer.objects.create(
+                    tenant=tenant,
+                    product=product,
+                    from_scope=from_scope,
+                    to_scope=to_scope,
+                    from_store=from_store,
+                    from_branch=from_branch,
+                    to_store=to_store,
+                    to_branch=to_branch,
+                    package_qty=package_qty,
+                    item_qty=item_qty,
+                    total_items=total_items,
+                    created_by=request.user,
+                )
+
+                InventoryMovement.objects.create(
+                    tenant=tenant,
+                    product=product,
+                    scope=from_scope,
+                    store=from_store,
+                    branch=from_branch,
+                    movement_type="transfer_out",
+                    package_qty=package_qty,
+                    item_qty=item_qty,
+                    total_items=total_items,
+                    transfer=transfer,
+                    created_by=request.user,
+                    note="Transfer out",
+                )
+                InventoryMovement.objects.create(
+                    tenant=tenant,
+                    product=product,
+                    scope=to_scope,
+                    store=to_store,
+                    branch=to_branch,
+                    movement_type="transfer_in",
+                    package_qty=package_qty,
+                    item_qty=item_qty,
+                    total_items=total_items,
+                    transfer=transfer,
+                    created_by=request.user,
+                    note="Transfer in",
+                )
+
+            messages.success(request, _("Transfer completed successfully."))
+            return redirect("transfer-inventory")
+        except ValueError as exc:
+            messages.error(request, str(exc))
+
+    context = {
+        "form": form,
+        "tenant": tenant,
+        "from_scope": scope,
+        "from_store": scope_obj.get("store"),
+        "from_branch": scope_obj.get("branch"),
+    }
+    return render(request, "stock/transfer.html", context)
+
 # views.py
 
 
 def purchase(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
+    scope, scope_obj = _resolve_inventory_scope(request, tenant, branch)
     form = PurchaseForm(tenant=tenant)
     if request.method == 'POST':
         form = PurchaseForm(request.POST, request.FILES, tenant=tenant)
@@ -279,6 +704,7 @@ def purchase(request):
             num_of_packages = cd['num_of_packages']
             package_sale_price_afn = cd['package_sale_price']
             purchase_unit = cd['purchase_unit']
+            currency_category = "usd" if purchase_unit and purchase_unit.code.lower() == "usd" else "afn"
 
             # Calculate USD equivalent of AFN sale price (for USD products)
             usd_package_sale_price = None
@@ -301,17 +727,24 @@ def purchase(request):
             product.num_items = num_items
             product.item_sale_price = item_sale_price
             product.usd_package_sale_price = usd_package_sale_price
+            product.currency_category = currency_category
             product.tenant = tenant
             product.save()
 
-            BranchStock.objects.update_or_create(
-                branch=branch,
+            _set_stock(scope, product, stock, tenant=tenant, store=scope_obj.get("store"), branch=scope_obj.get("branch"))
+
+            InventoryMovement.objects.create(
+                tenant=tenant,
                 product=product,
-                defaults={
-                    "stock": stock,
-                    "num_of_packages": num_of_packages,
-                    "num_items": num_items,
-                },
+                scope=scope,
+                store=scope_obj.get("store"),
+                branch=scope_obj.get("branch"),
+                movement_type="purchase",
+                package_qty=num_of_packages,
+                item_qty=num_items,
+                total_items=stock,
+                created_by=request.user,
+                note="Purchase entry",
             )
 
             messages.success(request, "Product added successfully!")
@@ -340,7 +773,12 @@ def purchase(request):
 def products_display(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
+    currency_filter = request.GET.get("currency", "all")
     product = Products.objects.filter(tenant=tenant).order_by('-id')
+    if currency_filter == "usd":
+        product = product.filter(currency_category="usd")
+    elif currency_filter == "afn":
+        product = product.filter(currency_category="afn")
     p = Paginator(product, 14)
     page_number = request.GET.get('page')
     try:
@@ -350,8 +788,38 @@ def products_display(request):
     except EmptyPage:
         page_obj = p.page(p.num_pages)
     # paginator end
-    _apply_branch_stock(list(page_obj.object_list), branch)
-    context = {'page_obj':page_obj,'flag':'list'}
+    scope, scope_obj = _resolve_inventory_scope(request, tenant, branch)
+    _apply_scope_stock(
+        list(page_obj.object_list),
+        scope,
+        tenant=tenant,
+        store=scope_obj.get("store"),
+        branch=scope_obj.get("branch"),
+    )
+
+    exchange_rate = ExchangeRate.objects.filter(tenant=tenant).last()
+    exchange_form = ExchangeRateForm(instance=exchange_rate)
+    if request.method == "POST":
+        exchange_form = ExchangeRateForm(request.POST, instance=exchange_rate)
+        if exchange_form.is_valid():
+            rate = exchange_form.save(commit=False)
+            rate.tenant = tenant
+            rate.save()
+            messages.success(request, _("Exchange rate has been updated successfully"))
+            return redirect(f"{request.path}?currency=usd")
+        else:
+            messages.error(request, _("Something went wrong. Please try again"))
+
+    context = {
+        'page_obj': page_obj,
+        'flag': 'list',
+        'currency_filter': currency_filter,
+        'exchange_rate': exchange_rate,
+        'exchange_form': exchange_form,
+        'usd_count': Products.objects.filter(tenant=tenant, currency_category="usd").count(),
+        'afn_count': Products.objects.filter(tenant=tenant, currency_category="afn").count(),
+        'can_transfer': can_transfer_stock(request.user, tenant, active_branch_id=request.session.get("active_branch_id")),
+    }
     return render(request, 'purchase/product.html', context)
 
 def update_products(request, pid):
@@ -366,6 +834,8 @@ def update_products(request, pid):
             package_contain = form.cleaned_data.get('package_contain')
             num_of_packages = form.cleaned_data.get('num_of_packages')
             package_sale_price = form.cleaned_data.get('package_sale_price')
+            purchase_unit = form.cleaned_data.get("purchase_unit")
+            currency_category = "usd" if purchase_unit and purchase_unit.code.lower() == "usd" else "afn"
 
             total_package_price = int(num_of_packages) * int(package_purchase_price)
             total_items = int(package_contain) * int(num_of_packages)
@@ -375,6 +845,7 @@ def update_products(request, pid):
             product.total_items = total_items
             product.item_sale_price = item_sale_price
             product.total_package_price = total_package_price
+            product.currency_category = currency_category
             product.save()
 
             messages.success(request, "Product updated successfully.")
@@ -917,10 +1388,14 @@ def returned(request):
 
 def base_unit(request):
     tenant = _active_tenant(request)
-    form = BaseUnitForm()
-    base_units = BaseUnit.objects.filter(tenant=tenant)
+    form = BaseUnitForm(tenant=tenant)
+    base_units = (
+        BaseUnit.objects.filter(tenant=tenant)
+        if tenant and BaseUnit.objects.filter(tenant=tenant).exists()
+        else BaseUnit.objects.filter(tenant__isnull=True)
+    )
     if request.method == 'POST':
-        form = BaseUnitForm(request.POST)
+        form = BaseUnitForm(request.POST, tenant=tenant)
         if form.is_valid():
             unit = form.save(commit=False)
             unit.tenant = tenant
@@ -942,7 +1417,7 @@ def update_base_unit(request, unit_id):
     baseunit = get_object_or_404(BaseUnit, pk=unit_id, tenant=tenant)
     base_units = BaseUnit.objects.filter(tenant=tenant)
     if request.method == 'POST':
-        form = BaseUnitForm(request.POST, instance=baseunit)
+        form = BaseUnitForm(request.POST, instance=baseunit, tenant=tenant)
         if form.is_valid():
             form.save()
             messages.success(request, _("Unit has been updated successfully"))
@@ -950,7 +1425,7 @@ def update_base_unit(request, unit_id):
         else:
             messages.error(request, _("Something went wrong. Please try again"))
     else:
-        form = BaseUnitForm(instance=baseunit)
+        form = BaseUnitForm(instance=baseunit, tenant=tenant)
 
     context = {
         'form': form,

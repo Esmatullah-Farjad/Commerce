@@ -16,8 +16,14 @@ from .models import (
     SalesDetails,
     StockTransfer,
     Store,
+    StoreMember,
+    StoreStock,
     Tenant,
     TenantMember,
+    TenantStock,
+    UserOnboarding,
+    InventoryTransfer,
+    InventoryMovement,
 )
 # Register your models here.
 
@@ -38,4 +44,10 @@ admin.site.register(Store)
 admin.site.register(Branch)
 admin.site.register(BranchMember)
 admin.site.register(BranchStock)
+admin.site.register(StoreMember)
+admin.site.register(StoreStock)
+admin.site.register(TenantStock)
 admin.site.register(StockTransfer)
+admin.site.register(InventoryTransfer)
+admin.site.register(InventoryMovement)
+admin.site.register(UserOnboarding)
