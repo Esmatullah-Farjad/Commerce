@@ -1,5 +1,4 @@
-from datetime import date
-import math
+from datetime import date, timedelta
 from django.shortcuts import redirect, render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils.translation import activate
@@ -7,16 +6,26 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Sum, Count,F, ExpressionWrapper, DecimalField
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 
 
 from store.filters import ProductsFilter, SalesDetailsFilter
-from .models import BaseUnit, Branch, BranchMember, BranchStock, Category, Customer, ExchangeRate, OtherIncome, Expense, Products, SalesDetails, SalesProducts, Store, StoreMember, StoreStock, Tenant, TenantMember, TenantStock, UserOnboarding, InventoryTransfer, InventoryMovement
+from .accounting import (
+    account_balances,
+    ensure_default_accounts,
+    money,
+    record_customer_payment_entry,
+    record_expense_entry,
+    record_other_income_entry,
+    record_purchase_entry,
+    record_sale_entry,
+)
+from .models import BaseUnit, Branch, BranchMember, BranchStock, Category, Customer, ExchangeRate, OtherIncome, Expense, InventoryMovement, InventoryTransfer, JournalEntry, JournalLine, LedgerAccount, Products, SalesDetails, SalesProducts, Store, StoreMember, StoreStock, Tenant, TenantMember, TenantStock, UserOnboarding
 from .forms import BaseUnitForm, CustomerForm, CustomerPaymentForm, ExchangeRateForm, OtherIncomeForm, ExpenseForm, PurchaseForm, RegistrationForm, UserActivationForm, InventoryTransferForm
 from .permissions import can_transfer_stock, resolve_transfer_scope
 from django.utils.translation import gettext_lazy as _
@@ -33,6 +42,188 @@ def _active_tenant(request):
 
 def _active_branch(request):
     return getattr(request, "branch", None)
+
+
+def _sync_user_memberships_from_onboarding(user, include_pending_for_active_user=False):
+    """
+    Backfill tenant/store/branch memberships from active onboarding records.
+    This heals older users that were activated before membership rows existed.
+    """
+    if not user or not user.is_authenticated:
+        return
+
+    allowed_statuses = ["active"]
+    if include_pending_for_active_user and user.is_active:
+        allowed_statuses.append("pending")
+
+    onboardings = (
+        UserOnboarding.objects.select_related("tenant", "store", "assigned_branch")
+        .filter(
+            user=user,
+            status__in=allowed_statuses,
+            tenant__is_active=True,
+            store__is_active=True,
+        )
+        .order_by("-activated_at", "-requested_at")
+    )
+    if not onboardings.exists():
+        return
+
+    for onboarding in onboardings:
+        if onboarding.store.tenant_id != onboarding.tenant_id:
+            continue
+
+        tenant_member, _ = TenantMember.objects.get_or_create(
+            tenant=onboarding.tenant,
+            user=user,
+            defaults={"role": "staff", "is_owner": False},
+        )
+
+        StoreMember.objects.get_or_create(
+            store=onboarding.store,
+            user=user,
+            defaults={"role": "staff"},
+        )
+
+        if onboarding.assigned_branch_id and onboarding.assigned_branch.store.tenant_id == onboarding.tenant_id:
+            BranchMember.objects.get_or_create(
+                branch=onboarding.assigned_branch,
+                user=user,
+                defaults={"role": "staff"},
+            )
+
+        # If admin activated the auth user but onboarding record is still pending,
+        # normalize onboarding status to active and keep audit timestamp.
+        if onboarding.status == "pending" and user.is_active and include_pending_for_active_user:
+            onboarding.status = "active"
+            if not onboarding.activated_at:
+                onboarding.activated_at = timezone.now()
+            onboarding.save(update_fields=["status", "activated_at"])
+
+
+def to_decimal(value, default=Decimal("0.00")):
+    if value is None:
+        return default
+    if isinstance(value, Decimal):
+        return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    try:
+        return Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    except Exception:
+        return default
+
+
+def _branch_and_store_access(request, tenant):
+    user = request.user
+    if not user.is_authenticated or not tenant:
+        return False, Store.objects.none(), Branch.objects.none()
+
+    can_tenant_scope = user.is_superuser or TenantMember.objects.filter(
+        user=user,
+        tenant=tenant,
+        role__in=["owner", "admin", "manager"],
+    ).exists()
+
+    if can_tenant_scope:
+        store_qs = Store.objects.filter(tenant=tenant, is_active=True).order_by("name")
+        branch_qs = Branch.objects.filter(store__tenant=tenant, is_active=True).select_related("store").order_by("store__name", "name")
+        return can_tenant_scope, store_qs, branch_qs
+
+    store_ids = set(
+        StoreMember.objects.filter(
+            user=user,
+            store__tenant=tenant,
+            store__is_active=True,
+        ).values_list("store_id", flat=True)
+    )
+
+    branch_qs = (
+        Branch.objects.filter(
+            memberships__user=user,
+            store__tenant=tenant,
+            is_active=True,
+        )
+        .select_related("store")
+        .distinct()
+        .order_by("store__name", "name")
+    )
+    store_ids.update(branch_qs.values_list("store_id", flat=True))
+
+    store_qs = Store.objects.filter(id__in=store_ids, is_active=True).order_by("name")
+    return can_tenant_scope, store_qs, branch_qs
+
+
+def _resolve_reporting_scope(request, tenant):
+    can_tenant_scope, store_qs, branch_qs = _branch_and_store_access(request, tenant)
+    active_branch = _active_branch(request)
+    requested_scope = request.GET.get("scope")
+    requested_store_id = safe_int(request.GET.get("store_id"), 0)
+    requested_branch_id = safe_int(request.GET.get("branch_id"), 0)
+
+    selected_store = None
+    selected_branch = None
+    scope = "tenant" if can_tenant_scope else None
+
+    if requested_scope == "tenant" and can_tenant_scope:
+        scope = "tenant"
+    elif requested_scope == "store":
+        selected_store = store_qs.filter(id=requested_store_id).first()
+        if selected_store:
+            scope = "store"
+    elif requested_scope == "branch":
+        selected_branch = branch_qs.filter(id=requested_branch_id).first()
+        if selected_branch:
+            scope = "branch"
+
+    if not scope:
+        if active_branch and branch_qs.filter(id=active_branch.id).exists():
+            selected_branch = active_branch
+            scope = "branch"
+        else:
+            selected_branch = branch_qs.first()
+            if selected_branch:
+                scope = "branch"
+            else:
+                selected_store = store_qs.first()
+                if selected_store:
+                    scope = "store"
+                elif can_tenant_scope:
+                    scope = "tenant"
+
+    if scope == "branch" and selected_branch:
+        selected_store = selected_branch.store
+    elif scope == "store" and selected_store:
+        selected_branch = None
+
+    return {
+        "scope": scope,
+        "store": selected_store,
+        "branch": selected_branch,
+        "can_tenant_scope": can_tenant_scope,
+        "store_options": store_qs,
+        "branch_options": branch_qs,
+    }
+
+
+def _apply_branch_scope(qs, scope_data, branch_field="branch"):
+    scope = scope_data.get("scope")
+    store = scope_data.get("store")
+    branch = scope_data.get("branch")
+    if scope == "branch" and branch:
+        return qs.filter(**{f"{branch_field}_id": branch.id})
+    if scope == "store" and store:
+        return qs.filter(**{f"{branch_field}__store_id": store.id})
+    return qs
+
+
+def _apply_journal_scope(qs, scope_data):
+    scope = scope_data.get("scope")
+    store = scope_data.get("store")
+    branch = scope_data.get("branch")
+    if scope == "branch" and branch:
+        return qs.filter(branch=branch)
+    if scope == "store" and store:
+        return qs.filter(Q(store=store) | Q(branch__store=store))
+    return qs
 
 def _resolve_inventory_scope(request, tenant, branch=None):
     if branch:
@@ -190,6 +381,19 @@ def _apply_scope_stock(products, scope, tenant=None, store=None, branch=None):
             product.stock = 0
             product.num_of_packages = 0
             product.num_items = 0
+
+
+def _parse_jalali_date(value):
+    if not value:
+        return None
+    try:
+        year, month, day = map(int, value.split('-'))
+        jalali_date = jdatetime.date(year, month, day)
+        return jalali_date.togregorian()
+    except Exception:
+        return None
+
+
 def switch_language(request, lang_code):
     if lang_code in dict(settings.LANGUAGES):  # ✅ Ensure the language is valid
         activate(lang_code)
@@ -261,6 +465,10 @@ def signin(request):
         if user is not None:
             login(request, user)
             messages.success(request, _("Welcome !"))
+
+            # Ensure active onboarded users are linked to tenant/store/branch memberships.
+            _sync_user_memberships_from_onboarding(user, include_pending_for_active_user=True)
+
             memberships = (
                 TenantMember.objects
                 .select_related("tenant")
@@ -382,6 +590,9 @@ def select_tenant(request):
     if not request.user.is_authenticated:
         return redirect("sign-in")
 
+    # Heal missing memberships for users already activated by onboarding.
+    _sync_user_memberships_from_onboarding(request.user, include_pending_for_active_user=True)
+
     memberships = (
         TenantMember.objects
         .select_related("tenant")
@@ -419,6 +630,8 @@ def select_tenant(request):
 def select_branch(request):
     if not request.user.is_authenticated:
         return redirect("sign-in")
+
+    _sync_user_memberships_from_onboarding(request.user, include_pending_for_active_user=True)
 
     tenant_id = request.session.get("active_tenant_id")
     if not tenant_id:
@@ -530,6 +743,11 @@ def activate_user(request, onboarding_id):
                     user=onboarding.user,
                     defaults={"role": "staff", "is_owner": False},
                 )
+                StoreMember.objects.get_or_create(
+                    store=onboarding.store,
+                    user=onboarding.user,
+                    defaults={"role": "staff"},
+                )
                 BranchMember.objects.get_or_create(
                     branch=branch,
                     user=onboarding.user,
@@ -542,7 +760,10 @@ def activate_user(request, onboarding_id):
                 onboarding.activated_at = timezone.now()
                 onboarding.save(update_fields=["status", "assigned_branch", "activated_by", "activated_at"])
 
-            messages.success(request, _("User activated and branch assigned successfully."))
+            messages.success(
+                request,
+                _("User activated successfully. Tenant, store, and branch access were assigned."),
+            )
             return redirect("pending-users")
 
     context = {
@@ -693,6 +914,8 @@ def purchase(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
     scope, scope_obj = _resolve_inventory_scope(request, tenant, branch)
+    scope_store = scope_obj.get("store") if scope == "store" else (branch.store if branch else None)
+    scope_branch = scope_obj.get("branch") if scope == "branch" else None
     form = PurchaseForm(tenant=tenant)
     if request.method == 'POST':
         form = PurchaseForm(request.POST, request.FILES, tenant=tenant)
@@ -700,9 +923,9 @@ def purchase(request):
         if form.is_valid():
             cd = form.cleaned_data
             package_contain = cd['package_contain']
-            package_purchase_price = cd['package_purchase_price']
+            package_purchase_price = to_decimal(cd['package_purchase_price'])
             num_of_packages = cd['num_of_packages']
-            package_sale_price_afn = cd['package_sale_price']
+            package_sale_price_afn = to_decimal(cd['package_sale_price'])
             purchase_unit = cd['purchase_unit']
             currency_category = "usd" if purchase_unit and purchase_unit.code.lower() == "usd" else "afn"
 
@@ -712,13 +935,13 @@ def purchase(request):
             usd_rate = rate.usd_to_afn if rate else Decimal('1')
 
             if purchase_unit and purchase_unit.code.lower() == 'usd':
-                usd_package_sale_price = round(Decimal(package_sale_price_afn) / usd_rate, 2)
+                usd_package_sale_price = (package_sale_price_afn / usd_rate).quantize(Decimal("0.01"))
 
             # Basic calculations
-            total_package_price = Decimal(package_purchase_price) * num_of_packages
+            total_package_price = (package_purchase_price * num_of_packages).quantize(Decimal("0.01"))
             stock = package_contain * num_of_packages
             num_items = stock % package_contain
-            item_sale_price = round(Decimal(package_sale_price_afn) / package_contain, 2)
+            item_sale_price = (package_sale_price_afn / Decimal(package_contain)).quantize(Decimal("0.01"))
 
             product = form.save(commit=False)
             product.total_package_price = total_package_price
@@ -737,14 +960,24 @@ def purchase(request):
                 tenant=tenant,
                 product=product,
                 scope=scope,
-                store=scope_obj.get("store"),
-                branch=scope_obj.get("branch"),
+                store=scope_store,
+                branch=scope_branch,
                 movement_type="purchase",
                 package_qty=num_of_packages,
                 item_qty=num_items,
                 total_items=stock,
                 created_by=request.user,
                 note="Purchase entry",
+            )
+
+            record_purchase_entry(
+                tenant=tenant,
+                total_cost=total_package_price,
+                product=product,
+                store=scope_store,
+                branch=scope_branch,
+                created_by=request.user,
+                reference_id=f"PRODUCT-{product.id}",
             )
 
             messages.success(request, "Product added successfully!")
@@ -1061,14 +1294,18 @@ def print_invoice(request, sales_id):
 def cart_view(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
+    if not branch:
+        messages.error(request, _("Select a branch before checking out sales."))
+        return redirect("select-branch")
+
     # Retrieve cart and customer from session
     cart = request.session.get('cart', {})
     customer_session = request.session.get('customer', {})
     cart_details = []
     stock_updates = []
-    grand_total = 0
-    pre_unpaid_amount = 0
-    total = 0
+    grand_total = Decimal("0.00")
+    pre_unpaid_amount = Decimal("0.00")
+    total = Decimal("0.00")
 
     if not cart:
         return render(request, 'sale/cart_view.html', {'cart_details': [], 'grand_total': 0, 'customer': None})
@@ -1096,8 +1333,8 @@ def cart_view(request):
 
         item_quantity = safe_int(item.get('item_quantity'))
         package_quantity = safe_int(item.get('package_quantity'))
-        item_price = float(item.get('item_price'))
-        package_price = float(item.get('package_price'))
+        item_price = to_decimal(item.get('item_price'))
+        package_price = to_decimal(item.get('package_price'))
 
         # Calculate stock updates
         package_contain = safe_int(product.package_contain, 1)  # Default to 1 to avoid division by zero
@@ -1105,6 +1342,9 @@ def cart_view(request):
         stock_row = stock_mapping.get(product.id)
         current_stock = safe_int(stock_row.stock if stock_row else 0)
         new_stock = current_stock - sold_stock
+        if new_stock < 0:
+            messages.error(request, _(f"Insufficient stock for {product.name}."))
+            return redirect("products-view")
         if stock_row:
             stock_row.stock = new_stock
             stock_row.num_of_packages = new_stock // package_contain
@@ -1115,8 +1355,8 @@ def cart_view(request):
         product.num_items = safe_int(stock_row.num_items if stock_row else 0)
 
         # Calculate subtotal and cart details
-        sub_total = round((item_quantity * item_price) + (package_quantity * package_price),2)
-        grand_total = math.ceil(grand_total + sub_total)
+        sub_total = to_decimal((Decimal(item_quantity) * item_price) + (Decimal(package_quantity) * package_price))
+        grand_total += sub_total
         cart_details.append({
             'product': product,
             'item_quantity': item_quantity,
@@ -1124,6 +1364,7 @@ def cart_view(request):
             'item_price': item_price,
             'package_price': package_price,
             'sub_total': sub_total,
+            'sold_stock': sold_stock,
         })
 
     # Retrieve customer instance
@@ -1135,16 +1376,22 @@ def cart_view(request):
             pre_unpaid = SalesDetails.objects.filter(customer=customer_instance, tenant=tenant, branch=branch).aggregate(
                 total_unpaid=Sum('unpaid_amount')
             )
-            pre_unpaid_amount = pre_unpaid['total_unpaid'] or 0
+            pre_unpaid_amount = to_decimal(pre_unpaid['total_unpaid'] or 0)
     total = grand_total
     grand_total = grand_total + pre_unpaid_amount
     # Handle sale submission
     if request.method == 'POST':
         try:
-            paid_amount = safe_int(request.POST.get('paid', 0))
+            paid_amount = to_decimal(request.POST.get('paid', 0))
+            if paid_amount < 0:
+                messages.error(request, _("Paid amount cannot be negative."))
+                return redirect("cart-view")
+            if paid_amount > grand_total:
+                messages.error(request, _("Paid amount cannot be greater than the grand total."))
+                return redirect("cart-view")
             unpaid_amount = grand_total - paid_amount
            
-            SalesDetails.objects.filter(customer=customer_instance, tenant=tenant, branch=branch, unpaid_amount__gt=0).update(unpaid_amount=0)
+            SalesDetails.objects.filter(customer=customer_instance, tenant=tenant, branch=branch, unpaid_amount__gt=0).update(unpaid_amount=Decimal("0.00"))
             # Create SalesDetails instance
             with transaction.atomic():
                 sales_details = SalesDetails.objects.create(
@@ -1175,11 +1422,30 @@ def cart_view(request):
                 ]
                 SalesProducts.objects.bulk_create(sales_products)
 
+                cogs_total = Decimal("0.00")
+                for item in cart_details:
+                    product = item["product"]
+                    package_contain = max(safe_int(getattr(product, "package_contain", 1), 1), 1)
+                    unit_cost = to_decimal(product.package_purchase_price or 0) / Decimal(package_contain)
+                    cogs_total += to_decimal(Decimal(item["sold_stock"]) * unit_cost)
+
+                record_sale_entry(
+                    tenant=tenant,
+                    sale_total=grand_total,
+                    paid_amount=paid_amount,
+                    unpaid_amount=unpaid_amount,
+                    cogs_total=cogs_total,
+                    store=branch.store,
+                    branch=branch,
+                    created_by=request.user,
+                    reference_id=sales_details.bill_number,
+                )
+
             # Clear cart after successful sale
             request.session['cart'] = {}
             request.session['customer'] = {}
             messages.success(request, "Products have been sold successfully!")
-            return redirect("print-invoice",sales_details)
+            return redirect("print-invoice", sales_details.bill_number)
         except Exception as e:
             # Roll back the transaction and handle the error gracefully
             messages.error(request, f"An error occurred: {str(e)}")
@@ -1263,6 +1529,7 @@ def return_items(request, pk):
 def income(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
+    store = branch.store if branch else None
     form = OtherIncomeForm()
     today_date = date.today()
     other_income = OtherIncome.objects.filter(tenant=tenant, branch=branch, date_created=today_date)
@@ -1273,6 +1540,15 @@ def income(request):
             income_obj.tenant = tenant
             income_obj.branch = branch
             income_obj.save()
+            record_other_income_entry(
+                tenant=tenant,
+                amount=income_obj.amount,
+                store=store,
+                branch=branch,
+                created_by=request.user,
+                reference_id=income_obj.id,
+                memo=income_obj.source,
+            )
             messages.success(request, _("Income has been added successfully"))
         else:
             messages.error(request, _("Something went wrong. Please try again"))
@@ -1285,6 +1561,7 @@ def income(request):
 def expense(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
+    store = branch.store if branch else None
     form = ExpenseForm()
     today_date = date.today()
     expenses = Expense.objects.filter(tenant=tenant, branch=branch, date_created=today_date).order_by('-id')
@@ -1295,6 +1572,15 @@ def expense(request):
             expense_obj.tenant = tenant
             expense_obj.branch = branch
             expense_obj.save()
+            record_expense_entry(
+                tenant=tenant,
+                amount=expense_obj.amount,
+                store=store,
+                branch=branch,
+                created_by=request.user,
+                reference_id=expense_obj.id,
+                memo=expense_obj.category,
+            )
             messages.success(request, _("Expense has been added successfully"))
         else:
             messages.error(request, _("Something went wrong. Please try again"))
@@ -1307,33 +1593,23 @@ def expense(request):
 def summary(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
-    sales = SalesDetails.objects.filter(tenant=tenant, branch=branch).order_by('-created_at')
+    sales = SalesDetails.objects.filter(tenant=tenant, branch=branch).order_by("-created_at")
     sales_filter = SalesDetailsFilter(request.GET, queryset=sales)
     filtered_sales = sales_filter.qs
     totals = filtered_sales.aggregate(
-        total_paid_amount=Sum('paid_amount'),
-        total_unpaid_amount=Sum('unpaid_amount'),
+        total_paid_amount=Sum("paid_amount"),
+        total_unpaid_amount=Sum("unpaid_amount"),
         total_sale_value=Sum(
             ExpressionWrapper(
-                F('paid_amount') + F('unpaid_amount'),
-                output_field=DecimalField()
+                F("paid_amount") + F("unpaid_amount"),
+                output_field=DecimalField(),
             )
-        )
+        ),
     )
-    total_customers = filtered_sales.aggregate(
-        total_customer=Count('customer', distinct=True)
-    )
+    total_customers = filtered_sales.aggregate(total_customer=Count("customer", distinct=True))
 
-    def _parse_jalali_date(value):
-        try:
-            year, month, day = map(int, value.split('-'))
-            jalali_date = jdatetime.date(year, month, day)
-            return jalali_date.togregorian()
-        except Exception:
-            return None
-
-    from_date = _parse_jalali_date(request.GET.get('from_date', ''))
-    to_date = _parse_jalali_date(request.GET.get('to_date', ''))
+    from_date = _parse_jalali_date(request.GET.get("from_date", ""))
+    to_date = _parse_jalali_date(request.GET.get("to_date", ""))
 
     income_qs = OtherIncome.objects.filter(tenant=tenant, branch=branch)
     expense_qs = Expense.objects.filter(tenant=tenant, branch=branch)
@@ -1345,29 +1621,276 @@ def summary(request):
         income_qs = income_qs.filter(date_created__lte=to_date)
         expense_qs = expense_qs.filter(date_created__lte=to_date)
 
-    income_totals = income_qs.aggregate(total_amount=Sum('amount'))
-    expense_totals = expense_qs.aggregate(total_amount=Sum('amount'))
+    income_totals = income_qs.aggregate(total_amount=Sum("amount"))
+    expense_totals = expense_qs.aggregate(total_amount=Sum("amount"))
 
-    # Access values
-    total_paid = totals['total_paid_amount'] or 0
-    total_unpaid = totals['total_unpaid_amount'] or 0
-    total_value = totals['total_sale_value'] or 0
-    total_customer = total_customers['total_customer'] or 0
-    total_income = income_totals['total_amount'] or 0
-    total_expense = expense_totals['total_amount'] or 0
+    total_paid = to_decimal(totals["total_paid_amount"] or 0)
+    total_unpaid = to_decimal(totals["total_unpaid_amount"] or 0)
+    total_value = to_decimal(totals["total_sale_value"] or 0)
+    total_customer = total_customers["total_customer"] or 0
+    total_income = to_decimal(income_totals["total_amount"] or 0)
+    total_expense = to_decimal(expense_totals["total_amount"] or 0)
     net_balance = total_income - total_expense
-    context= {
+
+    daily_sales = list(
+        filtered_sales.values("created_at__date")
+        .annotate(
+            sales=Sum("total_amount"),
+            paid=Sum("paid_amount"),
+            unpaid=Sum("unpaid_amount"),
+        )
+        .order_by("created_at__date")
+    )
+    if len(daily_sales) > 31:
+        daily_sales = daily_sales[-31:]
+
+    trend_labels = [row["created_at__date"].isoformat() for row in daily_sales]
+    trend_sales = [float(to_decimal(row["sales"] or 0)) for row in daily_sales]
+    trend_paid = [float(to_decimal(row["paid"] or 0)) for row in daily_sales]
+    trend_unpaid = [float(to_decimal(row["unpaid"] or 0)) for row in daily_sales]
+
+    top_products_rows = list(
+        SalesProducts.objects.filter(sale_detail__in=filtered_sales)
+        .values("product__name")
+        .annotate(total=Sum("total_price"))
+        .order_by("-total")[:6]
+    )
+    top_product_labels = [row["product__name"] or _("Unknown Product") for row in top_products_rows]
+    top_product_values = [float(to_decimal(row["total"] or 0)) for row in top_products_rows]
+
+    revenue_vs_cost_labels = [_("Sales"), _("Other Income"), _("Expense"), _("Net Position")]
+    revenue_vs_cost_values = [
+        float(total_value),
+        float(total_income),
+        float(total_expense),
+        float(net_balance),
+    ]
+
+    context = {
         "sales": filtered_sales,
-        "filter":sales_filter,
+        "filter": sales_filter,
         "total_paid": total_paid,
         "total_unpaid": total_unpaid,
-        "total_value" :total_value,
+        "total_value": total_value,
         "total_customer": total_customer,
         "total_income": total_income,
         "total_expense": total_expense,
         "net_balance": net_balance,
+        "trend_labels": trend_labels,
+        "trend_sales": trend_sales,
+        "trend_paid": trend_paid,
+        "trend_unpaid": trend_unpaid,
+        "payment_mix": [float(total_paid), float(total_unpaid)],
+        "top_product_labels": top_product_labels,
+        "top_product_values": top_product_values,
+        "revenue_cost_labels": revenue_vs_cost_labels,
+        "revenue_cost_values": revenue_vs_cost_values,
     }
-    return render(request, 'partials/management/_summary-view.html',context)
+    return render(request, "partials/management/_summary-view.html", context)
+
+
+def financial_reports(request):
+    tenant = _active_tenant(request)
+    if not tenant:
+        return redirect("select-tenant")
+
+    ensure_default_accounts(tenant)
+    scope_data = _resolve_reporting_scope(request, tenant)
+    scope = scope_data.get("scope")
+    if not scope:
+        messages.error(request, _("No reporting scope available for your account."))
+        return redirect("home")
+
+    from_date = _parse_jalali_date(request.GET.get("from_date", ""))
+    to_date = _parse_jalali_date(request.GET.get("to_date", ""))
+
+    sales_qs = _apply_branch_scope(SalesDetails.objects.filter(tenant=tenant), scope_data)
+    income_qs = _apply_branch_scope(OtherIncome.objects.filter(tenant=tenant), scope_data)
+    expense_qs = _apply_branch_scope(Expense.objects.filter(tenant=tenant), scope_data)
+    journal_qs = _apply_journal_scope(
+        JournalEntry.objects.filter(tenant=tenant).select_related("store", "branch", "created_by"),
+        scope_data,
+    )
+
+    if from_date:
+        sales_qs = sales_qs.filter(created_at__date__gte=from_date)
+        income_qs = income_qs.filter(date_created__gte=from_date)
+        expense_qs = expense_qs.filter(date_created__gte=from_date)
+        journal_qs = journal_qs.filter(entry_date__gte=from_date)
+    if to_date:
+        sales_qs = sales_qs.filter(created_at__date__lte=to_date)
+        income_qs = income_qs.filter(date_created__lte=to_date)
+        expense_qs = expense_qs.filter(date_created__lte=to_date)
+        journal_qs = journal_qs.filter(entry_date__lte=to_date)
+
+    sales_total = to_decimal(sales_qs.aggregate(total=Sum("total_amount"))["total"] or 0)
+    paid_total = to_decimal(sales_qs.aggregate(total=Sum("paid_amount"))["total"] or 0)
+    unpaid_total = to_decimal(sales_qs.aggregate(total=Sum("unpaid_amount"))["total"] or 0)
+
+    journal_lines = JournalLine.objects.filter(journal_entry__in=journal_qs).select_related("account", "journal_entry")
+    ledger_rows = account_balances(journal_lines)
+    account_by_code = {row["code"]: row for row in ledger_rows}
+
+    cash_balance = to_decimal(account_by_code.get("1000", {}).get("balance", 0))
+    receivable_balance = to_decimal(account_by_code.get("1100", {}).get("balance", 0))
+    inventory_balance = to_decimal(account_by_code.get("1200", {}).get("balance", 0))
+    payable_balance = to_decimal(account_by_code.get("2000", {}).get("balance", 0))
+    sales_revenue = to_decimal(account_by_code.get("4000", {}).get("balance", 0))
+    other_income_value = to_decimal(account_by_code.get("4100", {}).get("balance", 0))
+    cogs_total = to_decimal(account_by_code.get("5000", {}).get("balance", 0))
+    operating_expense = to_decimal(account_by_code.get("6100", {}).get("balance", 0))
+
+    gross_profit = sales_revenue - cogs_total
+    net_profit = (sales_revenue + other_income_value) - (cogs_total + operating_expense)
+
+    assets_total = sum(
+        (to_decimal(row["balance"]) for row in ledger_rows if row["account_type"] == "asset"),
+        Decimal("0.00"),
+    )
+    liabilities_total = sum(
+        (to_decimal(row["balance"]) for row in ledger_rows if row["account_type"] == "liability"),
+        Decimal("0.00"),
+    )
+
+    purchase_total = to_decimal(
+        journal_lines.filter(
+            account__code="1200",
+            journal_entry__reference_type="purchase",
+        ).aggregate(total=Sum("debit"))["total"] or 0
+    )
+
+    transactions = []
+    for entry in journal_qs.prefetch_related("lines__account")[:60]:
+        total_amount = sum((to_decimal(line.debit) for line in entry.lines.all()), Decimal("0.00"))
+        transactions.append(
+            {
+                "entry": entry,
+                "total": total_amount,
+            }
+        )
+
+    sales_daily_rows = list(
+        sales_qs.values("created_at__date").annotate(total=Sum("total_amount")).order_by("created_at__date")
+    )
+    sales_daily_map = {row["created_at__date"]: float(to_decimal(row["total"] or 0)) for row in sales_daily_rows}
+
+    purchase_daily_rows = list(
+        journal_lines.filter(
+            account__code="1200",
+            journal_entry__reference_type="purchase",
+        )
+        .values("journal_entry__entry_date")
+        .annotate(total=Sum("debit"))
+        .order_by("journal_entry__entry_date")
+    )
+    purchase_daily_map = {row["journal_entry__entry_date"]: float(to_decimal(row["total"] or 0)) for row in purchase_daily_rows}
+
+    income_daily_rows = list(
+        journal_lines.filter(account__code="4100")
+        .values("journal_entry__entry_date")
+        .annotate(total=Sum("credit"))
+        .order_by("journal_entry__entry_date")
+    )
+    income_daily_map = {row["journal_entry__entry_date"]: float(to_decimal(row["total"] or 0)) for row in income_daily_rows}
+
+    cogs_daily_rows = list(
+        journal_lines.filter(account__code="5000")
+        .values("journal_entry__entry_date")
+        .annotate(total=Sum("debit"))
+        .order_by("journal_entry__entry_date")
+    )
+    cogs_daily_map = {row["journal_entry__entry_date"]: float(to_decimal(row["total"] or 0)) for row in cogs_daily_rows}
+
+    expense_daily_rows = list(
+        journal_lines.filter(account__code="6100")
+        .values("journal_entry__entry_date")
+        .annotate(total=Sum("debit"))
+        .order_by("journal_entry__entry_date")
+    )
+    expense_daily_map = {row["journal_entry__entry_date"]: float(to_decimal(row["total"] or 0)) for row in expense_daily_rows}
+
+    all_dates = sorted(
+        set(sales_daily_map.keys())
+        | set(purchase_daily_map.keys())
+        | set(income_daily_map.keys())
+        | set(cogs_daily_map.keys())
+        | set(expense_daily_map.keys())
+    )
+    if not all_dates:
+        range_end = to_date or timezone.localdate()
+        range_start = from_date or (range_end - timedelta(days=13))
+        all_dates = [range_start + timedelta(days=i) for i in range((range_end - range_start).days + 1)]
+    if len(all_dates) > 31:
+        all_dates = all_dates[-31:]
+
+    trend_labels = [d.isoformat() for d in all_dates]
+    trend_sales = [sales_daily_map.get(d, 0.0) for d in all_dates]
+    trend_purchase = [purchase_daily_map.get(d, 0.0) for d in all_dates]
+    trend_expense = [expense_daily_map.get(d, 0.0) for d in all_dates]
+    trend_net = [
+        (sales_daily_map.get(d, 0.0) + income_daily_map.get(d, 0.0))
+        - (expense_daily_map.get(d, 0.0) + cogs_daily_map.get(d, 0.0))
+        for d in all_dates
+    ]
+
+    reference_choices = dict(JournalEntry.REFERENCE_TYPE_CHOICES)
+    trx_type_rows = list(journal_qs.values("reference_type").annotate(count=Count("id")).order_by("-count"))
+    trx_type_labels = [reference_choices.get(row["reference_type"], row["reference_type"]) for row in trx_type_rows]
+    trx_type_values = [row["count"] for row in trx_type_rows]
+
+    ledger_top_rows = sorted(ledger_rows, key=lambda row: abs(to_decimal(row["balance"])), reverse=True)[:7]
+    ledger_top_labels = [f'{row["code"]} {row["name"]}' for row in ledger_top_rows]
+    ledger_top_values = [float(to_decimal(row["balance"])) for row in ledger_top_rows]
+
+    context = {
+        "scope": scope,
+        "scope_store": scope_data.get("store"),
+        "scope_branch": scope_data.get("branch"),
+        "store_options": scope_data.get("store_options"),
+        "branch_options": scope_data.get("branch_options"),
+        "can_tenant_scope": scope_data.get("can_tenant_scope"),
+        "sales_total": sales_total,
+        "paid_total": paid_total,
+        "unpaid_total": unpaid_total,
+        "purchase_total": purchase_total,
+        "gross_profit": gross_profit,
+        "net_profit": net_profit,
+        "cash_balance": cash_balance,
+        "receivable_balance": receivable_balance,
+        "inventory_balance": inventory_balance,
+        "payable_balance": payable_balance,
+        "assets_total": assets_total,
+        "liabilities_total": liabilities_total,
+        "sales_revenue": sales_revenue,
+        "other_income_value": other_income_value,
+        "cogs_total": cogs_total,
+        "operating_expense": operating_expense,
+        "manual_income_total": to_decimal(income_qs.aggregate(total=Sum("amount"))["total"] or 0),
+        "manual_expense_total": to_decimal(expense_qs.aggregate(total=Sum("amount"))["total"] or 0),
+        "ledger_rows": ledger_rows,
+        "transactions": transactions,
+        "trend_labels": trend_labels,
+        "trend_sales": trend_sales,
+        "trend_purchase": trend_purchase,
+        "trend_expense": trend_expense,
+        "trend_net": trend_net,
+        "pnl_labels": [_("Sales Revenue"), _("Other Income"), _("COGS"), _("Operating Expense")],
+        "pnl_values": [
+            float(sales_revenue),
+            float(other_income_value),
+            float(cogs_total),
+            float(operating_expense),
+        ],
+        "asset_liability_labels": [_("Assets"), _("Liabilities")],
+        "asset_liability_values": [float(assets_total), float(liabilities_total)],
+        "trx_type_labels": trx_type_labels,
+        "trx_type_values": trx_type_values,
+        "ledger_top_labels": ledger_top_labels,
+        "ledger_top_values": ledger_top_values,
+    }
+    return render(request, "partials/management/_financial_reports.html", context)
+
+
 def returned(request):
     bill_query = request.GET.get('bill')
     customer_query = request.GET.get('customer')
@@ -1551,16 +2074,16 @@ def create_payment(request, cid):
         total_paid=Sum("paid_amount"),
         total_unpaid=Sum("unpaid_amount"),
     )
-    total_amount = int(totals["total_amount"] or 0)
-    total_paid = int(totals["total_paid"] or 0)
-    total_due = int(totals["total_unpaid"] or 0)
+    total_amount = to_decimal(totals["total_amount"] or 0)
+    total_paid = to_decimal(totals["total_paid"] or 0)
+    total_due = to_decimal(totals["total_unpaid"] or 0)
 
     if request.method == "POST":
         form = CustomerPaymentForm(request.POST)
         if form.is_valid():
-            paid_amount = int(form.cleaned_data["payment_amount"])
+            paid_amount = to_decimal(form.cleaned_data["payment_amount"])
 
-            if paid_amount <= 0:
+            if paid_amount <= Decimal("0.00"):
                 messages.error(request, "Payment amount must be greater than 0.")
                 return redirect("create-payment", cid=customer.id)
 
@@ -1585,7 +2108,7 @@ def create_payment(request, cid):
                     messages.error(request, "No sales record found for this customer.")
                     return redirect("create-payment", cid=customer.id)
 
-                current_unpaid = int(last_sale.unpaid_amount or 0)
+                current_unpaid = to_decimal(last_sale.unpaid_amount or 0)
 
                 if paid_amount > current_unpaid:
                     messages.error(request, f"Payment cannot be greater than unpaid amount ({current_unpaid}).")
@@ -1595,10 +2118,20 @@ def create_payment(request, cid):
 
                 # Optional: also increase paid_amount on last_sale (if you use it)
                 if last_sale.paid_amount is None:
-                    last_sale.paid_amount = 0
-                last_sale.paid_amount = int(last_sale.paid_amount) + paid_amount
+                    last_sale.paid_amount = Decimal("0.00")
+                last_sale.paid_amount = to_decimal(last_sale.paid_amount) + paid_amount
 
                 last_sale.save(update_fields=["unpaid_amount", "paid_amount"])
+
+                store = branch.store if branch else None
+                record_customer_payment_entry(
+                    tenant=tenant,
+                    amount=paid_amount,
+                    store=store,
+                    branch=branch,
+                    created_by=request.user,
+                    reference_id=payment.id,
+                )
 
             messages.success(request, "Customer payment added successfully.")
             return redirect("create-payment", cid=customer.id)
@@ -1638,8 +2171,8 @@ def get_product_by_barcode(request):
             'status': 'success',
             'product': {
                 'id': product.id,
-                'item_price': float(product.item_sale_price),
-                'package_price': float(product.package_sale_price),
+                'item_price': float(to_decimal(product.item_sale_price)),
+                'package_price': float(to_decimal(product.package_sale_price)),
                 'name': product.name,
             }
         })
@@ -1666,12 +2199,12 @@ def cart_fragment(request):
     cart = request.session.get('cart', {})
     customer_session = request.session.get('customer', {})
     cart_details = []
-    grand_total = 0
+    grand_total = Decimal("0.00")
 
     if not cart:
         html = render_to_string('partials/_cart_table.html', {
             'cart_details': [],
-            'grand_total': 0,
+            'grand_total': Decimal("0.00"),
             'customer': None
         }, request=request)
         return JsonResponse({'html': html})
@@ -1690,13 +2223,13 @@ def cart_fragment(request):
 
         item_quantity = safe_int(item.get('item_quantity'))
         package_quantity = safe_int(item.get('package_quantity'))
-        item_price = safe_int(item.get('item_price'), 0)
-        package_price = safe_int(item.get('package_price'), 0)
+        item_price = to_decimal(item.get('item_price'), Decimal("0.00"))
+        package_price = to_decimal(item.get('package_price'), Decimal("0.00"))
 
         stock_row = stock_mapping.get(product.id)
         product.stock = safe_int(stock_row.stock if stock_row else 0)
 
-        sub_total = (item_quantity * item_price) + (package_quantity * package_price)
+        sub_total = to_decimal((Decimal(item_quantity) * item_price) + (Decimal(package_quantity) * package_price))
         grand_total += sub_total
         cart_details.append({
             'product': product,

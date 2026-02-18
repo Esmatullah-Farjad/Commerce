@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+from django.conf import settings
 from .models import BranchMember, TenantMember
 from .permissions import can_transfer_stock
 
@@ -6,10 +8,7 @@ def cart_context(request):
     try:
         # Retrieve the cart from the session
         cart = request.session.get('cart', {})
-        
-        # Check if the cart is valid JSON (log for debugging)
-        print("Cart data:", cart)  # Log the cart data
-        json.dumps(cart)  # Validate that cart is JSON serializable
+        json.dumps(cart)
 
         # Calculate cart length
         cart_length = len(cart) if cart else 0
@@ -45,9 +44,22 @@ def cart_context(request):
         }
 
     except Exception as e:
-        print("Context Processor Error:", e)
         return {
             "cart_length": 0,
             "tenant_membership": None,
             "branch_membership": None,
         }
+
+
+def asset_context(request):
+    css_file = Path(settings.BASE_DIR) / "static" / "styles" / "tailwind.css"
+    version = "1"
+    try:
+        if css_file.exists():
+            version = str(int(css_file.stat().st_mtime))
+    except OSError:
+        version = "1"
+
+    return {
+        "STATIC_ASSET_VERSION": version,
+    }

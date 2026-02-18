@@ -24,6 +24,9 @@ from .models import (
     UserOnboarding,
     InventoryTransfer,
     InventoryMovement,
+    JournalEntry,
+    JournalLine,
+    LedgerAccount,
 )
 # Register your models here.
 
@@ -51,3 +54,6 @@ admin.site.register(StockTransfer)
 admin.site.register(InventoryTransfer)
 admin.site.register(InventoryMovement)
 admin.site.register(UserOnboarding)
+admin.site.register(LedgerAccount)
+admin.site.register(JournalEntry)
+admin.site.register(JournalLine)

@@ -120,6 +120,10 @@
                         <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
                         {% trans "Expense" %}
                     </a>
+                    <a href="{% url 'financial-reports' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/financial-reports' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                        <span class="h-1.5 w-1.5 rounded-full bg-primary-400/80"></span>
+                        {% trans "Financial Reports" %}
+                    </a>
 
                     <p class="px-3 pt-3 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-400">{% trans "Operations" %}</p>
                     <a href="{% url 'returned' %}" class="flex items-center gap-2 rounded-lg px-3 py-2 transition {% if request.path == '/dashboard/returned' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">

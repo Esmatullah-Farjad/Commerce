@@ -134,6 +134,11 @@ urlpatterns = [
         name='summary',
     ),
     path(
+        'dashboard/financial-reports',
+        views.financial_reports,
+        name='financial-reports',
+    ),
+    path(
         'dashboard/returned',
         views.returned,
         name='returned',

@@ -266,7 +266,7 @@ class CustomerPaymentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         base = "w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
-        self.fields["payment_amount"].widget.attrs.update({"class": base, "min": "1"})
+        self.fields["payment_amount"].widget.attrs.update({"class": base, "min": "0.01", "step": "0.01"})
         self.fields["payment_method"].widget.attrs.update({"class": base})
         self.fields["note"].widget.attrs.update({"class": base, "rows": 2})
 

@@ -1,6 +1,6 @@
 from .models import BranchMember, StoreMember, TenantMember
 
-ALLOWED_TRANSFER_ROLES = {"admin", "manager", "staff"}
+ALLOWED_TRANSFER_ROLES = {"admin", "manager"}
 
 
 def resolve_transfer_scope(user, tenant, active_branch_id=None):
