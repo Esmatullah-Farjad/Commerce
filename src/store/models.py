@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Tenant(models.Model):
+    logo = models.ImageField(null=True, blank=True)
     name = models.CharField(max_length=150)
     slug = models.SlugField(max_length=150, unique=True)
     is_active = models.BooleanField(default=True)

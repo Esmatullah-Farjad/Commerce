@@ -330,7 +330,7 @@
     </h3>
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <a
-        href="#"
+        href="{% url 'products-view' %}"
         class="flex items-center gap-3 rounded-lg border border-slate-200 p-3 hover:border-teal-300 hover:bg-teal-50"
       >
         <div
@@ -352,14 +352,16 @@
         </div>
         <div>
           <p class="text-sm font-medium text-slate-800">
+            
             {% trans 'New Sale' %}
+           
           </p>
           <p class="text-xs text-slate-500">{% trans 'Create invoice' %}</p>
         </div>
       </a>
 
       <a
-        href="#"
+        href="{% url 'purchase' %}"
         class="flex items-center gap-3 rounded-lg border border-slate-200 p-3 hover:border-emerald-300 hover:bg-emerald-50"
       >
         <div
@@ -386,9 +388,9 @@
           <p class="text-xs text-slate-500">{% trans 'Update inventory' %}</p>
         </div>
       </a>
-
+      {% if request.user.is_staff %}
       <a
-        href="#"
+        href="{% url 'financial-reports' %}"
         class="flex items-center gap-3 rounded-lg border border-slate-200 p-3 hover:border-blue-300 hover:bg-blue-50"
       >
         <div
@@ -415,9 +417,10 @@
           <p class="text-xs text-slate-500">{% trans 'View analytics' %}</p>
         </div>
       </a>
+      {% endif %}
 
       <a
-        href="#"
+        href="{% url 'customer-lists' %}"
         class="flex items-center gap-3 rounded-lg border border-slate-200 p-3 hover:border-purple-300 hover:bg-purple-50"
       >
         <div

@@ -410,8 +410,10 @@ def root_view(request):
     else:
         return redirect("landing")
 
-def landing(request):    
-    return render(request, "landing-page.html")
+def landing(request):
+    all_tenant = Tenant.objects.all()
+    return render(request, "landing-page.html", {'all_tenant':all_tenant })
+
 
 def Home(request):
     if not request.user.is_authenticated:
@@ -2252,3 +2254,9 @@ def cart_fragment(request):
     }, request=request)
 
     return JsonResponse({'html': html})
+
+
+def customer_lists(request):
+    return render(request, 'customer/customer_list.html')
+
+

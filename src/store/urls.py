@@ -205,5 +205,11 @@ urlpatterns = [
         views.cart_fragment,
         name='cart-fragment',
     ),
+    path(
+        'tenancy/customers',
+        views.customer_lists,
+        name='customer-lists',
+    ),
+
     
 ]

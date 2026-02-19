@@ -1,6 +1,6 @@
 from django import forms
 from django import forms
-from .models import BaseUnit, Branch, CustomerPayment, ExchangeRate, OtherIncome, Products, Customer, Expense, Store, Tenant, Category
+from .models import BaseUnit, Branch, CustomerPayment, ExchangeRate, OtherIncome, Products, Customer, Expense, PurchaseUnit, Store, Tenant, Category
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
@@ -54,7 +54,7 @@ class PurchaseForm(forms.ModelForm):
         if tenant:
             self.fields["category"].queryset = _tenant_or_global_qs(Category, tenant)
             self.fields["unit"].queryset = _tenant_or_global_qs(BaseUnit, tenant)
-            self.fields["purchase_unit"].queryset = self.fields["purchase_unit"].queryset.filter(tenant=tenant)
+            self.fields["purchase_unit"].queryset = PurchaseUnit.objects.all()
         if "unit" in self.fields:
             self.fields["unit"].label_from_instance = (
                 lambda obj: f"{obj.name} (Base: {obj.base_unit.name})"
