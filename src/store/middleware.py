@@ -2,10 +2,12 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.urls import resolve
 
-from .models import Branch, BranchMember, Tenant, TenantMember
+from .models import Branch, Tenant, TenantMember
+from .permissions import can_access_branch, get_accessible_branches
 
 TENANT_SESSION_KEY = "active_tenant_id"
 BRANCH_SESSION_KEY = "active_branch_id"
+STORE_SESSION_KEY = "active_store_id"
 
 
 def _is_exempt_path(request, exempt_names, exempt_prefixes):
@@ -65,7 +67,16 @@ class BranchMiddleware:
 
         if _is_exempt_path(
             request,
-            exempt_names={"sign-in", "sign-up", "sign-out", "select-tenant", "select-branch"},
+            exempt_names={
+                "sign-in",
+                "sign-up",
+                "sign-out",
+                "select-tenant",
+                "select-branch",
+                "switch-context",
+                "pending-users",
+                "activate-user",
+            },
             exempt_prefixes=("/static/", "/media/", "/admin/", "/admin"),
         ):
             return self.get_response(request)
@@ -83,11 +94,25 @@ class BranchMiddleware:
                 .filter(id=branch_id, store__tenant=tenant, is_active=True)
                 .first()
             )
+            if branch and not can_access_branch(request.user, tenant, branch.id):
+                branch = None
+                request.session.pop(BRANCH_SESSION_KEY, None)
+                request.session.pop(STORE_SESSION_KEY, None)
 
         if not branch:
-            if tenant and BranchMember.objects.filter(user=request.user, branch__store__tenant=tenant).exists():
+            allowed_branches = get_accessible_branches(request.user, tenant)
+            if allowed_branches.count() == 1:
+                only_branch = allowed_branches.first()
+                request.branch = only_branch
+                request.session[BRANCH_SESSION_KEY] = only_branch.id
+                request.session[STORE_SESSION_KEY] = only_branch.store_id
+                return self.get_response(request)
+            if allowed_branches.exists():
                 return redirect("select-branch")
+            request.session.pop(BRANCH_SESSION_KEY, None)
+            request.session.pop(STORE_SESSION_KEY, None)
             return self.get_response(request)
 
         request.branch = branch
+        request.session[STORE_SESSION_KEY] = branch.store_id
         return self.get_response(request)

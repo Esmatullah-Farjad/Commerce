@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 from django.conf import settings
-from .models import BranchMember, TenantMember
-from .permissions import can_transfer_stock
+from .models import Branch, BranchMember, TenantMember
+from .permissions import can_transfer_stock, get_accessible_branches, get_accessible_stores
 
 def cart_context(request):
     try:
@@ -16,6 +16,15 @@ def cart_context(request):
         tenant_membership = None
         branch_membership = None
         can_transfer = False
+        active_tenant = None
+        active_store = None
+        active_branch = None
+        store_options = []
+        branch_options = []
+        all_branch_options = []
+        selected_store_id = None
+        selected_branch_id = None
+        can_switch_context = False
         if request.user.is_authenticated:
             tenant_id = request.session.get("active_tenant_id")
             if tenant_id:
@@ -23,16 +32,52 @@ def cart_context(request):
                     user=request.user,
                     tenant_id=tenant_id,
                 ).select_related("tenant").first()
+                if tenant_membership:
+                    active_tenant = tenant_membership.tenant
             branch_id = request.session.get("active_branch_id")
             if branch_id:
                 branch_membership = BranchMember.objects.filter(
                     user=request.user,
                     branch_id=branch_id,
                 ).select_related("branch").first()
-            if tenant_membership:
+            if active_tenant:
+                selected_store_id = request.session.get("active_store_id")
+                accessible_stores = get_accessible_stores(request.user, active_tenant)
+                if selected_store_id and not accessible_stores.filter(id=selected_store_id).exists():
+                    selected_store_id = None
+
+                active_branch = getattr(request, "branch", None)
+                if not active_branch and branch_id:
+                    active_branch = (
+                        Branch.objects
+                        .select_related("store")
+                        .filter(id=branch_id, store__tenant=active_tenant, is_active=True)
+                        .first()
+                    )
+                if active_branch:
+                    active_store = active_branch.store
+                    selected_store_id = active_branch.store_id
+                    selected_branch_id = active_branch.id
+                elif selected_store_id:
+                    active_store = accessible_stores.filter(id=selected_store_id).first()
+
+                if not selected_store_id:
+                    selected_store_id = accessible_stores.first().id if accessible_stores.exists() else None
+
+                accessible_branches = get_accessible_branches(
+                    request.user,
+                    active_tenant,
+                    store_id=selected_store_id if selected_store_id else None,
+                )
+                all_accessible_branches = get_accessible_branches(request.user, active_tenant)
+                store_options = list(accessible_stores)
+                branch_options = list(accessible_branches)
+                all_branch_options = list(all_accessible_branches)
+                can_switch_context = len(branch_options) > 1 or len(store_options) > 1
+
                 can_transfer = can_transfer_stock(
                     request.user,
-                    tenant_membership.tenant,
+                    active_tenant,
                     active_branch_id=branch_id,
                 )
 
@@ -41,6 +86,15 @@ def cart_context(request):
             "tenant_membership": tenant_membership,
             "branch_membership": branch_membership,
             "can_transfer": can_transfer,
+            "active_tenant": active_tenant,
+            "active_store": active_store,
+            "active_branch": active_branch,
+            "context_store_options": store_options,
+            "context_branch_options": branch_options,
+            "context_all_branch_options": all_branch_options,
+            "context_selected_store_id": selected_store_id,
+            "context_selected_branch_id": selected_branch_id,
+            "can_switch_context": can_switch_context,
         }
 
     except Exception as e:
@@ -48,6 +102,15 @@ def cart_context(request):
             "cart_length": 0,
             "tenant_membership": None,
             "branch_membership": None,
+            "active_tenant": None,
+            "active_store": None,
+            "active_branch": None,
+            "context_store_options": [],
+            "context_branch_options": [],
+            "context_all_branch_options": [],
+            "context_selected_store_id": None,
+            "context_selected_branch_id": None,
+            "can_switch_context": False,
         }
 
 

@@ -22,6 +22,29 @@
       </div>
 
       <div class="mt-6 space-y-3">
+        {% if stores|length > 1 %}
+          <div class="mb-3">
+            <label for="store_id" class="mb-1 block text-sm font-medium text-slate-700">
+              {% trans 'Store' %}
+            </label>
+            <select
+              id="store_id"
+              class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
+              onchange="window.location='?store_id='+this.value"
+            >
+              {% for store in stores %}
+                <option value="{{ store.id }}" {% if store.id == selected_store_id %}selected{% endif %}>
+                  {{ store.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        {% elif stores %}
+          <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+            {% trans 'Store' %}: {{ stores.0.name }}
+          </div>
+        {% endif %}
+
         {% if branches %}
           {% for branch in branches %}
           <label class="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 hover:border-slate-300">

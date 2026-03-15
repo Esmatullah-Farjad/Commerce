@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from .accounting import ensure_default_accounts, record_expense_entry, record_sale_entry
 from .models import Branch, BranchMember, JournalLine, Store, StoreMember, Tenant, TenantMember, UserOnboarding
+from .permissions import can_transfer_stock
 
 
 class TenantIsolationTests(TestCase):
@@ -173,3 +174,156 @@ class OnboardingMembershipTests(TestCase):
         self.assertTrue(TenantMember.objects.filter(tenant=self.tenant, user=user).exists())
         self.assertTrue(StoreMember.objects.filter(store=self.store, user=user).exists())
         self.assertTrue(BranchMember.objects.filter(branch=self.branch, user=user).exists())
+
+
+class TenantOwnerAccessTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.owner = User.objects.create_user(username="tenant_owner_e", password="pass123", is_active=True)
+        self.tenant = Tenant.objects.create(name="Tenant E", slug="tenant-e")
+        self.store_a = Store.objects.create(tenant=self.tenant, name="Store A")
+        self.store_b = Store.objects.create(tenant=self.tenant, name="Store B")
+        self.branch_a1 = Branch.objects.create(store=self.store_a, name="Branch A1")
+        self.branch_b1 = Branch.objects.create(store=self.store_b, name="Branch B1")
+
+        TenantMember.objects.create(
+            tenant=self.tenant,
+            user=self.owner,
+            role="staff",
+            is_owner=True,
+        )
+        BranchMember.objects.create(branch=self.branch_a1, user=self.owner, role="staff")
+
+    def test_select_branch_shows_store_filter_and_owner_can_view_each_store(self):
+        self.client.force_login(self.owner)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session.save()
+
+        response = self.client.get(reverse("select-branch"))
+        self.assertEqual(response.status_code, 200)
+        store_ids = {store.id for store in response.context["stores"]}
+        self.assertSetEqual(store_ids, {self.store_a.id, self.store_b.id})
+
+        response_store_b = self.client.get(reverse("select-branch"), {"store_id": self.store_b.id})
+        self.assertEqual(response_store_b.status_code, 200)
+        branch_ids = {branch.id for branch in response_store_b.context["branches"]}
+        self.assertSetEqual(branch_ids, {self.branch_b1.id})
+
+    def test_owner_flag_membership_can_transfer_stock(self):
+        can_transfer = can_transfer_stock(
+            self.owner,
+            self.tenant,
+            active_branch_id=self.branch_b1.id,
+        )
+        self.assertTrue(can_transfer)
+
+    def test_transfer_inventory_view_allows_owner_flag_membership(self):
+        self.client.force_login(self.owner)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session["active_branch_id"] = self.branch_b1.id
+        session.save()
+
+        response = self.client.get(reverse("transfer-inventory"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_owner_can_switch_context_to_any_tenant_branch(self):
+        self.client.force_login(self.owner)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session["active_branch_id"] = self.branch_a1.id
+        session["active_store_id"] = self.store_a.id
+        session.save()
+
+        response = self.client.post(
+            reverse("switch-context"),
+            {
+                "store_id": self.store_b.id,
+                "branch_id": self.branch_b1.id,
+                "next": reverse("home"),
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+
+        session = self.client.session
+        self.assertEqual(session.get("active_branch_id"), self.branch_b1.id)
+        self.assertEqual(session.get("active_store_id"), self.store_b.id)
+
+    def test_owner_signin_redirects_to_select_branch_when_multiple_branches(self):
+        self.owner.email = "tenant-owner-e@example.com"
+        self.owner.save(update_fields=["email"])
+
+        response = self.client.post(
+            reverse("sign-in"),
+            {"email": self.owner.email, "password": "pass123"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("select-branch"))
+
+        session = self.client.session
+        self.assertEqual(session.get("active_tenant_id"), self.tenant.id)
+        self.assertIsNone(session.get("active_branch_id"))
+        self.assertIsNone(session.get("active_store_id"))
+
+
+class StaffContextScopeTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="staff_scope_f", password="pass123", is_active=True)
+        self.tenant = Tenant.objects.create(name="Tenant F", slug="tenant-f")
+        self.store_a = Store.objects.create(tenant=self.tenant, name="Store A")
+        self.store_b = Store.objects.create(tenant=self.tenant, name="Store B")
+        self.branch_a1 = Branch.objects.create(store=self.store_a, name="Branch A1")
+        self.branch_b1 = Branch.objects.create(store=self.store_b, name="Branch B1")
+        TenantMember.objects.create(tenant=self.tenant, user=self.user, role="staff")
+        BranchMember.objects.create(branch=self.branch_a1, user=self.user, role="staff")
+
+    def test_staff_select_branch_only_lists_authorized_branches(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session.save()
+
+        response = self.client.get(reverse("select-branch"))
+        self.assertEqual(response.status_code, 200)
+        branch_ids = {branch.id for branch in response.context["branches"]}
+        self.assertSetEqual(branch_ids, {self.branch_a1.id})
+
+    def test_staff_cannot_switch_context_to_unauthorized_branch(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session["active_branch_id"] = self.branch_a1.id
+        session["active_store_id"] = self.store_a.id
+        session.save()
+
+        response = self.client.post(
+            reverse("switch-context"),
+            {
+                "store_id": self.store_b.id,
+                "branch_id": self.branch_b1.id,
+                "next": reverse("home"),
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("select-branch"), response.url)
+
+        session = self.client.session
+        self.assertEqual(session.get("active_branch_id"), self.branch_a1.id)
+        self.assertEqual(session.get("active_store_id"), self.store_a.id)
+
+    def test_middleware_recovers_when_only_one_allowed_branch_exists(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session["active_branch_id"] = self.branch_b1.id
+        session["active_store_id"] = self.store_b.id
+        session.save()
+
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+
+        session = self.client.session
+        self.assertEqual(session.get("active_branch_id"), self.branch_a1.id)
+        self.assertEqual(session.get("active_store_id"), self.store_a.id)

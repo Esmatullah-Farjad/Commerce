@@ -37,6 +37,11 @@ urlpatterns = [
         name='select-branch',
     ),
     path(
+        'tenancy/switch-context',
+        views.switch_context,
+        name='switch-context',
+    ),
+    path(
         'tenancy/pending-users',
         views.pending_users,
         name='pending-users',

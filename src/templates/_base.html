@@ -118,9 +118,88 @@
                         </div>
                     </a>
                     </div>
-                    <div class="hidden items-center gap-2 text-xs text-slate-500 sm:flex">
-                        <span class="h-2 w-2 rounded-full bg-primary-500"></span>
-                        <span>{% trans "Live operations" %}</span>
+                    <div class="flex items-center gap-2">
+                        {% if request.user.is_authenticated and active_tenant %}
+                        <div class="hidden flex-col items-end gap-2 lg:flex">
+                            <div class="flex flex-wrap items-center justify-end gap-2 text-xs font-medium text-slate-600">
+                                <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
+                                    {% trans "Tenant" %}: {{ active_tenant.name }}
+                                </span>
+                                {% if active_store %}
+                                <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
+                                    {% trans "Store" %}: {{ active_store.name }}
+                                </span>
+                                {% endif %}
+                                {% if active_branch %}
+                                <span class="rounded-full border border-teal-200 bg-teal-50 px-2 py-1 text-teal-700">
+                                    {% trans "Branch" %}: {{ active_branch.name }}
+                                </span>
+                                {% endif %}
+                                <a
+                                    href="{% url 'select-branch' %}"
+                                    class="rounded-full border border-slate-300 bg-white px-2 py-1 text-slate-700 hover:border-slate-400"
+                                >
+                                    {% trans "Select Branch" %}
+                                </a>
+                            </div>
+                            {% if context_store_options and context_all_branch_options %}
+                            <form id="context-switch-form" method="post" action="{% url 'switch-context' %}" class="flex items-center gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <select
+                                    id="context-store"
+                                    name="store_id"
+                                    class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700"
+                                >
+                                    {% for store in context_store_options %}
+                                    <option value="{{ store.id }}" {% if store.id == context_selected_store_id %}selected{% endif %}>
+                                        {{ store.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <select
+                                    id="context-branch"
+                                    name="branch_id"
+                                    class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700"
+                                    data-selected="{{ context_selected_branch_id|default:'' }}"
+                                >
+                                    {% for branch in context_all_branch_options %}
+                                    <option
+                                        value="{{ branch.id }}"
+                                        data-store="{{ branch.store_id }}"
+                                        {% if branch.id == context_selected_branch_id %}selected{% endif %}
+                                    >
+                                        {{ branch.store.name }} / {{ branch.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button
+                                    type="submit"
+                                    class="rounded-lg bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800"
+                                >
+                                    {% trans "Switch" %}
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center gap-2 lg:hidden">
+                            {% if active_branch %}
+                            <div class="max-w-[45vw] truncate text-[11px] font-medium text-slate-600">
+                                {{ active_branch.store.name }} / {{ active_branch.name }}
+                            </div>
+                            {% endif %}
+                            <a
+                                href="{% url 'select-branch' %}"
+                                class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700"
+                            >
+                                {% trans "Select Branch" %}
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div class="hidden items-center gap-2 text-xs text-slate-500 sm:flex">
+                            <span class="h-2 w-2 rounded-full bg-primary-500"></span>
+                            <span>{% trans "Live operations" %}</span>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -173,6 +252,38 @@
             overlay.addEventListener("click", () => {
                 shell.classList.remove("sidebar-open");
             });
+        }
+        const storeSelect = document.getElementById("context-store");
+        const branchSelect = document.getElementById("context-branch");
+        if (storeSelect && branchSelect) {
+            const allBranchOptions = Array.from(branchSelect.querySelectorAll("option")).map((option) => ({
+                value: option.value,
+                label: option.textContent,
+                storeId: option.dataset.store,
+            }));
+            const selectedBranchId = branchSelect.dataset.selected;
+            const syncBranchOptions = () => {
+                const selectedStoreId = storeSelect.value;
+                const filtered = allBranchOptions.filter((option) => option.storeId === selectedStoreId);
+                const existingValue = branchSelect.value;
+                branchSelect.innerHTML = "";
+                filtered.forEach((option) => {
+                    const nextOption = document.createElement("option");
+                    nextOption.value = option.value;
+                    nextOption.textContent = option.label;
+                    branchSelect.appendChild(nextOption);
+                });
+                const preferredValue = filtered.find((option) => option.value === existingValue)
+                    ? existingValue
+                    : filtered.find((option) => option.value === selectedBranchId)
+                        ? selectedBranchId
+                        : (filtered[0] ? filtered[0].value : "");
+                if (preferredValue) {
+                    branchSelect.value = preferredValue;
+                }
+            };
+            storeSelect.addEventListener("change", syncBranchOptions);
+            syncBranchOptions();
         }
         setTimeout(() => {
             document.querySelectorAll(".message-holder").forEach((el) => {

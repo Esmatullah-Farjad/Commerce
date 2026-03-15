@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 
@@ -27,7 +28,15 @@ from .accounting import (
 )
 from .models import BaseUnit, Branch, BranchMember, BranchStock, Category, Customer, ExchangeRate, OtherIncome, Expense, InventoryMovement, InventoryTransfer, JournalEntry, JournalLine, LedgerAccount, Products, SalesDetails, SalesProducts, Store, StoreMember, StoreStock, Tenant, TenantMember, TenantStock, UserOnboarding
 from .forms import BaseUnitForm, CustomerForm, CustomerPaymentForm, ExchangeRateForm, OtherIncomeForm, ExpenseForm, PurchaseForm, RegistrationForm, UserActivationForm, InventoryTransferForm
-from .permissions import can_transfer_stock, resolve_transfer_scope
+from .permissions import (
+    can_access_branch,
+    can_transfer_stock,
+    get_accessible_branches,
+    get_accessible_stores,
+    has_tenant_admin_access,
+    has_tenant_scope_access,
+    resolve_transfer_scope,
+)
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import authenticate, login, logout
 import jdatetime
@@ -117,38 +126,9 @@ def _branch_and_store_access(request, tenant):
     if not user.is_authenticated or not tenant:
         return False, Store.objects.none(), Branch.objects.none()
 
-    can_tenant_scope = user.is_superuser or TenantMember.objects.filter(
-        user=user,
-        tenant=tenant,
-        role__in=["owner", "admin", "manager"],
-    ).exists()
-
-    if can_tenant_scope:
-        store_qs = Store.objects.filter(tenant=tenant, is_active=True).order_by("name")
-        branch_qs = Branch.objects.filter(store__tenant=tenant, is_active=True).select_related("store").order_by("store__name", "name")
-        return can_tenant_scope, store_qs, branch_qs
-
-    store_ids = set(
-        StoreMember.objects.filter(
-            user=user,
-            store__tenant=tenant,
-            store__is_active=True,
-        ).values_list("store_id", flat=True)
-    )
-
-    branch_qs = (
-        Branch.objects.filter(
-            memberships__user=user,
-            store__tenant=tenant,
-            is_active=True,
-        )
-        .select_related("store")
-        .distinct()
-        .order_by("store__name", "name")
-    )
-    store_ids.update(branch_qs.values_list("store_id", flat=True))
-
-    store_qs = Store.objects.filter(id__in=store_ids, is_active=True).order_by("name")
+    can_tenant_scope = has_tenant_scope_access(user, tenant)
+    store_qs = get_accessible_stores(user, tenant)
+    branch_qs = get_accessible_branches(user, tenant)
     return can_tenant_scope, store_qs, branch_qs
 
 
@@ -478,56 +458,26 @@ def signin(request):
                 .order_by("tenant__name")
             )
             if memberships.count() == 1:
-                tenant_id = memberships.first().tenant_id
+                tenant = memberships.first().tenant
+                tenant_id = tenant.id
                 request.session["active_tenant_id"] = tenant_id
 
-                onboarding = (
-                    UserOnboarding.objects
-                    .select_related("store", "assigned_branch")
-                    .filter(user=user, tenant_id=tenant_id, status="active")
-                    .order_by("-activated_at", "-requested_at")
-                    .first()
-                )
+                branches = get_accessible_branches(user, tenant)
+                branch_count = branches.count()
+                if branch_count == 1:
+                    only_branch = branches.first()
+                    request.session["active_branch_id"] = only_branch.id
+                    request.session["active_store_id"] = only_branch.store_id
+                    return redirect('home')
 
-                branch_id = None
-                if onboarding and onboarding.assigned_branch_id:
-                    branch_id = onboarding.assigned_branch_id
-                elif onboarding and onboarding.store_id:
-                    store_branch = (
-                        Branch.objects
-                        .filter(store_id=onboarding.store_id, is_active=True)
-                        .order_by("name")
-                        .first()
-                    )
-                    if store_branch:
-                        branch_id = store_branch.id
-                if not branch_id:
-                    branch_membership = (
-                        BranchMember.objects
-                        .select_related("branch", "branch__store")
-                        .filter(user=user, branch__store__tenant_id=tenant_id, branch__is_active=True)
-                        .order_by("branch__store__name", "branch__name")
-                        .first()
-                    )
-                    if branch_membership:
-                        branch_id = branch_membership.branch_id
-
-                if not branch_id:
-                    first_branch = (
-                        Branch.objects
-                        .filter(store__tenant_id=tenant_id, is_active=True)
-                        .order_by("store__name", "name")
-                        .first()
-                    )
-                    if first_branch:
-                        branch_id = first_branch.id
-
-                if branch_id:
-                    request.session["active_branch_id"] = branch_id
-                else:
+                if branch_count == 0:
                     request.session.pop("active_branch_id", None)
+                    request.session.pop("active_store_id", None)
+                    messages.error(request, _("No active branch assigned to your account for this tenant."))
+                    return redirect("select-tenant")
 
-                return redirect('home')
+                request.session.pop("active_store_id", None)
+                return redirect("select-branch")
 
             if memberships.count() > 1:
                 messages.info(request, _("Select the tenant you want to work in."))
@@ -536,6 +486,7 @@ def signin(request):
             messages.error(request, _("No tenant assigned to this account. Please contact an admin."))
             request.session.pop("active_tenant_id", None)
             request.session.pop("active_branch_id", None)
+            request.session.pop("active_store_id", None)
             return redirect('select-tenant')
         else:
             try:
@@ -613,13 +564,19 @@ def select_tenant(request):
 
         request.session["active_tenant_id"] = tenant_id
         request.session.pop("active_branch_id", None)
+        request.session.pop("active_store_id", None)
         request.session.pop("cart", None)
         request.session.pop("customer", None)
 
-        branches = Branch.objects.filter(store__tenant_id=tenant_id, is_active=True)
+        branches = get_accessible_branches(request.user, allowed.tenant)
         if branches.count() == 1:
-            request.session["active_branch_id"] = branches.first().id
+            only_branch = branches.first()
+            request.session["active_branch_id"] = only_branch.id
+            request.session["active_store_id"] = only_branch.store_id
             return redirect("home")
+        if branches.count() == 0:
+            messages.error(request, _("No active branch assigned to your account for this tenant."))
+            return redirect("select-tenant")
 
         return redirect("select-branch")
 
@@ -638,36 +595,93 @@ def select_branch(request):
     tenant_id = request.session.get("active_tenant_id")
     if not tenant_id:
         return redirect("select-tenant")
-    if not TenantMember.objects.filter(user=request.user, tenant_id=tenant_id).exists():
+    tenant = Tenant.objects.filter(id=tenant_id, is_active=True).first()
+    if not tenant:
         request.session.pop("active_tenant_id", None)
         return redirect("select-tenant")
+    if not TenantMember.objects.filter(user=request.user, tenant=tenant).exists():
+        request.session.pop("active_tenant_id", None)
+        request.session.pop("active_store_id", None)
+        return redirect("select-tenant")
 
-    member_branch_ids = (
-        BranchMember.objects
-        .filter(user=request.user, branch__store__tenant_id=tenant_id)
-        .values_list("branch_id", flat=True)
+    stores = get_accessible_stores(request.user, tenant)
+    selected_store_id = safe_int(
+        request.POST.get("store_id")
+        if request.method == "POST"
+        else request.GET.get("store_id"),
+        0,
     )
-    if member_branch_ids.exists():
-        branches = Branch.objects.filter(id__in=list(member_branch_ids), is_active=True).select_related("store")
-    else:
-        branches = Branch.objects.filter(store__tenant_id=tenant_id, is_active=True).select_related("store")
+    if not stores.filter(id=selected_store_id).exists():
+        active_store_id = safe_int(request.session.get("active_store_id"), 0)
+        if stores.filter(id=active_store_id).exists():
+            selected_store_id = active_store_id
+        elif stores.exists():
+            selected_store_id = stores.first().id
+    branches = get_accessible_branches(
+        request.user,
+        tenant,
+        store_id=selected_store_id if selected_store_id else None,
+    )
+    all_allowed_branches = get_accessible_branches(request.user, tenant)
+
+    if not all_allowed_branches.exists():
+        messages.error(request, _("No active branch assigned to your account for this tenant."))
+        request.session.pop("active_branch_id", None)
+        request.session.pop("active_store_id", None)
+        return redirect("select-tenant")
 
     if request.method == "POST":
         branch_id = request.POST.get("branch_id")
-        branch = branches.filter(id=branch_id).first()
+        branch = all_allowed_branches.filter(id=branch_id).first()
         if not branch:
             messages.error(request, _("Invalid branch selection."))
             return redirect("select-branch")
 
         request.session["active_branch_id"] = branch.id
+        request.session["active_store_id"] = branch.store_id
         request.session.pop("cart", None)
         request.session.pop("customer", None)
         return redirect("home")
 
     context = {
+        "stores": stores,
         "branches": branches,
+        "selected_store_id": selected_store_id,
     }
     return render(request, "tenancy/select_branch.html", context)
+
+
+def switch_context(request):
+    if not request.user.is_authenticated:
+        return redirect("sign-in")
+    if request.method != "POST":
+        return redirect("home")
+
+    tenant = _active_tenant(request)
+    if not tenant:
+        return redirect("select-tenant")
+
+    store_id = safe_int(request.POST.get("store_id"), 0)
+    branch_id = safe_int(request.POST.get("branch_id"), 0)
+    candidate_branches = get_accessible_branches(
+        request.user,
+        tenant,
+        store_id=store_id if store_id else None,
+    )
+    branch = candidate_branches.filter(id=branch_id).first()
+    if not branch:
+        messages.error(request, _("You are not authorized to switch to that branch."))
+        return redirect("select-branch")
+
+    request.session["active_branch_id"] = branch.id
+    request.session["active_store_id"] = branch.store_id
+    request.session.pop("cart", None)
+    request.session.pop("customer", None)
+
+    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER") or ""
+    if not next_url or not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        return redirect("home")
+    return redirect(next_url)
 
 
 def pending_users(request):
@@ -678,11 +692,7 @@ def pending_users(request):
     if not tenant:
         return redirect("select-tenant")
 
-    is_admin = request.user.is_superuser or TenantMember.objects.filter(
-        user=request.user,
-        tenant=tenant,
-        role__in=["owner", "admin"],
-    ).exists()
+    is_admin = has_tenant_admin_access(request.user, tenant)
     if not is_admin:
         messages.error(request, _("You do not have permission to view pending users."))
         return redirect("home")
@@ -709,11 +719,7 @@ def activate_user(request, onboarding_id):
     if not tenant:
         return redirect("select-tenant")
 
-    is_admin = request.user.is_superuser or TenantMember.objects.filter(
-        user=request.user,
-        tenant=tenant,
-        role__in=["owner", "admin"],
-    ).exists()
+    is_admin = has_tenant_admin_access(request.user, tenant)
     if not is_admin:
         messages.error(request, _("You do not have permission to activate users."))
         return redirect("home")
@@ -2258,5 +2264,3 @@ def cart_fragment(request):
 
 def customer_lists(request):
     return render(request, 'customer/customer_list.html')
-
-
