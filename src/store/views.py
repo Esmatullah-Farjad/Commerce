@@ -1,124 +1,44 @@
 from datetime import date, timedelta
 from django.shortcuts import redirect, render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.utils.translation import activate
 from django.utils import timezone
-from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 
-
-
+from client.services import active_branch as _active_branch, active_tenant as _active_tenant
+from customer.forms import CustomerForm
+from customer.services import get_active_customer, is_walk_in_customer
 from store.filters import ProductsFilter, SalesDetailsFilter
 from .accounting import (
     account_balances,
     ensure_default_accounts,
-    money,
-    record_customer_payment_entry,
     record_expense_entry,
     record_other_income_entry,
     record_purchase_entry,
     record_sale_entry,
 )
-from .models import BaseUnit, Branch, BranchMember, BranchStock, Category, Customer, ExchangeRate, OtherIncome, Expense, InventoryMovement, InventoryTransfer, JournalEntry, JournalLine, LedgerAccount, Products, SalesDetails, SalesProducts, Store, StoreMember, StoreStock, Tenant, TenantMember, TenantStock, UserOnboarding
-from .forms import BaseUnitForm, CustomerForm, CustomerPaymentForm, ExchangeRateForm, OtherIncomeForm, ExpenseForm, PurchaseForm, RegistrationForm, UserActivationForm, InventoryTransferForm
+from .models import BaseUnit, Branch, BranchStock, Category, Customer, ExchangeRate, OtherIncome, Expense, InventoryMovement, InventoryTransfer, JournalEntry, JournalLine, LedgerAccount, Products, SalesDetails, SalesProducts, Store, StoreMember, StoreStock, TenantStock, UserOnboarding
+from .forms import BaseUnitForm, ExchangeRateForm, OtherIncomeForm, ExpenseForm, PurchaseForm, InventoryTransferForm
 from .permissions import (
-    can_access_branch,
     can_transfer_stock,
     get_accessible_branches,
     get_accessible_stores,
-    has_tenant_admin_access,
     has_tenant_scope_access,
     resolve_transfer_scope,
 )
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth import authenticate, login, logout
 import jdatetime
 
 
 import json
 from django.http import HttpResponse, JsonResponse
 
-# Create your views here.
-def _active_tenant(request):
-    return getattr(request, "tenant", None)
-
-def _active_branch(request):
-    return getattr(request, "branch", None)
-
-
-def _sync_user_memberships_from_onboarding(user, include_pending_for_active_user=False):
-    """
-    Backfill tenant/store/branch memberships from active onboarding records.
-    This heals older users that were activated before membership rows existed.
-    """
-    if not user or not user.is_authenticated:
-        return
-
-    allowed_statuses = ["active"]
-    if include_pending_for_active_user and user.is_active:
-        allowed_statuses.append("pending")
-
-    onboardings = (
-        UserOnboarding.objects.select_related("tenant", "store", "assigned_branch")
-        .filter(
-            user=user,
-            status__in=allowed_statuses,
-            tenant__is_active=True,
-            store__is_active=True,
-        )
-        .order_by("-activated_at", "-requested_at")
-    )
-    if not onboardings.exists():
-        return
-
-    for onboarding in onboardings:
-        if onboarding.store.tenant_id != onboarding.tenant_id:
-            continue
-
-        tenant_member, _ = TenantMember.objects.get_or_create(
-            tenant=onboarding.tenant,
-            user=user,
-            defaults={"role": "staff", "is_owner": False},
-        )
-
-        StoreMember.objects.get_or_create(
-            store=onboarding.store,
-            user=user,
-            defaults={"role": "staff"},
-        )
-
-        if onboarding.assigned_branch_id and onboarding.assigned_branch.store.tenant_id == onboarding.tenant_id:
-            BranchMember.objects.get_or_create(
-                branch=onboarding.assigned_branch,
-                user=user,
-                defaults={"role": "staff"},
-            )
-
-        # If admin activated the auth user but onboarding record is still pending,
-        # normalize onboarding status to active and keep audit timestamp.
-        if onboarding.status == "pending" and user.is_active and include_pending_for_active_user:
-            onboarding.status = "active"
-            if not onboarding.activated_at:
-                onboarding.activated_at = timezone.now()
-            onboarding.save(update_fields=["status", "activated_at"])
-
-
-def to_decimal(value, default=Decimal("0.00")):
-    if value is None:
-        return default
-    if isinstance(value, Decimal):
-        return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    try:
-        return Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    except Exception:
-        return default
+from .utils import safe_int, to_decimal
 
 
 def _branch_and_store_access(request, tenant):
@@ -374,27 +294,6 @@ def _parse_jalali_date(value):
         return None
 
 
-def switch_language(request, lang_code):
-    if lang_code in dict(settings.LANGUAGES):  # ✅ Ensure the language is valid
-        activate(lang_code)
-        request.session['django_language'] = lang_code  # ✅ Store in session
-        # ✅ Store the language in a cookie
-        response = redirect(request.META.get('HTTP_REFERER', '/'))
-        response.set_cookie('django_language', lang_code, max_age=31536000)  # 1 year
-        return response
-    return redirect('/')
-
-def root_view(request):
-    if request.user.is_authenticated:  # Check if the user is authenticated
-        return redirect('home')  # Redirect to the 'home' page
-    else:
-        return redirect("landing")
-
-def landing(request):
-    all_tenant = Tenant.objects.all()
-    return render(request, "landing-page.html", {'all_tenant':all_tenant })
-
-
 def Home(request):
     if not request.user.is_authenticated:
         return redirect("landing")
@@ -438,350 +337,6 @@ def Home(request):
         'store': store,
     }
     return render(request, 'home.html', context)
-
-def signin(request):
-    if request.method == 'POST':
-        email = request.POST['email']
-        password = request.POST.get('password')
-        user = authenticate(request, username=email, email=email, password=password)
-        if user is not None:
-            login(request, user)
-            messages.success(request, _("Welcome !"))
-
-            # Ensure active onboarded users are linked to tenant/store/branch memberships.
-            _sync_user_memberships_from_onboarding(user, include_pending_for_active_user=True)
-
-            memberships = (
-                TenantMember.objects
-                .select_related("tenant")
-                .filter(user=user, tenant__is_active=True)
-                .order_by("tenant__name")
-            )
-            if memberships.count() == 1:
-                tenant = memberships.first().tenant
-                tenant_id = tenant.id
-                request.session["active_tenant_id"] = tenant_id
-
-                branches = get_accessible_branches(user, tenant)
-                branch_count = branches.count()
-                if branch_count == 1:
-                    only_branch = branches.first()
-                    request.session["active_branch_id"] = only_branch.id
-                    request.session["active_store_id"] = only_branch.store_id
-                    return redirect('home')
-
-                if branch_count == 0:
-                    request.session.pop("active_branch_id", None)
-                    request.session.pop("active_store_id", None)
-                    messages.error(request, _("No active branch assigned to your account for this tenant."))
-                    return redirect("select-tenant")
-
-                request.session.pop("active_store_id", None)
-                return redirect("select-branch")
-
-            if memberships.count() > 1:
-                messages.info(request, _("Select the tenant you want to work in."))
-                return redirect('select-tenant')
-
-            messages.error(request, _("No tenant assigned to this account. Please contact an admin."))
-            request.session.pop("active_tenant_id", None)
-            request.session.pop("active_branch_id", None)
-            request.session.pop("active_store_id", None)
-            return redirect('select-tenant')
-        else:
-            try:
-                from django.contrib.auth import get_user_model
-                UserModel = get_user_model()
-                existing = UserModel.objects.filter(email=email).first() or UserModel.objects.filter(username=email).first()
-                if existing and not existing.is_active:
-                    messages.error(request, _("Your account is inactive. Please contact an admin for activation."))
-                    return render(request, 'auth/login.html')
-            except Exception:
-                pass
-            messages.error(request, _("Invalid username or password"))
-    return render(request, 'auth/login.html')
-
-def signup(request):
-    form = RegistrationForm()
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
-
-            tenant = form.cleaned_data.get("tenant")
-            store = form.cleaned_data.get("store")
-
-            UserOnboarding.objects.create(
-                user=user,
-                tenant=tenant,
-                store=store,
-                status="pending",
-            )
-            messages.success(request, _("Account created. Your account is pending admin activation."))
-            return redirect("sign-in")
-            messages.success(request, _("The user has been registered successfully"))
-            
-        else:
-            messages.error(request, _("Something Went wrong. Please fix the below error !"))
-           
-    register_form = form
-    context = {
-        'form':register_form,
-        'tenants': form.fields["tenant"].queryset,
-        'stores': form.fields["store"].queryset,
-    }
-    return render(request, 'auth/register.html', context)
-
-def signout(request):
-    logout(request) 
-    return redirect('sign-in') 
-
-
-def select_tenant(request):
-    if not request.user.is_authenticated:
-        return redirect("sign-in")
-
-    # Heal missing memberships for users already activated by onboarding.
-    _sync_user_memberships_from_onboarding(request.user, include_pending_for_active_user=True)
-
-    memberships = (
-        TenantMember.objects
-        .select_related("tenant")
-        .filter(user=request.user, tenant__is_active=True)
-        .order_by("tenant__name")
-    )
-    tenants = [m.tenant for m in memberships]
-
-    if request.method == "POST":
-        tenant_id = request.POST.get("tenant_id")
-        allowed = next((m for m in memberships if str(m.tenant_id) == str(tenant_id)), None)
-        if not allowed:
-            messages.error(request, _("Invalid tenant selection."))
-            return redirect("select-tenant")
-        tenant_id = allowed.tenant_id
-
-        request.session["active_tenant_id"] = tenant_id
-        request.session.pop("active_branch_id", None)
-        request.session.pop("active_store_id", None)
-        request.session.pop("cart", None)
-        request.session.pop("customer", None)
-
-        branches = get_accessible_branches(request.user, allowed.tenant)
-        if branches.count() == 1:
-            only_branch = branches.first()
-            request.session["active_branch_id"] = only_branch.id
-            request.session["active_store_id"] = only_branch.store_id
-            return redirect("home")
-        if branches.count() == 0:
-            messages.error(request, _("No active branch assigned to your account for this tenant."))
-            return redirect("select-tenant")
-
-        return redirect("select-branch")
-
-    context = {
-        "tenants": tenants,
-    }
-    return render(request, "tenancy/select_tenant.html", context)
-
-
-def select_branch(request):
-    if not request.user.is_authenticated:
-        return redirect("sign-in")
-
-    _sync_user_memberships_from_onboarding(request.user, include_pending_for_active_user=True)
-
-    tenant_id = request.session.get("active_tenant_id")
-    if not tenant_id:
-        return redirect("select-tenant")
-    tenant = Tenant.objects.filter(id=tenant_id, is_active=True).first()
-    if not tenant:
-        request.session.pop("active_tenant_id", None)
-        return redirect("select-tenant")
-    if not TenantMember.objects.filter(user=request.user, tenant=tenant).exists():
-        request.session.pop("active_tenant_id", None)
-        request.session.pop("active_store_id", None)
-        return redirect("select-tenant")
-
-    stores = get_accessible_stores(request.user, tenant)
-    selected_store_id = safe_int(
-        request.POST.get("store_id")
-        if request.method == "POST"
-        else request.GET.get("store_id"),
-        0,
-    )
-    if not stores.filter(id=selected_store_id).exists():
-        active_store_id = safe_int(request.session.get("active_store_id"), 0)
-        if stores.filter(id=active_store_id).exists():
-            selected_store_id = active_store_id
-        elif stores.exists():
-            selected_store_id = stores.first().id
-    branches = get_accessible_branches(
-        request.user,
-        tenant,
-        store_id=selected_store_id if selected_store_id else None,
-    )
-    all_allowed_branches = get_accessible_branches(request.user, tenant)
-
-    if not all_allowed_branches.exists():
-        messages.error(request, _("No active branch assigned to your account for this tenant."))
-        request.session.pop("active_branch_id", None)
-        request.session.pop("active_store_id", None)
-        return redirect("select-tenant")
-
-    if request.method == "POST":
-        branch_id = request.POST.get("branch_id")
-        branch = all_allowed_branches.filter(id=branch_id).first()
-        if not branch:
-            messages.error(request, _("Invalid branch selection."))
-            return redirect("select-branch")
-
-        request.session["active_branch_id"] = branch.id
-        request.session["active_store_id"] = branch.store_id
-        request.session.pop("cart", None)
-        request.session.pop("customer", None)
-        return redirect("home")
-
-    context = {
-        "stores": stores,
-        "branches": branches,
-        "selected_store_id": selected_store_id,
-    }
-    return render(request, "tenancy/select_branch.html", context)
-
-
-def switch_context(request):
-    if not request.user.is_authenticated:
-        return redirect("sign-in")
-    if request.method != "POST":
-        return redirect("home")
-
-    tenant = _active_tenant(request)
-    if not tenant:
-        return redirect("select-tenant")
-
-    store_id = safe_int(request.POST.get("store_id"), 0)
-    branch_id = safe_int(request.POST.get("branch_id"), 0)
-    candidate_branches = get_accessible_branches(
-        request.user,
-        tenant,
-        store_id=store_id if store_id else None,
-    )
-    branch = candidate_branches.filter(id=branch_id).first()
-    if not branch:
-        messages.error(request, _("You are not authorized to switch to that branch."))
-        return redirect("select-branch")
-
-    request.session["active_branch_id"] = branch.id
-    request.session["active_store_id"] = branch.store_id
-    request.session.pop("cart", None)
-    request.session.pop("customer", None)
-
-    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER") or ""
-    if not next_url or not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
-        return redirect("home")
-    return redirect(next_url)
-
-
-def pending_users(request):
-    if not request.user.is_authenticated:
-        return redirect("sign-in")
-
-    tenant = _active_tenant(request)
-    if not tenant:
-        return redirect("select-tenant")
-
-    is_admin = has_tenant_admin_access(request.user, tenant)
-    if not is_admin:
-        messages.error(request, _("You do not have permission to view pending users."))
-        return redirect("home")
-
-    pending = (
-        UserOnboarding.objects
-        .select_related("user", "tenant", "store")
-        .filter(tenant=tenant, status="pending")
-        .order_by("-requested_at")
-    )
-
-    context = {
-        "tenant": tenant,
-        "pending_users": pending,
-    }
-    return render(request, "tenancy/pending_users.html", context)
-
-
-def activate_user(request, onboarding_id):
-    if not request.user.is_authenticated:
-        return redirect("sign-in")
-
-    tenant = _active_tenant(request)
-    if not tenant:
-        return redirect("select-tenant")
-
-    is_admin = has_tenant_admin_access(request.user, tenant)
-    if not is_admin:
-        messages.error(request, _("You do not have permission to activate users."))
-        return redirect("home")
-
-    onboarding = get_object_or_404(UserOnboarding, pk=onboarding_id, tenant=tenant)
-    if onboarding.status != "pending":
-        messages.info(request, _("This user is already processed."))
-        return redirect("pending-users")
-
-    form = UserActivationForm(
-        request.POST or None,
-        store=onboarding.store,
-        tenant=tenant,
-    )
-    branch_queryset = form.fields["branch"].queryset
-    has_branches = branch_queryset.exists()
-
-    if request.method == "POST":
-        if not has_branches:
-            messages.error(request, _("No branches available for this store. Please create one first."))
-        elif form.is_valid():
-            branch = form.cleaned_data["branch"]
-            with transaction.atomic():
-                onboarding.user.is_active = True
-                onboarding.user.save(update_fields=["is_active"])
-
-                TenantMember.objects.get_or_create(
-                    tenant=tenant,
-                    user=onboarding.user,
-                    defaults={"role": "staff", "is_owner": False},
-                )
-                StoreMember.objects.get_or_create(
-                    store=onboarding.store,
-                    user=onboarding.user,
-                    defaults={"role": "staff"},
-                )
-                BranchMember.objects.get_or_create(
-                    branch=branch,
-                    user=onboarding.user,
-                    defaults={"role": "staff"},
-                )
-
-                onboarding.status = "active"
-                onboarding.assigned_branch = branch
-                onboarding.activated_by = request.user
-                onboarding.activated_at = timezone.now()
-                onboarding.save(update_fields=["status", "assigned_branch", "activated_by", "activated_at"])
-
-            messages.success(
-                request,
-                _("User activated successfully. Tenant, store, and branch access were assigned."),
-            )
-            return redirect("pending-users")
-
-    context = {
-        "tenant": tenant,
-        "onboarding": onboarding,
-        "form": form,
-        "has_branches": has_branches,
-    }
-    return render(request, "tenancy/activate_user.html", context)
-
 
 def transfer_inventory(request):
     if not request.user.is_authenticated:
@@ -921,6 +476,9 @@ def transfer_inventory(request):
 def purchase(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
+    if not branch:
+        messages.error(request, _("Select a branch before adding inventory."))
+        return redirect("select-branch")
     scope, scope_obj = _resolve_inventory_scope(request, tenant, branch)
     scope_store = scope_obj.get("store") if scope == "store" else (branch.store if branch else None)
     scope_branch = scope_obj.get("branch") if scope == "branch" else None
@@ -993,7 +551,10 @@ def purchase(request):
         else:
             messages.error(request, f"Something went wrong. Please fix the below errors: {form.errors}")
 
-    purchase = Products.objects.filter(tenant=tenant).order_by('-id')
+    purchase = Products.objects.filter(
+        tenant=tenant,
+        branch_stocks__branch=branch,
+    ).distinct().order_by('-id')
 
     # Pagination
     p = Paginator(purchase, 14)
@@ -1005,7 +566,8 @@ def purchase(request):
         'category': Category.objects.filter(tenant=tenant),
         'page_obj': page_obj,
         'num': range(1, 100),
-        'form': form
+        'form': form,
+        'inventory_branch': branch,
     }
     return render(request, 'purchase/purchase.html', context)
 
@@ -1111,10 +673,17 @@ def delete_products(request, pid):
 def products_view(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
+    if not branch:
+        messages.error(request, _("Select a branch before creating a sale."))
+        return redirect("select-branch")
     categories = Category.objects.filter(tenant=tenant)
-    customer = request.session.get('customer', {})
-    customer_list = []
-    products_queryset = Products.objects.filter(tenant=tenant).select_related('category')
+    active_customer = get_active_customer(request, tenant, create_if_missing=True)
+    products_queryset = (
+        Products.objects
+        .filter(tenant=tenant, branch_stocks__branch=branch)
+        .select_related('category')
+        .distinct()
+    )
 
     products_filter = ProductsFilter(
         request.GET,
@@ -1123,95 +692,39 @@ def products_view(request):
         tenant=tenant,
     )
 
-    # Handle session customer data
-    if customer:  
-        customer_list = list(customer.values())[0]
-
-    # # Pagination
-    # paginator = Paginator(products_filter.qs, 10)  # Show 10 products per page
-    # page_number = request.GET.get('page')
-    # page_obj = paginator.get_page(page_number)
     products = list(products_filter.qs)
     _apply_branch_stock(products, branch)
+    customer_form = CustomerForm(
+        initial={
+            "name": active_customer.name if active_customer else "",
+            "phone": "" if not active_customer or not active_customer.phone else active_customer.phone,
+            "address": "" if not active_customer or is_walk_in_customer(active_customer) else active_customer.address,
+        }
+    )
     context = {
         'products': products,
         'categories': categories,
         'filter_form': products_filter,
-        'customer': customer_list
+        'customer': active_customer.name if active_customer else "",
+        'active_customer': active_customer,
+        'customer_form': customer_form,
+        'can_add_products': bool(branch),
+        'sales_branch': branch,
     }
     return render(request, 'sale/product_view.html', context)
-
-def check_customer(request):
-    tenant = _active_tenant(request)
-    code = request.GET.get("code")
-    try:
-        existing_customer = Customer.objects.get(id=code, tenant=tenant)
-        customer_session = request.session.get('customer', {})
-        customer_session[existing_customer.id] = existing_customer.name
-        request.session['customer'] = customer_session
-        form = CustomerForm(instance=existing_customer)
-    except Customer.DoesNotExist:
-        form = CustomerForm(initial={"code": code})
-    return render(request, "partials/_customer_form.html", {"form": form})
-
-def create_customer(request):
-    tenant = _active_tenant(request)
-    form = CustomerForm()
-    if request.method == 'POST':
-        if 'ignore' in request.POST:
-            customer, created = Customer.objects.get_or_create(
-                tenant=tenant,
-                name="متفرقه",
-                phone="0000000",  # Put phone in quotes if it's a CharField
-                defaults={"address": "------"},
-            )
-
-            existing_customer = get_object_or_404(Customer, pk=customer.id)
-            customer_session = request.session.get('customer', {})
-            customer_session[existing_customer.id] = existing_customer.name
-            request.session['customer'] = customer_session
-            return redirect('products-view')
-            
-        else:
-            form = CustomerForm(request.POST)
-            if form.is_valid():
-                new_customer = form.save(commit=False)
-                new_customer.tenant = tenant
-                new_customer.save()
-                # Add to session
-                customer_session = request.session.get('customer', {})
-                customer_session[new_customer.id] = new_customer.name
-                request.session['customer'] = customer_session
-                # Notify user
-                messages.success(request, _("Customer has been added successfully."))
-                return redirect('products-view')
-            else:
-                messages.error(request, _("Something went wrong. Please fix the errors below."))
-                print(f"Form errors: {form.errors}")
-
-                
-    else:
-        form=CustomerForm()
-        
-    context = {
-        'form':form
-    }
-    return render(request, 'sale/product_view.html', context)
-
-def old_customer(request, pk):
-    tenant = _active_tenant(request)
-    customer = get_object_or_404(Customer, pk=pk, tenant=tenant)
-    customer_session = request.session.get('customer', {})
-    customer_session[customer.id] = customer.name
-    request.session['customer'] = customer_session
-    messages.success(request, _("Customer has been selected successfully."))
-    return redirect('products-view')
 
 def search_products(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
+    if not branch:
+        return render(request, 'partials/_search_list.html', {'products': []})
     search = request.GET.get('search')
-    products = Products.objects.filter(tenant=tenant).select_related('category')
+    products = (
+        Products.objects
+        .filter(tenant=tenant, branch_stocks__branch=branch)
+        .select_related('category')
+        .distinct()
+    )
     product_list = (
         products.filter(category__name__istartswith=search) | products.filter(name__istartswith=search)
     )
@@ -1257,9 +770,35 @@ def add_to_cart(request):
 
         # Validate product existence
         tenant = _active_tenant(request)
+        branch = _active_branch(request)
+        if not branch:
+            return JsonResponse(
+                {'status': 'error', 'message': 'Select an active branch before selling.'},
+                status=400,
+            )
         product = Products.objects.filter(id=product_id, tenant=tenant).first()
         if not product:
             return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
+
+        item_quantity = safe_int(item_quantity, 0)
+        package_quantity = safe_int(package_quantity, 0)
+        if item_quantity < 0 or package_quantity < 0:
+            return JsonResponse({'status': 'error', 'message': 'Invalid quantity.'}, status=400)
+        if item_quantity == 0 and package_quantity == 0:
+            return JsonResponse({'status': 'error', 'message': 'Select a quantity before adding to cart.'}, status=400)
+
+        package_contain = max(safe_int(getattr(product, 'package_contain', 1), 1), 1)
+        requested_total = (package_quantity * package_contain) + item_quantity
+        stock_row = BranchStock.objects.filter(branch=branch, product=product).first()
+        available_total = safe_int(stock_row.stock if stock_row else 0)
+        if requested_total > available_total:
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'message': f'Only {available_total} items are available in {branch.name}.',
+                },
+                status=400,
+            )
 
         # Retrieve cart from session and update it
         cart = request.session.get('cart', {})
@@ -1275,12 +814,6 @@ def add_to_cart(request):
         return JsonResponse({"status": 200, "message": "success", "cart_length": len(cart)})
     
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
-
-def safe_int(value, default=0):
-    try:
-        return int(value)
-    except (ValueError, TypeError):
-        return default
 
 def print_invoice(request, sales_id):
     tenant = _active_tenant(request)
@@ -1379,12 +912,14 @@ def cart_view(request):
     customer_instance = None
     if customer_session:
         customer_pk = list(customer_session.keys())[0]
-        customer_instance = Customer.objects.filter(pk=customer_pk, tenant=tenant).first() 
-        if customer_instance:
-            pre_unpaid = SalesDetails.objects.filter(customer=customer_instance, tenant=tenant, branch=branch).aggregate(
-                total_unpaid=Sum('unpaid_amount')
-            )
-            pre_unpaid_amount = to_decimal(pre_unpaid['total_unpaid'] or 0)
+        customer_instance = Customer.objects.filter(pk=customer_pk, tenant=tenant).first()
+    if not customer_instance:
+        customer_instance = get_active_customer(request, tenant, create_if_missing=True)
+    if customer_instance:
+        pre_unpaid = SalesDetails.objects.filter(customer=customer_instance, tenant=tenant, branch=branch).aggregate(
+            total_unpaid=Sum('unpaid_amount')
+        )
+        pre_unpaid_amount = to_decimal(pre_unpaid['total_unpaid'] or 0)
     total = grand_total
     grand_total = grand_total + pre_unpaid_amount
     # Handle sale submission
@@ -2029,135 +1564,8 @@ def stock_management(request):
 
 
 
-def customer(request):
-    tenant = _active_tenant(request)
-    branch = _active_branch(request)
-    customers = Customer.objects.filter(tenant=tenant)
-    # Add customer sales details (paid, unpaid, bill count) for each customer
-    if request.method == 'POST':
-        phone = request.POST.get('phone')
-        customers = customers.filter(phone=phone)
-    customer_data = []
-    for customer in customers:
-        sales_data = SalesDetails.objects.filter(customer=customer, tenant=tenant, branch=branch).aggregate(
-            total_amount=Sum('total_amount'),
-            total_paid=Sum('paid_amount'),
-            total_unpaid=Sum('unpaid_amount'),
-            bill_count=Count('bill_number')
-        )
-        customer_data.append({
-            'customer': customer,
-            'total_amount':sales_data['total_amount'] or 0, 
-            'total_paid': sales_data['total_paid'] or 0,  # Default to 0 if None
-            'total_unpaid': sales_data['total_unpaid'] or 0,  # Default to 0 if None
-            'bill_count': sales_data['bill_count'],
-        })
-    
-
-    context = {
-        'customer_data':customer_data
-    }
-    return render(request, 'partials/management/_customer-view.html', context)
-
 def sales_dashboard(request):
     return redirect('summary')
-
-
-
-
-def create_payment(request, cid):
-    tenant = _active_tenant(request)
-    branch = _active_branch(request)
-    customer = get_object_or_404(Customer, pk=cid, tenant=tenant)
-
-    sales_details = (
-        SalesDetails.objects
-        .filter(customer=customer, tenant=tenant, branch=branch)
-        .order_by("-id")
-    )
-
-    # totals for UI + payment box
-    totals = sales_details.aggregate(
-        total_amount=Sum("total_amount"),
-        total_paid=Sum("paid_amount"),
-        total_unpaid=Sum("unpaid_amount"),
-    )
-    total_amount = to_decimal(totals["total_amount"] or 0)
-    total_paid = to_decimal(totals["total_paid"] or 0)
-    total_due = to_decimal(totals["total_unpaid"] or 0)
-
-    if request.method == "POST":
-        form = CustomerPaymentForm(request.POST)
-        if form.is_valid():
-            paid_amount = to_decimal(form.cleaned_data["payment_amount"])
-
-            if paid_amount <= Decimal("0.00"):
-                messages.error(request, "Payment amount must be greater than 0.")
-                return redirect("create-payment", cid=customer.id)
-
-            with transaction.atomic():
-                # Save payment + attach customer
-                payment = form.save(commit=False)
-                payment.customer = customer
-                payment.tenant = tenant
-                payment.branch = branch
-                payment.save()
-
-                # Lock and update the LAST SalesDetails record only (overall unpaid stored there)
-                last_sale = (
-                    SalesDetails.objects
-                    .select_for_update()
-                    .filter(customer=customer, tenant=tenant, branch=branch)
-                    .order_by("-id")
-                    .first()
-                )
-
-                if not last_sale:
-                    messages.error(request, "No sales record found for this customer.")
-                    return redirect("create-payment", cid=customer.id)
-
-                current_unpaid = to_decimal(last_sale.unpaid_amount or 0)
-
-                if paid_amount > current_unpaid:
-                    messages.error(request, f"Payment cannot be greater than unpaid amount ({current_unpaid}).")
-                    return redirect("create-payment", cid=customer.id)
-
-                last_sale.unpaid_amount = current_unpaid - paid_amount
-
-                # Optional: also increase paid_amount on last_sale (if you use it)
-                if last_sale.paid_amount is None:
-                    last_sale.paid_amount = Decimal("0.00")
-                last_sale.paid_amount = to_decimal(last_sale.paid_amount) + paid_amount
-
-                last_sale.save(update_fields=["unpaid_amount", "paid_amount"])
-
-                store = branch.store if branch else None
-                record_customer_payment_entry(
-                    tenant=tenant,
-                    amount=paid_amount,
-                    store=store,
-                    branch=branch,
-                    created_by=request.user,
-                    reference_id=payment.id,
-                )
-
-            messages.success(request, "Customer payment added successfully.")
-            return redirect("create-payment", cid=customer.id)
-    else:
-        form = CustomerPaymentForm()
-
-    context = {
-        "customer": customer,
-        "sales_details": sales_details,
-        "total_amount": total_amount,
-        "total_paid": total_paid,
-        "total_due": total_due,
-        "has_unpaid": total_due > 0,
-        "form": form,
-    }
-    return render(request, "partials/management/_customer-account.html", context)
-
-
 
 
 
@@ -2171,9 +1579,15 @@ def get_product_by_barcode(request):
             return JsonResponse({'status': 'error', 'message': 'No barcode provided'}, status=400)
 
         tenant = _active_tenant(request)
+        branch = _active_branch(request)
+        if not branch:
+            return JsonResponse({'status': 'error', 'message': 'No active branch selected'}, status=400)
         product = Products.objects.filter(code=barcode, tenant=tenant).first()
         if not product:
             return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
+        stock_row = BranchStock.objects.filter(branch=branch, product=product).first()
+        if not stock_row or safe_int(stock_row.stock, 0) <= 0:
+            return JsonResponse({'status': 'error', 'message': 'Product is not available in this branch'}, status=404)
 
         return JsonResponse({
             'status': 'success',
@@ -2262,5 +1676,5 @@ def cart_fragment(request):
     return JsonResponse({'html': html})
 
 
-def customer_lists(request):
-    return render(request, 'customer/customer_list.html')
+
+

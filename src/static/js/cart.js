@@ -41,7 +41,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                         body: JSON.stringify(data),
                     })
-                        .then((res) => res.json())
+                        .then(async (res) => {
+                            const payload = await res.json();
+                            if (!res.ok) {
+                                throw new Error(payload.message || "Failed to add product.");
+                            }
+                            return payload;
+                        })
                         .then((response) => {
                             const notification = document.querySelector(".sticky-notification");
                             if (notification) {
@@ -59,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         .catch((error) => {
                             row.classList.add("border-error");
                             console.log(`Server Error: ${error}`);
-                            alert("Failed to Add the Product.");
+                            alert(error.message || "Failed to Add the Product.");
                         });
                 }
             }

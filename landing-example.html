@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Hub</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['"Playfair Display"', 'Georgia', 'serif'],
+            body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    * { box-sizing: border-box; }
+
+    .gradient-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideRight {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .anim-fade-up { animation: fadeUp 0.7s ease-out both; }
+    .anim-fade-in { animation: fadeIn 0.6s ease-out both; }
+    .anim-scale-in { animation: scaleIn 0.5s ease-out both; }
+    .anim-slide-right { animation: slideRight 0.6s ease-out both; }
+    .anim-float { animation: float 4s ease-in-out infinite; }
+
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+    .delay-6 { animation-delay: 0.6s; }
+    .delay-7 { animation-delay: 0.7s; }
+    .delay-8 { animation-delay: 0.8s; }
+
+    .feature-card {
+      transition: transform 0.35s ease, box-shadow 0.35s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-6px);
+    }
+
+    .cta-btn {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .cta-btn:hover {
+      transform: translateY(-2px);
+    }
+    .cta-btn::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 2.5s infinite;
+    }
+
+    .nav-link {
+      position: relative;
+      transition: color 0.25s ease;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .pricing-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .pricing-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .stat-number {
+      background: linear-gradient(135deg, currentColor, currentColor);
+      -webkit-background-clip: text;
+    }
+
+    .mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    .mobile-menu.open {
+      max-height: 400px;
+      opacity: 1;
+    }
+
+    .hero-grid-pattern {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div id="app-wrapper" class="w-full h-full overflow-auto" style="background-color: #0B0F1A; color: #E8E6E1; font-family: 'DM Sans', system-ui, sans-serif;"><!-- Navigation -->
+   <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md" style="background: rgba(11,15,26,0.85); border-bottom: 1px solid rgba(232,230,225,0.06);">
+    <nav class="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between"><a href="#" class="flex items-center gap-2.5 anim-fade-in" onclick="event.preventDefault()">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #C8A45A, #E8C96A);"><i data-lucide="box" style="width:20px;height:20px;color:#0B0F1A;stroke-width:2.5;"></i>
+      </div><span class="text-lg font-bold tracking-tight" style="font-family: 'Playfair Display', Georgia, serif; color: #E8E6E1;">Inventory<span style="color: #C8A45A;">Hub</span></span> </a>
+     <div class="hidden md:flex items-center gap-8"><a href="#features" class="nav-link text-sm font-medium" style="color: rgba(232,230,225,0.65);" onmouseover="this.style.color='#E8E6E1'" onmouseout="this.style.color='rgba(232,230,225,0.65)'">Features</a> <a href="#stats" class="nav-link text-sm font-medium" style="color: rgba(232,230,225,0.65);" onmouseover="this.style.color='#E8E6E1'" onmouseout="this.style.color='rgba(232,230,225,0.65)'">Results</a> <a href="#pricing" class="nav-link text-sm font-medium" style="color: rgba(232,230,225,0.65);" onmouseover="this.style.color='#E8E6E1'" onmouseout="this.style.color='rgba(232,230,225,0.65)'">Pricing</a> <a href="#testimonials" class="nav-link text-sm font-medium" style="color: rgba(232,230,225,0.65);" onmouseover="this.style.color='#E8E6E1'" onmouseout="this.style.color='rgba(232,230,225,0.65)'">Testimonials</a>
+     </div>
+     <div class="hidden md:flex items-center gap-3"><button class="px-4 py-2 text-sm font-medium rounded-lg transition-colors" style="color: #E8E6E1; border: 1px solid rgba(232,230,225,0.12);" onmouseover="this.style.borderColor='rgba(200,164,90,0.4)'" onmouseout="this.style.borderColor='rgba(232,230,225,0.12)'">Log In</button> <button class="cta-btn px-5 py-2 text-sm font-semibold rounded-lg" style="background: linear-gradient(135deg, #C8A45A, #B8943A); color: #0B0F1A;" id="nav-cta">Start Free Trial</button>
+     </div><button class="md:hidden p-2" onclick="document.getElementById('mobile-nav').classList.toggle('open')" aria-label="Toggle menu"> <i data-lucide="menu" style="width:22px;height:22px;color:#E8E6E1;"></i> </button>
+    </nav>
+    <div id="mobile-nav" class="mobile-menu md:hidden px-5 pb-4" style="background: rgba(11,15,26,0.95);">
+     <div class="flex flex-col gap-3 pt-2"><a href="#features" class="text-sm py-2" style="color: rgba(232,230,225,0.7);">Features</a> <a href="#stats" class="text-sm py-2" style="color: rgba(232,230,225,0.7);">Results</a> <a href="#pricing" class="text-sm py-2" style="color: rgba(232,230,225,0.7);">Pricing</a> <a href="#testimonials" class="text-sm py-2" style="color: rgba(232,230,225,0.7);">Testimonials</a> <button class="cta-btn mt-2 px-5 py-2.5 text-sm font-semibold rounded-lg w-full" style="background: linear-gradient(135deg, #C8A45A, #B8943A); color: #0B0F1A;">Start Free Trial</button>
+     </div>
+    </div>
+   </header><!-- Hero Section -->
+   <main>
+    <section class="relative pt-32 pb-20 sm:pt-40 sm:pb-28 px-5 sm:px-8 overflow-hidden hero-grid-pattern">
+     <div class="gradient-orb" style="width:500px;height:500px;background:#C8A45A;top:-100px;right:-100px;"></div>
+     <div class="gradient-orb" style="width:400px;height:400px;background:#3B82F6;bottom:-50px;left:-150px;opacity:0.08;"></div>
+     <div class="max-w-5xl mx-auto text-center relative z-10">
+      <div class="anim-fade-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-7 text-xs font-medium tracking-wide" style="background: rgba(200,164,90,0.1); border: 1px solid rgba(200,164,90,0.2); color: #C8A45A;"><span class="w-1.5 h-1.5 rounded-full" style="background: #C8A45A;"></span> Now with Multi-Branch Support
+      </div>
+      <h1 id="hero-title" class="anim-fade-up delay-1 text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight tracking-tight mb-6" style="font-family: 'Playfair Display', Georgia, serif; color: #E8E6E1;">The Command Center<br>
+       for Your <span style="color: #C8A45A;">Entire Business</span></h1>
+      <p id="hero-subtitle" class="anim-fade-up delay-2 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed" style="color: rgba(232,230,225,0.55);">Sales, purchases, finance, and customers — unified across every store and branch. Official accounting built right in.</p>
+      <div class="anim-fade-up delay-3 flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"><button id="hero-cta" class="cta-btn px-8 py-3.5 text-base font-semibold rounded-xl flex items-center gap-2" style="background: linear-gradient(135deg, #C8A45A, #B8943A); color: #0B0F1A;"> Start Free Trial <i data-lucide="arrow-right" style="width:18px;height:18px;"></i> </button> <button class="px-6 py-3.5 text-sm font-medium rounded-xl flex items-center gap-2 transition-all" style="color: #E8E6E1; border: 1px solid rgba(232,230,225,0.1);" onmouseover="this.style.borderColor='rgba(200,164,90,0.35)'" onmouseout="this.style.borderColor='rgba(232,230,225,0.1)'"> <i data-lucide="play" style="width:16px;height:16px;color:#C8A45A;"></i> Watch Demo </button>
+      </div><!-- Dashboard Preview -->
+      <div class="anim-scale-in delay-4 relative max-w-4xl mx-auto rounded-2xl overflow-hidden" style="border: 1px solid rgba(232,230,225,0.08); background: rgba(20,25,40,0.8); box-shadow: 0 40px 80px rgba(0,0,0,0.4);">
+       <div class="p-3 flex items-center gap-2" style="border-bottom: 1px solid rgba(232,230,225,0.06);">
+        <div class="flex gap-1.5"><span class="w-3 h-3 rounded-full" style="background:#EF4444;"></span> <span class="w-3 h-3 rounded-full" style="background:#F59E0B;"></span> <span class="w-3 h-3 rounded-full" style="background:#22C55E;"></span>
+        </div>
+        <div class="flex-1 mx-12">
+         <div class="h-5 rounded-md mx-auto max-w-xs" style="background: rgba(232,230,225,0.04);"></div>
+        </div>
+       </div>
+       <div class="p-5 sm:p-8">
+        <div class="grid grid-cols-4 gap-3 sm:gap-4 mb-6">
+         <div class="rounded-xl p-3 sm:p-4" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.05);">
+          <div class="text-xs mb-1" style="color: rgba(232,230,225,0.4);">
+           Revenue
+          </div>
+          <div class="text-sm sm:text-xl font-bold" style="color: #22C55E;">
+           $84.2K
+          </div>
+         </div>
+         <div class="rounded-xl p-3 sm:p-4" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.05);">
+          <div class="text-xs mb-1" style="color: rgba(232,230,225,0.4);">
+           Orders
+          </div>
+          <div class="text-sm sm:text-xl font-bold" style="color: #3B82F6;">
+           1,247
+          </div>
+         </div>
+         <div class="rounded-xl p-3 sm:p-4" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.05);">
+          <div class="text-xs mb-1" style="color: rgba(232,230,225,0.4);">
+           Customers
+          </div>
+          <div class="text-sm sm:text-xl font-bold" style="color: #C8A45A;">
+           3,891
+          </div>
+         </div>
+         <div class="rounded-xl p-3 sm:p-4" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.05);">
+          <div class="text-xs mb-1" style="color: rgba(232,230,225,0.4);">
+           Branches
+          </div>
+          <div class="text-sm sm:text-xl font-bold" style="color: #A78BFA;">
+           12
+          </div>
+         </div>
+        </div><!-- Chart bars -->
+        <div class="flex items-end gap-2 h-32 sm:h-40 px-2">
+         <div class="flex-1 rounded-t-md" style="height:45%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md" style="height:65%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md" style="height:50%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md" style="height:80%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md" style="height:60%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md" style="height:90%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md" style="height:72%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md" style="height:95%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.9));"></div>
+         <div class="flex-1 rounded-t-md hidden sm:block" style="height:55%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md hidden sm:block" style="height:78%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md hidden sm:block" style="height:68%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+         <div class="flex-1 rounded-t-md hidden sm:block" style="height:85%;background:linear-gradient(to top, rgba(200,164,90,0.3), rgba(200,164,90,0.7));"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </section><!-- Features Section -->
+    <section id="features" class="py-20 sm:py-28 px-5 sm:px-8 relative">
+     <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16"><span class="inline-block text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C8A45A;">Platform</span>
+       <h2 id="features-heading" class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5" style="font-family: 'Playfair Display', Georgia, serif; color: #E8E6E1;">Everything You Need, Nothing You Don't</h2>
+       <p class="max-w-xl mx-auto text-sm sm:text-base" style="color: rgba(232,230,225,0.5);">Six powerful modules working in harmony to run your entire operation.</p>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"><!-- Sales -->
+       <div class="feature-card rounded-2xl p-6 sm:p-7" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: rgba(200,164,90,0.1); border: 1px solid rgba(200,164,90,0.15);"><i data-lucide="trending-up" style="width:22px;height:22px;color:#C8A45A;"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2" style="color: #E8E6E1;">Sales Management</h3>
+        <p class="text-sm leading-relaxed" style="color: rgba(232,230,225,0.45);">Process orders, track invoices, and monitor real-time sales performance across every branch from one dashboard.</p>
+       </div><!-- Purchases -->
+       <div class="feature-card rounded-2xl p-6 sm:p-7" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.15);"><i data-lucide="shopping-cart" style="width:22px;height:22px;color:#3B82F6;"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2" style="color: #E8E6E1;">Purchase Orders</h3>
+        <p class="text-sm leading-relaxed" style="color: rgba(232,230,225,0.45);">Automate procurement with vendor management, purchase orders, goods receiving, and cost tracking in one flow.</p>
+       </div><!-- Finance -->
+       <div class="feature-card rounded-2xl p-6 sm:p-7" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.15);"><i data-lucide="landmark" style="width:22px;height:22px;color:#22C55E;"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2" style="color: #E8E6E1;">Official Accounting</h3>
+        <p class="text-sm leading-relaxed" style="color: rgba(232,230,225,0.45);">Double-entry bookkeeping, general ledger, balance sheets, and P&amp;L reports meeting compliance standards.</p>
+       </div><!-- Customers -->
+       <div class="feature-card rounded-2xl p-6 sm:p-7" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.15);"><i data-lucide="users" style="width:22px;height:22px;color:#A78BFA;"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2" style="color: #E8E6E1;">Customer Management</h3>
+        <p class="text-sm leading-relaxed" style="color: rgba(232,230,225,0.45);">Build lasting relationships with customer profiles, purchase history, credit tracking, and loyalty programs.</p>
+       </div><!-- Multi-Branch -->
+       <div class="feature-card rounded-2xl p-6 sm:p-7" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: rgba(244,114,182,0.1); border: 1px solid rgba(244,114,182,0.15);"><i data-lucide="git-branch" style="width:22px;height:22px;color:#F472B6;"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2" style="color: #E8E6E1;">Multi-Branch Sync</h3>
+        <p class="text-sm leading-relaxed" style="color: rgba(232,230,225,0.45);">Centralized control with branch-level autonomy. Transfer stock, compare performance, and consolidate reports.</p>
+       </div><!-- Inventory -->
+       <div class="feature-card rounded-2xl p-6 sm:p-7" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.15);"><i data-lucide="package" style="width:22px;height:22px;color:#FB923C;"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2" style="color: #E8E6E1;">Stock Control</h3>
+        <p class="text-sm leading-relaxed" style="color: rgba(232,230,225,0.45);">Real-time inventory tracking with low-stock alerts, batch management, barcode support, and warehouse mapping.</p>
+       </div>
+      </div>
+     </div>
+    </section><!-- Stats Section -->
+    <section id="stats" class="py-20 sm:py-24 px-5 sm:px-8 relative">
+     <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14"><span class="inline-block text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C8A45A;">Impact</span>
+       <h2 id="stats-heading" class="text-3xl sm:text-4xl font-bold" style="font-family: 'Playfair Display', Georgia, serif; color: #E8E6E1;">Trusted by Thousands of Growing Businesses</h2>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+       <div class="text-center p-6 rounded-2xl" style="background: rgba(232,230,225,0.02); border: 1px solid rgba(232,230,225,0.05);">
+        <div class="text-3xl sm:text-4xl font-bold mb-2" style="font-family: 'Playfair Display', serif; color: #C8A45A;">
+         12K+
+        </div>
+        <div class="text-xs sm:text-sm" style="color: rgba(232,230,225,0.45);">
+         Active Businesses
+        </div>
+       </div>
+       <div class="text-center p-6 rounded-2xl" style="background: rgba(232,230,225,0.02); border: 1px solid rgba(232,230,225,0.05);">
+        <div class="text-3xl sm:text-4xl font-bold mb-2" style="font-family: 'Playfair Display', serif; color: #C8A45A;">
+         48K+
+        </div>
+        <div class="text-xs sm:text-sm" style="color: rgba(232,230,225,0.45);">
+         Branches Connected
+        </div>
+       </div>
+       <div class="text-center p-6 rounded-2xl" style="background: rgba(232,230,225,0.02); border: 1px solid rgba(232,230,225,0.05);">
+        <div class="text-3xl sm:text-4xl font-bold mb-2" style="font-family: 'Playfair Display', serif; color: #C8A45A;">
+         $2.1B
+        </div>
+        <div class="text-xs sm:text-sm" style="color: rgba(232,230,225,0.45);">
+         Transactions Processed
+        </div>
+       </div>
+       <div class="text-center p-6 rounded-2xl" style="background: rgba(232,230,225,0.02); border: 1px solid rgba(232,230,225,0.05);">
+        <div class="text-3xl sm:text-4xl font-bold mb-2" style="font-family: 'Playfair Display', serif; color: #C8A45A;">
+         99.9%
+        </div>
+        <div class="text-xs sm:text-sm" style="color: rgba(232,230,225,0.45);">
+         Uptime Guarantee
+        </div>
+       </div>
+      </div>
+     </div>
+    </section><!-- Pricing Section -->
+    <section id="pricing" class="py-20 sm:py-28 px-5 sm:px-8 relative">
+     <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14"><span class="inline-block text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C8A45A;">Pricing</span>
+       <h2 id="pricing-heading" class="text-3xl sm:text-4xl font-bold mb-4" style="font-family: 'Playfair Display', Georgia, serif; color: #E8E6E1;">Simple, Transparent Pricing</h2>
+       <p class="text-sm sm:text-base" style="color: rgba(232,230,225,0.5);">Start free, scale when you're ready.</p>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-5 max-w-4xl mx-auto"><!-- Starter -->
+       <div class="pricing-card rounded-2xl p-6 sm:p-7" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="text-sm font-semibold mb-1" style="color: rgba(232,230,225,0.6);">
+         Starter
+        </div>
+        <div class="flex items-baseline gap-1 mb-4"><span class="text-3xl font-bold" style="color: #E8E6E1;">$0</span> <span class="text-sm" style="color: rgba(232,230,225,0.35);">/month</span>
+        </div>
+        <p class="text-xs mb-6" style="color: rgba(232,230,225,0.4);">Perfect for solo stores getting started</p>
+        <ul class="space-y-3 mb-7">
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#22C55E;flex-shrink:0;"></i> 1 Branch</li>
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#22C55E;flex-shrink:0;"></i> 500 Products</li>
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#22C55E;flex-shrink:0;"></i> Basic Reports</li>
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#22C55E;flex-shrink:0;"></i> Email Support</li>
+        </ul><button class="w-full py-2.5 text-sm font-semibold rounded-xl transition-colors" style="border: 1px solid rgba(232,230,225,0.12); color: #E8E6E1;" onmouseover="this.style.borderColor='rgba(200,164,90,0.4)'" onmouseout="this.style.borderColor='rgba(232,230,225,0.12)'">Get Started</button>
+       </div><!-- Growth (Featured) -->
+       <div class="pricing-card rounded-2xl p-6 sm:p-7 relative" style="background: rgba(200,164,90,0.06); border: 2px solid rgba(200,164,90,0.35);">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-bold" style="background: linear-gradient(135deg, #C8A45A, #B8943A); color: #0B0F1A;">
+         Most Popular
+        </div>
+        <div class="text-sm font-semibold mb-1" style="color: #C8A45A;">
+         Growth
+        </div>
+        <div class="flex items-baseline gap-1 mb-4"><span class="text-3xl font-bold" style="color: #E8E6E1;">$49</span> <span class="text-sm" style="color: rgba(232,230,225,0.35);">/month</span>
+        </div>
+        <p class="text-xs mb-6" style="color: rgba(232,230,225,0.4);">For expanding businesses with branches</p>
+        <ul class="space-y-3 mb-7">
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#C8A45A;flex-shrink:0;"></i> 10 Branches</li>
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#C8A45A;flex-shrink:0;"></i> Unlimited Products</li>
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#C8A45A;flex-shrink:0;"></i> Full Accounting</li>
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#C8A45A;flex-shrink:0;"></i> Priority Support</li>
+        </ul><button class="cta-btn w-full py-2.5 text-sm font-bold rounded-xl" style="background: linear-gradient(135deg, #C8A45A, #B8943A); color: #0B0F1A;">Start Free Trial</button>
+       </div><!-- Enterprise -->
+       <div class="pricing-card rounded-2xl p-6 sm:p-7" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="text-sm font-semibold mb-1" style="color: rgba(232,230,225,0.6);">
+         Enterprise
+        </div>
+        <div class="flex items-baseline gap-1 mb-4"><span class="text-3xl font-bold" style="color: #E8E6E1;">Custom</span>
+        </div>
+        <p class="text-xs mb-6" style="color: rgba(232,230,225,0.4);">For large operations needing full control</p>
+        <ul class="space-y-3 mb-7">
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#22C55E;flex-shrink:0;"></i> Unlimited Branches</li>
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#22C55E;flex-shrink:0;"></i> Custom Integrations</li>
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#22C55E;flex-shrink:0;"></i> Dedicated Manager</li>
+         <li class="flex items-center gap-2 text-sm" style="color: rgba(232,230,225,0.6);"><i data-lucide="check" style="width:16px;height:16px;color:#22C55E;flex-shrink:0;"></i> SLA &amp; On-Premise</li>
+        </ul><button class="w-full py-2.5 text-sm font-semibold rounded-xl transition-colors" style="border: 1px solid rgba(232,230,225,0.12); color: #E8E6E1;" onmouseover="this.style.borderColor='rgba(200,164,90,0.4)'" onmouseout="this.style.borderColor='rgba(232,230,225,0.12)'">Contact Sales</button>
+       </div>
+      </div>
+     </div>
+    </section><!-- Testimonials -->
+    <section id="testimonials" class="py-20 sm:py-24 px-5 sm:px-8">
+     <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14"><span class="inline-block text-xs font-semibold tracking-widest uppercase mb-4" style="color: #C8A45A;">Testimonials</span>
+       <h2 class="text-3xl sm:text-4xl font-bold" style="font-family: 'Playfair Display', Georgia, serif; color: #E8E6E1;">Loved by Business Owners</h2>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-5">
+       <div class="rounded-2xl p-6" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="flex gap-1 mb-4"><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span>
+        </div>
+        <p class="text-sm mb-5 leading-relaxed" style="color: rgba(232,230,225,0.55);">"We went from spreadsheets to managing 8 branches seamlessly. The accounting module alone saved us $12K in bookkeeper fees."</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(200,164,90,0.15); color: #C8A45A;">
+          MR
+         </div>
+         <div>
+          <div class="text-sm font-semibold" style="color: #E8E6E1;">
+           Maria Rodriguez
+          </div>
+          <div class="text-xs" style="color: rgba(232,230,225,0.35);">
+           CEO, FreshMart Chain
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="rounded-2xl p-6" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="flex gap-1 mb-4"><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span>
+        </div>
+        <p class="text-sm mb-5 leading-relaxed" style="color: rgba(232,230,225,0.55);">"The multi-branch sync is a game-changer. Stock transfers between our locations are now automatic and accurate."</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(59,130,246,0.15); color: #3B82F6;">
+          JK
+         </div>
+         <div>
+          <div class="text-sm font-semibold" style="color: #E8E6E1;">
+           James Kim
+          </div>
+          <div class="text-xs" style="color: rgba(232,230,225,0.35);">
+           Operations, TechParts Co.
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="rounded-2xl p-6" style="background: rgba(232,230,225,0.03); border: 1px solid rgba(232,230,225,0.06);">
+        <div class="flex gap-1 mb-4"><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span><span style="color: #C8A45A;">★</span>
+        </div>
+        <p class="text-sm mb-5 leading-relaxed" style="color: rgba(232,230,225,0.55);">"Finally, official accounting that non-accountants can use. Our tax season went from nightmare to just clicking 'export'."</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(34,197,94,0.15); color: #22C55E;">
+          SA
+         </div>
+         <div>
+          <div class="text-sm font-semibold" style="color: #E8E6E1;">
+           Sarah Adesanya
+          </div>
+          <div class="text-xs" style="color: rgba(232,230,225,0.35);">
+           Owner, Luxe Boutiques
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </section><!-- CTA Section -->
+    <section class="py-20 sm:py-24 px-5 sm:px-8">
+     <div class="max-w-3xl mx-auto text-center rounded-3xl p-10 sm:p-14 relative overflow-hidden" style="background: linear-gradient(135deg, rgba(200,164,90,0.1), rgba(200,164,90,0.03)); border: 1px solid rgba(200,164,90,0.15);">
+      <div class="gradient-orb" style="width:300px;height:300px;background:#C8A45A;top:-80px;right:-80px;opacity:0.1;"></div>
+      <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 relative z-10" style="font-family: 'Playfair Display', Georgia, serif; color: #E8E6E1;">Ready to Take Control?</h2>
+      <p class="text-sm sm:text-base mb-8 relative z-10" style="color: rgba(232,230,225,0.5);">Join 12,000+ businesses already running smarter with Inventory Hub.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10"><button class="cta-btn px-8 py-3.5 text-base font-semibold rounded-xl flex items-center gap-2" style="background: linear-gradient(135deg, #C8A45A, #B8943A); color: #0B0F1A;"> Start Your Free Trial <i data-lucide="arrow-right" style="width:18px;height:18px;"></i> </button>
+      </div>
+      <p class="text-xs mt-5 relative z-10" style="color: rgba(232,230,225,0.3);">No credit card required · 14-day free trial · Cancel anytime</p>
+     </div>
+    </section>
+   </main><!-- Footer -->
+   <footer class="py-12 px-5 sm:px-8" style="border-top: 1px solid rgba(232,230,225,0.06);">
+    <div class="max-w-6xl mx-auto">
+     <div class="grid sm:grid-cols-4 gap-8 mb-10">
+      <div>
+       <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #C8A45A, #E8C96A);"><i data-lucide="box" style="width:16px;height:16px;color:#0B0F1A;stroke-width:2.5;"></i>
+        </div><span class="text-base font-bold" style="font-family: 'Playfair Display', serif; color: #E8E6E1;">Inventory<span style="color: #C8A45A;">Hub</span></span>
+       </div>
+       <p class="text-xs leading-relaxed" style="color: rgba(232,230,225,0.35);">The all-in-one platform for managing inventory, sales, and accounting across your stores.</p>
+      </div>
+      <div>
+       <h4 class="text-xs font-bold uppercase tracking-widest mb-4" style="color: rgba(232,230,225,0.5);">Product</h4>
+       <ul class="space-y-2">
+        <li><a href="#features" class="text-sm" style="color: rgba(232,230,225,0.4);">Features</a></li>
+        <li><a href="#pricing" class="text-sm" style="color: rgba(232,230,225,0.4);">Pricing</a></li>
+        <li><a href="#" class="text-sm" style="color: rgba(232,230,225,0.4);" onclick="event.preventDefault()">Integrations</a></li>
+        <li><a href="#" class="text-sm" style="color: rgba(232,230,225,0.4);" onclick="event.preventDefault()">API Docs</a></li>
+       </ul>
+      </div>
+      <div>
+       <h4 class="text-xs font-bold uppercase tracking-widest mb-4" style="color: rgba(232,230,225,0.5);">Company</h4>
+       <ul class="space-y-2">
+        <li><a href="#" class="text-sm" style="color: rgba(232,230,225,0.4);" onclick="event.preventDefault()">About</a></li>
+        <li><a href="#" class="text-sm" style="color: rgba(232,230,225,0.4);" onclick="event.preventDefault()">Careers</a></li>
+        <li><a href="#" class="text-sm" style="color: rgba(232,230,225,0.4);" onclick="event.preventDefault()">Blog</a></li>
+        <li><a href="#" class="text-sm" style="color: rgba(232,230,225,0.4);" onclick="event.preventDefault()">Contact</a></li>
+       </ul>
+      </div>
+      <div>
+       <h4 class="text-xs font-bold uppercase tracking-widest mb-4" style="color: rgba(232,230,225,0.5);">Legal</h4>
+       <ul class="space-y-2">
+        <li><a href="#" class="text-sm" style="color: rgba(232,230,225,0.4);" onclick="event.preventDefault()">Privacy Policy</a></li>
+        <li><a href="#" class="text-sm" style="color: rgba(232,230,225,0.4);" onclick="event.preventDefault()">Terms of Service</a></li>
+        <li><a href="#" class="text-sm" style="color: rgba(232,230,225,0.4);" onclick="event.preventDefault()">Security</a></li>
+       </ul>
+      </div>
+     </div>
+     <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4" style="border-top: 1px solid rgba(232,230,225,0.05);">
+      <p id="footer-text" class="text-xs" style="color: rgba(232,230,225,0.25);">© 2024 Inventory Hub. All rights reserved.</p>
+      <div class="flex items-center gap-4"><a href="#" onclick="event.preventDefault()" aria-label="Twitter"><i data-lucide="twitter" style="width:16px;height:16px;color:rgba(232,230,225,0.3);"></i></a> <a href="#" onclick="event.preventDefault()" aria-label="LinkedIn"><i data-lucide="linkedin" style="width:16px;height:16px;color:rgba(232,230,225,0.3);"></i></a> <a href="#" onclick="event.preventDefault()" aria-label="GitHub"><i data-lucide="github" style="width:16px;height:16px;color:rgba(232,230,225,0.3);"></i></a>
+      </div>
+     </div>
+    </div>
+   </footer>
+  </div>
+  <script>
+  const defaultConfig = {
+    background_color: '#0B0F1A',
+    surface_color: '#141928',
+    text_color: '#E8E6E1',
+    primary_action_color: '#C8A45A',
+    secondary_action_color: '#3B82F6',
+    font_family: 'Playfair Display',
+    font_size: 16,
+    hero_title: 'The Command Center for Your Entire Business',
+    hero_subtitle: 'Sales, purchases, finance, and customers — unified across every store and branch. Official accounting built right in.',
+    cta_button_text: 'Start Free Trial',
+    features_heading: "Everything You Need, Nothing You Don't",
+    stats_heading: 'Trusted by Thousands of Growing Businesses',
+    pricing_heading: 'Simple, Transparent Pricing',
+    footer_text: '© 2024 Inventory Hub. All rights reserved.'
+  };
+
+  function applyConfig(config) {
+    const bg = config.background_color || defaultConfig.background_color;
+    const surface = config.surface_color || defaultConfig.surface_color;
+    const text = config.text_color || defaultConfig.text_color;
+    const primary = config.primary_action_color || defaultConfig.primary_action_color;
+    const secondary = config.secondary_action_color || defaultConfig.secondary_action_color;
+    const font = config.font_family || defaultConfig.font_family;
+    const fontSize = config.font_size || defaultConfig.font_size;
+
+    const wrapper = document.getElementById('app-wrapper');
+    wrapper.style.backgroundColor = bg;
+    wrapper.style.color = text;
+
+    // Apply heading font
+    document.querySelectorAll('[style*="font-family"]').forEach(el => {
+      if (el.style.fontFamily.includes('Playfair') || el.style.fontFamily.includes('serif')) {
+        el.style.fontFamily = `${font}, Georgia, serif`;
+      }
+    });
+
+    // Font size scaling
+    const heroTitle = document.getElementById('hero-title');
+    const baseBody = fontSize;
+    document.querySelectorAll('p, li, span, a, div').forEach(el => {
+      // Don't override everything, just body text
+    });
+
+    // Text content
+    heroTitle.innerHTML = (config.hero_title || defaultConfig.hero_title).replace(
+      /(Entire Business|Your .+)$/,
+      `<span style="color: ${primary};">$1</span>`
+    );
+
+    const heroSub = document.getElementById('hero-subtitle');
+    heroSub.textContent = config.hero_subtitle || defaultConfig.hero_subtitle;
+
+    const ctaText = config.cta_button_text || defaultConfig.cta_button_text;
+    document.getElementById('hero-cta').innerHTML = `${ctaText} <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>`;
+    document.getElementById('nav-cta').textContent = ctaText;
+
+    document.getElementById('features-heading').textContent = config.features_heading || defaultConfig.features_heading;
+    document.getElementById('stats-heading').textContent = config.stats_heading || defaultConfig.stats_heading;
+    document.getElementById('pricing-heading').textContent = config.pricing_heading || defaultConfig.pricing_heading;
+    document.getElementById('footer-text').textContent = config.footer_text || defaultConfig.footer_text;
+
+    // Recolor primary action elements
+    document.querySelectorAll('.cta-btn').forEach(btn => {
+      btn.style.background = `linear-gradient(135deg, ${primary}, ${primary}dd)`;
+    });
+
+    lucide.createIcons();
+  }
+
+  // Intersection observer for scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feature-card, .pricing-card').forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = `opacity 0.5s ease ${i * 0.08}s, transform 0.5s ease ${i * 0.08}s`;
+    observer.observe(el);
+  });
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const mobileNav = document.getElementById('mobile-nav');
+        if (mobileNav.classList.contains('open')) mobileNav.classList.remove('open');
+      }
+    });
+  });
+
+  // Element SDK init
+  window.elementSdk.init({
+    defaultConfig,
+    onConfigChange: async (config) => {
+      applyConfig(config);
+    },
+    mapToCapabilities: (config) => ({
+      recolorables: [
+        { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+        { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+        { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+        { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: (v) => { config.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); } },
+        { get: () => config.secondary_action_color || defaultConfig.secondary_action_color, set: (v) => { config.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); } }
+      ],
+      borderables: [],
+      fontEditable: {
+        get: () => config.font_family || defaultConfig.font_family,
+        set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+      },
+      fontSizeable: {
+        get: () => config.font_size || defaultConfig.font_size,
+        set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+      }
+    }),
+    mapToEditPanelValues: (config) => new Map([
+      ['hero_title', config.hero_title || defaultConfig.hero_title],
+      ['hero_subtitle', config.hero_subtitle || defaultConfig.hero_subtitle],
+      ['cta_button_text', config.cta_button_text || defaultConfig.cta_button_text],
+      ['features_heading', config.features_heading || defaultConfig.features_heading],
+      ['stats_heading', config.stats_heading || defaultConfig.stats_heading],
+      ['pricing_heading', config.pricing_heading || defaultConfig.pricing_heading],
+      ['footer_text', config.footer_text || defaultConfig.footer_text]
+    ])
+  });
+
+  applyConfig(defaultConfig);
+  lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9dc9a91412ef90ab',t:'MTc3MzU1ODIyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -21,9 +21,9 @@
               {% trans 'Tenant' %}: {{ tenant.name }}
             </span>
           {% endif %}
-          {% if store %}
+          {% if active_branch %}
             <span class="rounded-full border border-white/30 bg-white/10 px-3 py-1">
-              {% trans 'Store' %}: {{ store.name }}
+              {% trans 'Branch' %}: {{ active_branch.name }}
             </span>
           {% endif %}
         </div>
@@ -41,6 +41,14 @@
         <span class="font-medium">{% now "M j, Y" %}</span>
       </div>
     </div>
+    {% if can_switch_context %}
+    <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
+      <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-100">
+        {% trans 'Filter Branch' %}
+      </span>
+      {% include 'partials/_context_switcher.html' with compact=True %}
+    </div>
+    {% endif %}
   </section>
 
   <!-- Stats Grid - Compact -->

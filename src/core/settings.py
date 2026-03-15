@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django_htmx',
+    'client',
+    'customer',
     'store',
     'django_filters',
 ]
@@ -52,8 +54,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'store.middleware.TenantMiddleware',
-    'store.middleware.BranchMiddleware',
+    'client.middleware.TenantMiddleware',
+    'client.middleware.BranchMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -94,7 +96,7 @@ DATABASES = {
 # Authentication Backend
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',       # Default backend
-    'store.backends.EmailBackend',          # Custom backend
+    'client.backends.EmailBackend',          # Custom backend
 ]
 
 # Password validation

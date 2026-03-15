@@ -1,38 +1,28 @@
 from django.contrib import admin
+
 from .models import (
     BaseUnit,
-    Branch,
-    BranchMember,
     BranchStock,
-    CustomerPayment,
     Category,
     ExchangeRate,
     Expense,
-    OtherIncome,
-    Products,
-    Customer,
-    PurchaseUnit,
-    SalesProducts,
-    SalesDetails,
-    StockTransfer,
-    Store,
-    StoreMember,
-    StoreStock,
-    Tenant,
-    TenantMember,
-    TenantStock,
-    UserOnboarding,
-    InventoryTransfer,
     InventoryMovement,
+    InventoryTransfer,
     JournalEntry,
     JournalLine,
     LedgerAccount,
+    OtherIncome,
+    Products,
+    PurchaseUnit,
+    SalesDetails,
+    SalesProducts,
+    StockTransfer,
+    StoreStock,
+    TenantStock,
 )
-# Register your models here.
 
 admin.site.register(Category)
 admin.site.register(Products)
-admin.site.register(Customer)
 admin.site.register(SalesProducts)
 admin.site.register(SalesDetails)
 admin.site.register(OtherIncome)
@@ -40,20 +30,12 @@ admin.site.register(Expense)
 admin.site.register(BaseUnit)
 admin.site.register(PurchaseUnit)
 admin.site.register(ExchangeRate)
-admin.site.register(CustomerPayment)
-admin.site.register(Tenant)
-admin.site.register(TenantMember)
-admin.site.register(Store)
-admin.site.register(Branch)
-admin.site.register(BranchMember)
 admin.site.register(BranchStock)
-admin.site.register(StoreMember)
 admin.site.register(StoreStock)
 admin.site.register(TenantStock)
 admin.site.register(StockTransfer)
 admin.site.register(InventoryTransfer)
 admin.site.register(InventoryMovement)
-admin.site.register(UserOnboarding)
 admin.site.register(LedgerAccount)
 admin.site.register(JournalEntry)
 admin.site.register(JournalLine)

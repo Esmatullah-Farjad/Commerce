@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -7,7 +8,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from .accounting import ensure_default_accounts, record_expense_entry, record_sale_entry
-from .models import Branch, BranchMember, JournalLine, Store, StoreMember, Tenant, TenantMember, UserOnboarding
+from .models import Branch, BranchMember, BranchStock, Category, JournalLine, Products, Store, StoreMember, Tenant, TenantMember, UserOnboarding
 from .permissions import can_transfer_stock
 
 
@@ -327,3 +328,73 @@ class StaffContextScopeTests(TestCase):
         session = self.client.session
         self.assertEqual(session.get("active_branch_id"), self.branch_a1.id)
         self.assertEqual(session.get("active_store_id"), self.store_a.id)
+
+
+class SalesContextSecurityTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="sales_staff_g", password="pass123", is_active=True)
+        self.tenant = Tenant.objects.create(name="Tenant G", slug="tenant-g")
+        self.store = Store.objects.create(tenant=self.tenant, name="Store G")
+        self.branch = Branch.objects.create(store=self.store, name="Branch G")
+        self.category = Category.objects.create(tenant=self.tenant, name="General", description="General")
+        self.product = Products.objects.create(
+            tenant=self.tenant,
+            category=self.category,
+            code=1001,
+            name="Rice",
+            package_contain=10,
+            package_purchase_price=Decimal("500.00"),
+            package_sale_price=Decimal("600.00"),
+            num_of_packages=2,
+            total_package_price=Decimal("1000.00"),
+            item_sale_price=Decimal("60.00"),
+            num_items=0,
+            stock=20,
+        )
+        BranchStock.objects.create(
+            branch=self.branch,
+            product=self.product,
+            stock=20,
+            num_of_packages=2,
+            num_items=0,
+        )
+
+        TenantMember.objects.create(tenant=self.tenant, user=self.user, role="staff")
+        BranchMember.objects.create(branch=self.branch, user=self.user, role="staff")
+
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session["active_branch_id"] = self.branch.id
+        session["active_store_id"] = self.store.id
+        session.save()
+
+    def test_add_to_cart_rejects_quantity_outside_active_branch_stock(self):
+        response = self.client.post(
+            reverse("add-to-cart"),
+            data=json.dumps(
+                {
+                    "product_id": self.product.id,
+                    "item_quantity": 5,
+                    "package_quantity": 2,
+                    "item_price": "60.00",
+                    "package_price": "600.00",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("available", response.json()["message"])
+
+    def test_barcode_lookup_rejects_products_without_stock_in_active_branch(self):
+        BranchStock.objects.filter(branch=self.branch, product=self.product).update(stock=0, num_of_packages=0)
+
+        response = self.client.post(
+            reverse("get-product-by-barcode"),
+            {"barcode": self.product.code},
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("not available", response.json()["message"])

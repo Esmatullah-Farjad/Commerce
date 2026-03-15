@@ -2,7 +2,13 @@ import json
 from pathlib import Path
 from django.conf import settings
 from .models import Branch, BranchMember, TenantMember
-from .permissions import can_transfer_stock, get_accessible_branches, get_accessible_stores
+from .permissions import (
+    can_transfer_stock,
+    get_accessible_branches,
+    get_accessible_stores,
+    get_active_role,
+    ROLE_LABELS,
+)
 
 def cart_context(request):
     try:
@@ -25,6 +31,8 @@ def cart_context(request):
         selected_store_id = None
         selected_branch_id = None
         can_switch_context = False
+        active_access_role = None
+        active_access_role_label = None
         if request.user.is_authenticated:
             tenant_id = request.session.get("active_tenant_id")
             if tenant_id:
@@ -80,6 +88,16 @@ def cart_context(request):
                     active_tenant,
                     active_branch_id=branch_id,
                 )
+                active_access_role = get_active_role(
+                    request.user,
+                    active_tenant,
+                    branch=active_branch,
+                    store=active_store,
+                )
+                active_access_role_label = ROLE_LABELS.get(
+                    active_access_role,
+                    active_access_role.title() if active_access_role else None,
+                )
 
         return {
             "cart_length": cart_length,
@@ -95,6 +113,8 @@ def cart_context(request):
             "context_selected_store_id": selected_store_id,
             "context_selected_branch_id": selected_branch_id,
             "can_switch_context": can_switch_context,
+            "active_access_role": active_access_role,
+            "active_access_role_label": active_access_role_label,
         }
 
     except Exception as e:
@@ -111,6 +131,8 @@ def cart_context(request):
             "context_selected_store_id": None,
             "context_selected_branch_id": None,
             "can_switch_context": False,
+            "active_access_role": None,
+            "active_access_role_label": None,
         }
 
 

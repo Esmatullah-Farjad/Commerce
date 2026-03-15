@@ -89,6 +89,7 @@
         {% include 'navbar.html' %}
         {% endif %}
         <div id="app-main" class="min-h-screen bg-white flex flex-col">
+            {% if request.resolver_match.url_name != 'landing' %}
             <header class="sticky top-0 z-20 border-b border-slate-200/80 bg-white/80 backdrop-blur">
                 <div class="flex items-center justify-between px-4 py-3 lg:px-8">
                     <div class="flex items-center gap-3">
@@ -142,45 +143,7 @@
                                     {% trans "Select Branch" %}
                                 </a>
                             </div>
-                            {% if context_store_options and context_all_branch_options %}
-                            <form id="context-switch-form" method="post" action="{% url 'switch-context' %}" class="flex items-center gap-2">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                <select
-                                    id="context-store"
-                                    name="store_id"
-                                    class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700"
-                                >
-                                    {% for store in context_store_options %}
-                                    <option value="{{ store.id }}" {% if store.id == context_selected_store_id %}selected{% endif %}>
-                                        {{ store.name }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                                <select
-                                    id="context-branch"
-                                    name="branch_id"
-                                    class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700"
-                                    data-selected="{{ context_selected_branch_id|default:'' }}"
-                                >
-                                    {% for branch in context_all_branch_options %}
-                                    <option
-                                        value="{{ branch.id }}"
-                                        data-store="{{ branch.store_id }}"
-                                        {% if branch.id == context_selected_branch_id %}selected{% endif %}
-                                    >
-                                        {{ branch.store.name }} / {{ branch.name }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                                <button
-                                    type="submit"
-                                    class="rounded-lg bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800"
-                                >
-                                    {% trans "Switch" %}
-                                </button>
-                            </form>
-                            {% endif %}
+                            {% include 'partials/_context_switcher.html' with compact=True %}
                         </div>
                         <div class="flex items-center gap-2 lg:hidden">
                             {% if active_branch %}
@@ -203,8 +166,9 @@
                     </div>
                 </div>
             </header>
-            <main class="flex-1 px-4 py-6 lg:px-8">
-                <div class="mx-auto w-full max-w-7xl space-y-6">
+            {% endif %}
+            <main class="flex-1 {% if request.resolver_match.url_name == 'landing' %}px-0 py-0{% else %}px-4 py-6 lg:px-8{% endif %}">
+                <div class="{% if request.resolver_match.url_name == 'landing' %}w-full{% else %}mx-auto w-full max-w-7xl space-y-6{% endif %}">
                     {% if messages %}
                     <div class="space-y-3">
                         {% for message in messages %}
@@ -233,7 +197,7 @@
                     {% endblock content %}
                 </div>
             </main>
-            {% if not request.user.is_authenticated %}
+            {% if not request.user.is_authenticated and request.resolver_match.url_name != 'landing' %}
             {% include 'footer.html' %}
             {% endif %}
         </div>
@@ -252,38 +216,6 @@
             overlay.addEventListener("click", () => {
                 shell.classList.remove("sidebar-open");
             });
-        }
-        const storeSelect = document.getElementById("context-store");
-        const branchSelect = document.getElementById("context-branch");
-        if (storeSelect && branchSelect) {
-            const allBranchOptions = Array.from(branchSelect.querySelectorAll("option")).map((option) => ({
-                value: option.value,
-                label: option.textContent,
-                storeId: option.dataset.store,
-            }));
-            const selectedBranchId = branchSelect.dataset.selected;
-            const syncBranchOptions = () => {
-                const selectedStoreId = storeSelect.value;
-                const filtered = allBranchOptions.filter((option) => option.storeId === selectedStoreId);
-                const existingValue = branchSelect.value;
-                branchSelect.innerHTML = "";
-                filtered.forEach((option) => {
-                    const nextOption = document.createElement("option");
-                    nextOption.value = option.value;
-                    nextOption.textContent = option.label;
-                    branchSelect.appendChild(nextOption);
-                });
-                const preferredValue = filtered.find((option) => option.value === existingValue)
-                    ? existingValue
-                    : filtered.find((option) => option.value === selectedBranchId)
-                        ? selectedBranchId
-                        : (filtered[0] ? filtered[0].value : "");
-                if (preferredValue) {
-                    branchSelect.value = preferredValue;
-                }
-            };
-            storeSelect.addEventListener("change", syncBranchOptions);
-            syncBranchOptions();
         }
         setTimeout(() => {
             document.querySelectorAll(".message-holder").forEach((el) => {
