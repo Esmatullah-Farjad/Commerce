@@ -1,0 +1,522 @@
+{% extends '_base.html' %}
+{% load i18n %}
+{% load humanize %}
+
+{% block title %}{% trans 'Branch Management' %}{% endblock title %}
+
+{% block content %}
+<style>
+  .branch-details {
+    border: 1px solid rgb(226 232 240);
+    border-radius: 0.5rem;
+    background: white;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+  }
+
+  .branch-details[open] {
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  }
+
+  .branch-summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .branch-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .branch-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+  }
+</style>
+
+<div class="space-y-6">
+  <section class="">
+    <div class="flex flex-row items-center justify-between gap-5 xl:flex-row xl:items-start xl:justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-teal-700">{% trans 'Branch Reports' %}</p>
+        <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{% trans 'Branch Management' %}</h1>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          {% trans 'Monitor branch sales, stock, finance, and employees from one place. Open filters only when you need to change branch or reporting period.' %}
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div class="px-4 py-3 text-sm text-slate-600 flex flex-row items-center justify-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z" />
+        </svg>
+
+          <div>
+            <p class="font-semibold text-slate-900">{{ selected_branch.name }}</p>
+            <p class="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">
+              {{ from_date|date:"M d, Y" }} - {{ to_date|date:"M d, Y" }}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          id="open-branch-filters"
+          class="inline-flex items-center justify-center rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-800"
+        >
+          <span class="flex flex-row items-center justify-start gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+          </svg>
+
+            <p>{% trans 'Open Filters' %}</p>
+          </span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{% trans 'Total Sales' %}</p>
+      <p class="mt-3 text-2xl font-semibold text-slate-900">{{ selected_snapshot.sales_total|floatformat:2|intcomma }}</p>
+      <p class="mt-2 text-xs text-slate-500">{{ selected_snapshot.sales_count }} {% trans 'sales records' %}</p>
+    </article>
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{% trans 'Income' %}</p>
+      <p class="mt-3 text-2xl font-semibold text-emerald-700">{{ selected_snapshot.income_total|floatformat:2|intcomma }}</p>
+      <p class="mt-2 text-xs text-slate-500">{% trans 'Other income within the selected range' %}</p>
+    </article>
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{% trans 'Expenses' %}</p>
+      <p class="mt-3 text-2xl font-semibold text-rose-700">{{ selected_snapshot.expense_total|floatformat:2|intcomma }}</p>
+      <p class="mt-2 text-xs text-slate-500">{% trans 'Branch expense total' %}</p>
+    </article>
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{% trans 'Profit' %}</p>
+      <p class="mt-3 text-2xl font-semibold {% if selected_snapshot.profit_total >= 0 %}text-teal-700{% else %}text-rose-700{% endif %}">
+        {{ selected_snapshot.profit_total|floatformat:2|intcomma }}
+      </p>
+      <p class="mt-2 text-xs text-slate-500">{% trans 'Sales + income - expenses' %}</p>
+    </article>
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{% trans 'Stock' %}</p>
+      <p class="mt-3 text-2xl font-semibold text-slate-900">{{ selected_snapshot.stock_total|intcomma }}</p>
+      <p class="mt-2 text-xs text-slate-500">{{ selected_snapshot.active_products }} {% trans 'active products' %}</p>
+    </article>
+    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{% trans 'Employees' %}</p>
+      <p class="mt-3 text-2xl font-semibold text-slate-900">{{ selected_snapshot.employee_count }}</p>
+      <p class="mt-2 text-xs text-slate-500">{% trans 'Assigned branch members' %}</p>
+    </article>
+  </section>
+
+  <div class="space-y-2">
+    {% comment %} Branch Activity Dashboard {% endcomment %}
+    <details class="branch-details" open>
+      <summary class="branch-summary flex items-center justify-between gap-4 px-6 py-5">
+        <div class="flex flex-row items-center justify-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="teal" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0 1 16.5 7.605" />
+          </svg>
+          <div>
+            <p class="text-lg font-semibold text-slate-900">{% trans 'Branch Activity Dashboard' %}</p>
+            <p class="mt-1 text-sm text-slate-500">{{ selected_branch.name }} · {{ selected_snapshot.sales_count }} {% trans 'sales records' %}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="hidden text-right sm:block">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{% trans 'Profit' %}</p>
+            <p class="text-sm font-semibold {% if selected_snapshot.profit_total >= 0 %}text-teal-700{% else %}text-rose-700{% endif %}">
+              {{ selected_snapshot.profit_total|floatformat:2|intcomma }}
+            </p>
+          </div>
+          <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{% trans 'Open section' %}</span>
+        </div>
+      </summary>
+      <div class="grid gap-4 border-t border-slate-200 p-6 lg:grid-cols-2">
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <p class="text-sm font-semibold text-slate-900">{% trans 'Sales and finance summary' %}</p>
+          <dl class="mt-4 space-y-3 text-sm text-slate-600">
+            <div class="flex items-center justify-between gap-4">
+              <dt>{% trans 'Sales records' %}</dt>
+              <dd class="font-semibold text-slate-900">{{ selected_snapshot.sales_count }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <dt>{% trans 'Total sales' %}</dt>
+              <dd class="font-semibold text-slate-900">{{ selected_snapshot.sales_total|floatformat:2|intcomma }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <dt>{% trans 'Income' %}</dt>
+              <dd class="font-semibold text-emerald-700">{{ selected_snapshot.income_total|floatformat:2|intcomma }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <dt>{% trans 'Expenses' %}</dt>
+              <dd class="font-semibold text-rose-700">{{ selected_snapshot.expense_total|floatformat:2|intcomma }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <dt>{% trans 'Profit' %}</dt>
+              <dd class="font-semibold {% if selected_snapshot.profit_total >= 0 %}text-teal-700{% else %}text-rose-700{% endif %}">
+                {{ selected_snapshot.profit_total|floatformat:2|intcomma }}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <p class="text-sm font-semibold text-slate-900">{% trans 'Stock summary' %}</p>
+          <dl class="mt-4 space-y-3 text-sm text-slate-600">
+            <div class="flex items-center justify-between gap-4">
+              <dt>{% trans 'Tracked products' %}</dt>
+              <dd class="font-semibold text-slate-900">{{ selected_snapshot.tracked_products }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <dt>{% trans 'Products with stock' %}</dt>
+              <dd class="font-semibold text-slate-900">{{ selected_snapshot.active_products }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <dt>{% trans 'Total stock units' %}</dt>
+              <dd class="font-semibold text-slate-900">{{ selected_snapshot.stock_total|intcomma }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <dt>{% trans 'Branch employees' %}</dt>
+              <dd class="font-semibold text-slate-900">{{ selected_snapshot.employee_count }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </details>
+    {% comment %} branch comperiation {% endcomment %}
+    <details class="branch-details">
+      <summary class="branch-summary flex items-center justify-between gap-4 px-6 py-5">
+        <div class="flex flex-row items-center justify-start gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="teal" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+          </svg>
+
+          <div>
+            <p class="text-lg font-semibold text-slate-900">{% trans 'Branch Comparison' %}</p>
+            <p class="mt-1 text-sm text-slate-500">{% trans 'See how each branch performs in the same period.' %}</p>
+          </div>
+        </div>
+        <div class="hidden text-right sm:block">
+          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{% trans 'Branches' %}</p>
+          <p class="text-sm font-semibold text-slate-700">{{ comparison_rows|length }}</p>
+        </div>
+      </summary>
+      <div class="overflow-x-auto border-t border-slate-200">
+        <table class="min-w-full text-left text-sm">
+          <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <tr>
+              <th class="px-6 py-3">{% trans 'Branch' %}</th>
+              <th class="px-6 py-3 text-right">{% trans 'Sales' %}</th>
+              <th class="px-6 py-3 text-right">{% trans 'Income' %}</th>
+              <th class="px-6 py-3 text-right">{% trans 'Expenses' %}</th>
+              <th class="px-6 py-3 text-right">{% trans 'Profit' %}</th>
+              <th class="px-6 py-3 text-right">{% trans 'Stock' %}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for row in comparison_rows %}
+            <tr class="{% if selected_branch and row.branch.id == selected_branch.id %}bg-teal-50/60{% endif %}">
+              <td class="px-6 py-4">
+                <p class="font-semibold text-slate-900">{{ row.branch.name }}</p>
+                <p class="text-xs text-slate-500">{{ row.employee_count }} {% trans 'employees' %}</p>
+              </td>
+              <td class="px-6 py-4 text-right text-slate-700">{{ row.sales_total|floatformat:2|intcomma }}</td>
+              <td class="px-6 py-4 text-right text-emerald-700">{{ row.income_total|floatformat:2|intcomma }}</td>
+              <td class="px-6 py-4 text-right text-rose-700">{{ row.expense_total|floatformat:2|intcomma }}</td>
+              <td class="px-6 py-4 text-right {% if row.profit_total >= 0 %}text-teal-700{% else %}text-rose-700{% endif %}">{{ row.profit_total|floatformat:2|intcomma }}</td>
+              <td class="px-6 py-4 text-right text-slate-700">{{ row.stock_total|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    
+    {% comment %} Manage Branch Information {% endcomment %}
+    <details class="branch-details">
+      <summary class="branch-summary flex items-center justify-between gap-4 px-6 py-5">
+        <div class="flex flex-row items-center justify-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="teal" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+
+          <div>
+            <p class="text-lg font-semibold text-slate-900">{% trans 'Manage Branch Information' %}</p>
+            <p class="mt-1 text-sm text-slate-500">{{ selected_branch.name }} · {{ selected_branch.contact_phone|default:_('No phone') }}</p>
+          </div>
+        </div>
+        <div class="hidden text-right sm:block">
+          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{% trans 'Status' %}</p>
+          <p class="text-sm font-semibold {% if selected_branch.is_active %}text-emerald-700{% else %}text-rose-700{% endif %}">
+            {% if selected_branch.is_active %}{% trans 'Active' %}{% else %}{% trans 'Inactive' %}{% endif %}
+          </p>
+        </div>
+      </summary>
+      <div class="border-t border-slate-200 p-6">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_branch">
+          <div class="grid gap-4 md:grid-cols-3">
+              <div>
+                <label for="{{ branch_form.name.id_for_label }}" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  {{ branch_form.name.label }}
+                </label>
+                {{ branch_form.name }}
+              </div>
+
+            <div>
+              <label for="{{ branch_form.code.id_for_label }}" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                {{ branch_form.code.label }}
+              </label>
+              {{ branch_form.code }}
+            </div>
+            <div>
+              <label for="{{ branch_form.contact_phone.id_for_label }}" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                {{ branch_form.contact_phone.label }}
+              </label>
+              {{ branch_form.contact_phone }}
+            </div>
+
+            <div>
+              <label for="{{ branch_form.contact_email.id_for_label }}" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                {{ branch_form.contact_email.label }}
+              </label>
+              {{ branch_form.contact_email }}
+            </div>
+            <div class="md:col-span-2">
+              <label for="{{ branch_form.address.id_for_label }}" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                {{ branch_form.address.label }}
+              </label>
+              {{ branch_form.address }}
+            </div>
+
+            <div class="md:col-span-3">
+              <label class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+                {{ branch_form.is_active }}
+                {% trans 'Branch is active' %}
+              </label>
+            </div>
+
+            <div class="md:col-span-3">
+              <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">
+                {% trans 'Save branch details' %}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </details>
+    {% comment %} Manage Employees {% endcomment %}
+    <details class="branch-details">
+      <summary class="branch-summary flex items-center justify-between gap-4 px-6 py-5">
+        <div class="flex flex-row items-center justify-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="teal" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+          </svg>
+          <div>
+            <p class="text-lg font-semibold text-slate-900">{% trans 'Manage Employees' %}</p>
+            <p class="mt-1 text-sm text-slate-500">{{ branch_members|length }} {% trans 'employees assigned to this branch' %}</p>
+          </div>
+        </div>
+        <div class="hidden text-right sm:block">
+          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{% trans 'Branch' %}</p>
+          <p class="text-sm font-semibold text-slate-700">{{ selected_branch.name }}</p>
+        </div>
+      </summary>
+      <div class="border-t border-slate-200 p-6">
+        <form method="post" class="space-y-4 border-b border-slate-200 pb-5">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_employee">
+          <div>
+            <label for="{{ employee_form.user.id_for_label }}" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{{ employee_form.user.label }}</label>
+            {{ employee_form.user }}
+          </div>
+          <div>
+            <label for="{{ employee_form.role.id_for_label }}" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{{ employee_form.role.label }}</label>
+            {{ employee_form.role }}
+          </div>
+          <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800">
+            {% trans 'Assign employee' %}
+          </button>
+        </form>
+
+        <div class="mt-5 space-y-3">
+          {% for membership in branch_members %}
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div class="flex flex-col gap-3">
+              <div>
+                <p class="font-semibold text-slate-900">{{ membership.user.username }}</p>
+                <p class="text-xs text-slate-500">{{ membership.user.email|default:"-" }}</p>
+              </div>
+              <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <form method="post" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="update_employee_role">
+                  <input type="hidden" name="membership_id" value="{{ membership.id }}">
+                  <select name="role" class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200">
+                    {% for value, label in branch_role_choices %}
+                    <option value="{{ value }}" {% if membership.role == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-100">
+                    {% trans 'Update role' %}
+                  </button>
+                </form>
+
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="remove_employee">
+                  <input type="hidden" name="membership_id" value="{{ membership.id }}">
+                  <button type="submit" class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100">
+                    {% trans 'Remove' %}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="rounded-2xl border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500">
+            {% trans 'No employees are assigned to this branch yet.' %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </details>
+    {% comment %} recent activity {% endcomment %}
+    <details class="branch-details">
+      <summary class="branch-summary flex items-center justify-between gap-4 px-6 py-5">
+        <div class="flex flex-row items-center justify-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="teal" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
+          </svg>
+          <div>
+            <p class="text-lg font-semibold text-slate-900">{% trans 'Recent Branch Activity' %}</p>
+            <p class="mt-1 text-sm text-slate-500">{% trans 'Latest inventory movement for the selected branch.' %}</p>
+          </div>
+        </div>
+        <div class="hidden text-right sm:block">
+          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{% trans 'Entries' %}</p>
+          <p class="text-sm font-semibold text-slate-700">{{ recent_activity|length }}</p>
+        </div>
+      </summary>
+      <div class="overflow-x-auto border-t border-slate-200">
+        <table class="min-w-full text-left text-sm">
+          <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <tr>
+              <th class="px-6 py-3">{% trans 'Date' %}</th>
+              <th class="px-6 py-3">{% trans 'Type' %}</th>
+              <th class="px-6 py-3">{% trans 'Product' %}</th>
+              <th class="px-6 py-3 text-right">{% trans 'Quantity' %}</th>
+              <th class="px-6 py-3">{% trans 'User' %}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for item in recent_activity %}
+            <tr>
+              <td class="px-6 py-4 text-slate-600">{{ item.created_at|date:"M d, Y H:i" }}</td>
+              <td class="px-6 py-4">
+                <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                  {{ item.get_movement_type_display }}
+                </span>
+              </td>
+              <td class="px-6 py-4 font-medium text-slate-900">{{ item.product.name }}</td>
+              <td class="px-6 py-4 text-right text-slate-700">{{ item.total_items|intcomma }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ item.created_by.username|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="px-6 py-8 text-center text-sm text-slate-500">
+                {% trans 'No branch activity was recorded in the selected period.' %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+</div>
+
+<dialog id="branch-filter-dialog" class="branch-dialog w-full max-w-3xl rounded-[1.75rem] border border-slate-200 bg-white p-0 shadow-2xl">
+  <div class="border-b border-slate-200 px-6 py-5">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">{% trans 'Filters' %}</p>
+        <h2 class="mt-2 text-xl font-semibold text-slate-900">{% trans 'Branch and Date Range' %}</h2>
+        <p class="mt-1 text-sm text-slate-500">{% trans 'Choose the branch and reporting period you want to inspect.' %}</p>
+      </div>
+      <button type="button" id="close-branch-filters" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700">
+        <span class="sr-only">{% trans 'Close filters' %}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+          <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  </div>
+  <form method="get" class="space-y-5 px-6 py-6">
+    <div class="grid gap-4 md:grid-cols-3">
+      <div>
+        <label for="branch_id" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{% trans 'Branch' %}</label>
+        <select id="branch_id" name="branch_id" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200">
+          {% for branch in branches %}
+          <option value="{{ branch.id }}" {% if selected_branch and branch.id == selected_branch.id %}selected{% endif %}>
+            {{ branch.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="from_date" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{% trans 'From date' %}</label>
+        <input id="from_date" type="date" name="from_date" value="{{ from_date|date:'Y-m-d' }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200">
+      </div>
+      <div>
+        <label for="to_date" class="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{% trans 'To date' %}</label>
+        <input id="to_date" type="date" name="to_date" value="{{ to_date|date:'Y-m-d' }}" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200">
+      </div>
+    </div>
+    <div class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-end">
+      <button type="button" id="cancel-branch-filters" class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50">
+        {% trans 'Cancel' %}
+      </button>
+      <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800">
+        {% trans 'Apply filters' %}
+      </button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  (function () {
+    const dialog = document.getElementById("branch-filter-dialog");
+    const openButton = document.getElementById("open-branch-filters");
+    const closeButton = document.getElementById("close-branch-filters");
+    const cancelButton = document.getElementById("cancel-branch-filters");
+
+    if (!dialog || !openButton) return;
+
+    openButton.addEventListener("click", () => {
+      if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+      }
+    });
+
+    [closeButton, cancelButton].forEach((button) => {
+      button?.addEventListener("click", () => dialog.close());
+    });
+
+    dialog.addEventListener("click", (event) => {
+      const rect = dialog.getBoundingClientRect();
+      const inside =
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width;
+      if (!inside) {
+        dialog.close();
+      }
+    });
+  })();
+</script>
+{% endblock content %}

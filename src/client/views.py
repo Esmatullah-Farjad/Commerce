@@ -1,14 +1,21 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.dateparse import parse_date
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import activate, gettext_lazy as _
 
 from store.utils import safe_int
+from store.models import BranchStock, Expense, InventoryMovement, OtherIncome, SalesDetails
 
-from .forms import RegistrationForm, UserActivationForm
+from .forms import BranchEmployeeForm, BranchSettingsForm, RegistrationForm, UserActivationForm
 from .models import BranchMember, StoreMember, Tenant, TenantMember, UserOnboarding
 from .permissions import (
     get_accessible_branches,
@@ -16,6 +23,69 @@ from .permissions import (
     has_tenant_admin_access,
 )
 from .services import active_tenant, sync_user_memberships_from_onboarding
+
+
+def _branch_management_redirect_url(branch, start_date, end_date):
+    params = []
+    if branch:
+        params.append(f"branch_id={branch.id}")
+    if start_date:
+        params.append(f"from_date={start_date.isoformat()}")
+    if end_date:
+        params.append(f"to_date={end_date.isoformat()}")
+    query = f"?{'&'.join(params)}" if params else ""
+    return f"{reverse('branch-management')}{query}"
+
+
+def _resolve_branch_date_range(request):
+    today = timezone.localdate()
+    end_date = parse_date(request.GET.get("to_date") or "") or today
+    start_date = parse_date(request.GET.get("from_date") or "") or (end_date - timedelta(days=29))
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+    return start_date, end_date
+
+
+def _branch_report_snapshot(tenant, branch, start_date, end_date):
+    sales_total = (
+        SalesDetails.objects
+        .filter(tenant=tenant, branch=branch, created_at__date__range=(start_date, end_date))
+        .aggregate(total=Sum("total_amount"), count=Count("id"))
+    )
+    income_total = (
+        OtherIncome.objects
+        .filter(tenant=tenant, branch=branch, date_created__range=(start_date, end_date))
+        .aggregate(total=Sum("amount"))
+    )
+    expense_total = (
+        Expense.objects
+        .filter(tenant=tenant, branch=branch, date_created__range=(start_date, end_date))
+        .aggregate(total=Sum("amount"))
+    )
+    stock_total = (
+        BranchStock.objects
+        .filter(branch=branch)
+        .aggregate(
+            total_stock=Sum("stock"),
+            active_products=Count("id", filter=Q(stock__gt=0)),
+            tracked_products=Count("id"),
+        )
+    )
+    sales_amount = sales_total["total"] or 0
+    income_amount = income_total["total"] or 0
+    expense_amount = expense_total["total"] or 0
+    return {
+        "branch": branch,
+        "sales_count": sales_total["count"] or 0,
+        "sales_total": sales_amount,
+        "income_total": income_amount,
+        "expense_total": expense_amount,
+        "profit_total": sales_amount + income_amount - expense_amount,
+        "stock_total": stock_total["total_stock"] or 0,
+        "active_products": stock_total["active_products"] or 0,
+        "tracked_products": stock_total["tracked_products"] or 0,
+        "employee_count": branch.memberships.count(),
+    }
 
 
 def switch_language(request, lang_code):
@@ -293,6 +363,132 @@ def switch_context(request):
     if not next_url or not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
         return redirect("home")
     return redirect(next_url)
+
+
+def branch_management(request):
+    if not request.user.is_authenticated:
+        return redirect("sign-in")
+
+    tenant = active_tenant(request)
+    if not tenant:
+        return redirect("select-tenant")
+
+    if not has_tenant_admin_access(request.user, tenant):
+        messages.error(request, _("You do not have permission to manage branches."))
+        return redirect("home")
+
+    branches = get_accessible_branches(request.user, tenant)
+    if not branches.exists():
+        messages.error(request, _("No branches are available for this tenant."))
+        return redirect("home")
+
+    selected_branch_id = safe_int(request.GET.get("branch_id"), 0) or safe_int(request.session.get("active_branch_id"), 0)
+    selected_branch = branches.filter(id=selected_branch_id).first() or branches.first()
+    start_date, end_date = _resolve_branch_date_range(request)
+
+    branch_form = BranchSettingsForm(instance=selected_branch, prefix="branch")
+    employee_form = BranchEmployeeForm(tenant=tenant, branch=selected_branch, prefix="employee")
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "update_branch":
+            branch_form = BranchSettingsForm(request.POST, instance=selected_branch, prefix="branch")
+            if branch_form.is_valid():
+                branch_form.save()
+                messages.success(request, _("Branch details updated successfully."))
+                return redirect(_branch_management_redirect_url(selected_branch, start_date, end_date))
+            messages.error(request, _("Please correct the branch details form."))
+        elif action == "add_employee":
+            employee_form = BranchEmployeeForm(request.POST, tenant=tenant, branch=selected_branch, prefix="employee")
+            if employee_form.is_valid():
+                employee = employee_form.cleaned_data["user"]
+                role = employee_form.cleaned_data["role"]
+                BranchMember.objects.update_or_create(
+                    branch=selected_branch,
+                    user=employee,
+                    defaults={"role": role},
+                )
+                StoreMember.objects.get_or_create(
+                    store=selected_branch.store,
+                    user=employee,
+                    defaults={"role": role},
+                )
+                messages.success(request, _("Employee access updated for this branch."))
+                return redirect(_branch_management_redirect_url(selected_branch, start_date, end_date))
+            messages.error(request, _("Please correct the employee assignment form."))
+        elif action == "remove_employee":
+            membership_id = safe_int(request.POST.get("membership_id"), 0)
+            membership = (
+                selected_branch.memberships
+                .select_related("user")
+                .filter(id=membership_id)
+                .first()
+            )
+            if not membership:
+                messages.error(request, _("Employee assignment not found."))
+            else:
+                membership.delete()
+                messages.success(request, _("Employee removed from this branch."))
+            return redirect(_branch_management_redirect_url(selected_branch, start_date, end_date))
+        elif action == "update_employee_role":
+            membership_id = safe_int(request.POST.get("membership_id"), 0)
+            role = request.POST.get("role")
+            membership = (
+                selected_branch.memberships
+                .select_related("user")
+                .filter(id=membership_id)
+                .first()
+            )
+            valid_roles = {choice[0] for choice in BranchMember.ROLE_CHOICES}
+            if not membership or role not in valid_roles:
+                messages.error(request, _("Invalid employee role update request."))
+            else:
+                membership.role = role
+                membership.save(update_fields=["role"])
+                StoreMember.objects.update_or_create(
+                    store=selected_branch.store,
+                    user=membership.user,
+                    defaults={"role": role},
+                )
+                messages.success(request, _("Employee role updated successfully."))
+            return redirect(_branch_management_redirect_url(selected_branch, start_date, end_date))
+
+    selected_snapshot = _branch_report_snapshot(tenant, selected_branch, start_date, end_date)
+    comparison_rows = [
+        _branch_report_snapshot(tenant, branch, start_date, end_date)
+        for branch in branches
+    ]
+    recent_activity = (
+        InventoryMovement.objects
+        .select_related("product", "created_by")
+        .filter(
+            tenant=tenant,
+            branch=selected_branch,
+            created_at__date__range=(start_date, end_date),
+        )
+        .order_by("-created_at")[:10]
+    )
+    branch_members = (
+        selected_branch.memberships
+        .select_related("user")
+        .order_by("role", "user__username")
+    )
+
+    context = {
+        "tenant": tenant,
+        "branches": branches,
+        "selected_branch": selected_branch,
+        "selected_snapshot": selected_snapshot,
+        "comparison_rows": comparison_rows,
+        "recent_activity": recent_activity,
+        "branch_members": branch_members,
+        "branch_form": branch_form,
+        "employee_form": employee_form,
+        "branch_role_choices": BranchMember.ROLE_CHOICES,
+        "from_date": start_date,
+        "to_date": end_date,
+    }
+    return render(request, "tenancy/branch_management.html", context)
 
 
 def pending_users(request):

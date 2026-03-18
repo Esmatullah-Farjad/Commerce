@@ -12,6 +12,7 @@ urlpatterns = [
     path("tenancy/select-tenant", views.select_tenant, name="select-tenant"),
     path("tenancy/select-branch", views.select_branch, name="select-branch"),
     path("tenancy/switch-context", views.switch_context, name="switch-context"),
+    path("tenancy/branches", views.branch_management, name="branch-management"),
     path("tenancy/pending-users", views.pending_users, name="pending-users"),
     path(
         "tenancy/pending-users/<int:onboarding_id>/activate",

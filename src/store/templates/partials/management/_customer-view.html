@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load custom_filters %}
+{% load humanize %}
 
 {% block dashboard %}
 <div class="space-y-4">
@@ -72,6 +73,31 @@
       </button>
     </form>
 
+    <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p class="text-sm font-semibold text-slate-900">{% trans "How to read the balance" %}</p>
+          <p class="mt-1 text-xs text-slate-600">
+            {% trans "For every customer: Total billed = Paid amount + Balance due." %}
+          </p>
+        </div>
+        <div class="grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
+          <div class="rounded-xl border border-slate-200 bg-white px-3 py-2">
+            <span class="font-semibold text-slate-900">{% trans "Total billed" %}</span>
+            <p class="mt-1">{% trans "All invoices combined." %}</p>
+          </div>
+          <div class="rounded-xl border border-teal-200 bg-teal-50 px-3 py-2">
+            <span class="font-semibold text-teal-800">{% trans "Paid" %}</span>
+            <p class="mt-1">{% trans "Amount already collected." %}</p>
+          </div>
+          <div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+            <span class="font-semibold text-amber-800">{% trans "Balance due" %}</span>
+            <p class="mt-1">{% trans "The remaining gap between total and paid." %}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Unpaid -->
     <div class="space-y-3">
       <div class="flex items-center justify-between">
@@ -87,30 +113,47 @@
               <th class="px-3 py-2.5">{% trans "Phone" %}</th>
               <th class="px-3 py-2.5">{% trans "Address" %}</th>
               <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Bills" %}</th>
-              <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Total" %}</th>
+              <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Total Billed" %}</th>
               <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Paid" %}</th>
-              <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Unpaid" %}</th>
+              <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Balance Due" %}</th>
+              <th class="px-3 py-2.5">{% trans "Breakdown" %}</th>
               <th class="px-3 py-2.5 text-center w-28">{% trans "Action" %}</th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-slate-100 bg-white">
-            {% with has_unpaid=False %}
-            {% for data in customer_data %}
-              {% if data.total_unpaid > 0 %}
+            {% for data in unpaid_customers %}
               <tr class="hover:bg-slate-50/70">
                 <td class="px-3 py-2.5 font-medium text-slate-900">{{ data.customer.name }}</td>
                 <td class="px-3 py-2.5 text-slate-700">{{ data.customer.phone }}</td>
                 <td class="px-3 py-2.5 text-slate-700">{{ data.customer.address }}</td>
 
                 <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.bill_count }}</td>
-                <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.total_amount }}</td>
-                <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.total_paid }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.total_amount|intcomma }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums text-teal-700 font-medium">{{ data.total_paid|intcomma }}</td>
 
                 <td class="px-3 py-2.5 text-right">
                   <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 tabular-nums">
-                    {{ data.total_unpaid }}
+                    {{ data.total_unpaid|intcomma }}
                   </span>
+                </td>
+
+                <td class="px-3 py-2.5">
+                  <div class="min-w-[15rem] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-medium text-slate-600">{% trans "Collected" %}</span>
+                      <span class="font-semibold tabular-nums text-teal-700">{{ data.total_paid|intcomma }}</span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between text-xs">
+                      <span class="font-medium text-slate-600">{% trans "Remaining" %}</span>
+                      <span class="font-semibold tabular-nums text-amber-800">{{ data.total_unpaid|intcomma }}</span>
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500">
+                      {% trans "Gap:" %} <span class="tabular-nums">{{ data.total_amount|intcomma }}</span> -
+                      <span class="tabular-nums">{{ data.total_paid|intcomma }}</span> =
+                      <span class="font-semibold tabular-nums text-amber-800">{{ data.total_unpaid|intcomma }}</span>
+                    </div>
+                  </div>
                 </td>
 
                 <td class="px-3 py-2.5 text-center">
@@ -127,9 +170,13 @@
                   </a>
                 </td>
               </tr>
-              {% endif %}
+            {% empty %}
+              <tr>
+                <td colspan="9" class="px-3 py-8 text-center text-sm text-slate-500">
+                  {% trans "No customers with unpaid bills." %}
+                </td>
+              </tr>
             {% endfor %}
-            {% endwith %}
           </tbody>
         </table>
       </div>
@@ -155,29 +202,46 @@
               <th class="px-3 py-2.5">{% trans "Phone" %}</th>
               <th class="px-3 py-2.5">{% trans "Address" %}</th>
               <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Bills" %}</th>
-              <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Total" %}</th>
+              <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Total Billed" %}</th>
               <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Paid" %}</th>
-              <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Unpaid" %}</th>
+              <th class="px-3 py-2.5 text-right whitespace-nowrap">{% trans "Balance Due" %}</th>
+              <th class="px-3 py-2.5">{% trans "Breakdown" %}</th>
               <th class="px-3 py-2.5 text-center w-28">{% trans "Status" %}</th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-slate-100 bg-white">
-            {% for data in customer_data %}
-              {% if data.total_unpaid <= 0 %}
+            {% for data in paid_customers %}
               <tr class="hover:bg-slate-50/70">
                 <td class="px-3 py-2.5 font-medium text-slate-900">{{ data.customer.name }}</td>
                 <td class="px-3 py-2.5 text-slate-700">{{ data.customer.phone }}</td>
                 <td class="px-3 py-2.5 text-slate-700">{{ data.customer.address }}</td>
 
                 <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.bill_count }}</td>
-                <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.total_amount }}</td>
-                <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.total_paid }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums text-slate-700">{{ data.total_amount|intcomma }}</td>
+                <td class="px-3 py-2.5 text-right tabular-nums text-teal-700 font-medium">{{ data.total_paid|intcomma }}</td>
 
                 <td class="px-3 py-2.5 text-right">
                   <span class="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-800 tabular-nums">
                     0
                   </span>
+                </td>
+
+                <td class="px-3 py-2.5">
+                  <div class="min-w-[15rem] rounded-xl border border-teal-200 bg-teal-50/70 px-3 py-2">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-medium text-slate-600">{% trans "Collected" %}</span>
+                      <span class="font-semibold tabular-nums text-teal-700">{{ data.total_paid|intcomma }}</span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between text-xs">
+                      <span class="font-medium text-slate-600">{% trans "Remaining" %}</span>
+                      <span class="font-semibold tabular-nums text-teal-700">0</span>
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500">
+                      {% trans "Settled:" %} <span class="tabular-nums">{{ data.total_amount|intcomma }}</span> =
+                      <span class="font-semibold tabular-nums text-teal-700">{{ data.total_paid|intcomma }}</span>
+                    </div>
+                  </div>
                 </td>
 
                 <td class="px-3 py-2.5 text-center">
@@ -187,7 +251,12 @@
                   </span>
                 </td>
               </tr>
-              {% endif %}
+            {% empty %}
+              <tr>
+                <td colspan="9" class="px-3 py-8 text-center text-sm text-slate-500">
+                  {% trans "No fully paid customers found." %}
+                </td>
+              </tr>
             {% endfor %}
           </tbody>
         </table>

@@ -291,6 +291,20 @@ class StaffContextScopeTests(TestCase):
         branch_ids = {branch.id for branch in response.context["branches"]}
         self.assertSetEqual(branch_ids, {self.branch_a1.id})
 
+    def test_staff_store_membership_does_not_expand_branch_access(self):
+        StoreMember.objects.create(store=self.store_a, user=self.user, role="staff")
+
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session.save()
+
+        response = self.client.get(reverse("select-branch"))
+
+        self.assertEqual(response.status_code, 200)
+        branch_ids = {branch.id for branch in response.context["branches"]}
+        self.assertSetEqual(branch_ids, {self.branch_a1.id})
+
     def test_staff_cannot_switch_context_to_unauthorized_branch(self):
         self.client.force_login(self.user)
         session = self.client.session
@@ -398,3 +412,107 @@ class SalesContextSecurityTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertIn("not available", response.json()["message"])
+
+
+class BranchInventoryIsolationTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="branch_owner", password="pass123", is_active=True)
+        self.tenant = Tenant.objects.create(name="Madras-Store", slug="madras-store")
+        self.store = Store.objects.create(tenant=self.tenant, name="Madras-Store")
+        self.branch_a = Branch.objects.create(store=self.store, name="Mohammadi Market")
+        self.branch_b = Branch.objects.create(store=self.store, name="Underground Store")
+        self.category = Category.objects.create(tenant=self.tenant, name="Books", description="Books")
+
+        self.product_a = Products.objects.create(
+            tenant=self.tenant,
+            category=self.category,
+            code=2001,
+            name="Fiqh Book",
+            package_contain=10,
+            package_purchase_price=Decimal("100.00"),
+            package_sale_price=Decimal("140.00"),
+            num_of_packages=2,
+            total_package_price=Decimal("200.00"),
+            item_sale_price=Decimal("14.00"),
+            num_items=0,
+            stock=20,
+        )
+        self.product_b = Products.objects.create(
+            tenant=self.tenant,
+            category=self.category,
+            code=2002,
+            name="Hadith Book",
+            package_contain=10,
+            package_purchase_price=Decimal("120.00"),
+            package_sale_price=Decimal("160.00"),
+            num_of_packages=1,
+            total_package_price=Decimal("120.00"),
+            item_sale_price=Decimal("16.00"),
+            num_items=0,
+            stock=10,
+        )
+
+        BranchStock.objects.create(
+            branch=self.branch_a,
+            product=self.product_a,
+            stock=20,
+            num_of_packages=2,
+            num_items=0,
+        )
+        BranchStock.objects.create(
+            branch=self.branch_b,
+            product=self.product_b,
+            stock=10,
+            num_of_packages=1,
+            num_items=0,
+        )
+
+        TenantMember.objects.create(tenant=self.tenant, user=self.user, role="owner")
+        BranchMember.objects.create(branch=self.branch_a, user=self.user, role="manager")
+        BranchMember.objects.create(branch=self.branch_b, user=self.user, role="manager")
+
+        self.client.force_login(self.user)
+
+    def _set_active_branch(self, branch):
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session["active_store_id"] = self.store.id
+        session["active_branch_id"] = branch.id
+        session.save()
+
+    def test_products_display_only_shows_products_for_active_branch(self):
+        self._set_active_branch(self.branch_b)
+
+        response = self.client.get(reverse("products_display"))
+
+        self.assertEqual(response.status_code, 200)
+        products = list(response.context["page_obj"].object_list)
+        self.assertEqual([product.id for product in products], [self.product_b.id])
+        self.assertContains(response, "Hadith Book")
+        self.assertNotContains(response, "Fiqh Book")
+
+    def test_branch_to_branch_transfer_updates_destination_branch_stock(self):
+        self._set_active_branch(self.branch_a)
+
+        response = self.client.post(
+            reverse("transfer-inventory"),
+            data={
+                "product": self.product_a.id,
+                "to_scope": "branch",
+                "to_branch": self.branch_b.id,
+                "package_qty": 1,
+                "item_qty": 0,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        source_stock = BranchStock.objects.get(branch=self.branch_a, product=self.product_a)
+        destination_stock = BranchStock.objects.get(branch=self.branch_b, product=self.product_a)
+
+        self.assertEqual(source_stock.stock, 10)
+        self.assertEqual(source_stock.num_of_packages, 1)
+        self.assertEqual(destination_stock.stock, 10)
+        self.assertEqual(destination_stock.num_of_packages, 1)

@@ -60,6 +60,8 @@ class Branch(models.Model):
     name = models.CharField(max_length=150)
     code = models.CharField(max_length=50, null=True, blank=True)
     address = models.CharField(max_length=200, blank=True, default="")
+    contact_phone = models.CharField(max_length=50, blank=True, default="")
+    contact_email = models.EmailField(blank=True, default="")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

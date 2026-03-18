@@ -5,6 +5,7 @@ from .models import Branch, BranchMember, Store, StoreMember, TenantMember
 ELEVATED_TENANT_ROLES = {"owner", "admin"}
 TENANT_ADMIN_ROLES = {"owner", "admin"}
 ALLOWED_TRANSFER_ROLES = {"owner", "admin", "manager"}
+STORE_WIDE_BRANCH_ACCESS_ROLES = {"admin", "manager"}
 ROLE_LABELS = {
     "superadmin": "Superadmin",
     "owner": "Owner",
@@ -107,6 +108,7 @@ def get_accessible_branches(user, tenant, store_id=None):
                 user=user,
                 store__tenant=tenant,
                 store__is_active=True,
+                role__in=STORE_WIDE_BRANCH_ACCESS_ROLES,
             ).values_list("store_id", flat=True)
         )
         if not branch_ids and not store_ids:
@@ -177,7 +179,12 @@ def resolve_transfer_scope(user, tenant, active_branch_id=None):
     store_member = (
         StoreMember.objects
         .select_related("store")
-        .filter(user=user, store__tenant=tenant, store__is_active=True)
+        .filter(
+            user=user,
+            store__tenant=tenant,
+            store__is_active=True,
+            role__in=STORE_WIDE_BRANCH_ACCESS_ROLES,
+        )
         .first()
     )
     if store_member:

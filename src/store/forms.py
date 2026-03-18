@@ -153,7 +153,12 @@ class InventoryTransferForm(forms.Form):
         self.fixed_from_store = fixed_from_store
         self.fixed_from_branch = fixed_from_branch
         if tenant:
-            self.fields["product"].queryset = Products.objects.filter(tenant=tenant).order_by("name")
+            product_qs = Products.objects.filter(tenant=tenant)
+            if fixed_from_scope == "branch" and fixed_from_branch:
+                product_qs = product_qs.filter(branch_stocks__branch=fixed_from_branch)
+            elif fixed_from_scope == "store" and fixed_from_store:
+                product_qs = product_qs.filter(store_stocks__store=fixed_from_store)
+            self.fields["product"].queryset = product_qs.distinct().order_by("name")
             self.fields["from_store"].queryset = Store.objects.filter(tenant=tenant, is_active=True).order_by("name")
             self.fields["to_store"].queryset = Store.objects.filter(tenant=tenant, is_active=True).order_by("name")
             self.fields["from_branch"].queryset = Branch.objects.filter(store__tenant=tenant, is_active=True).order_by("name")

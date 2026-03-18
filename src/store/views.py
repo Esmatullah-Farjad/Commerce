@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from client.services import active_branch as _active_branch, active_tenant as _active_tenant
 from customer.forms import CustomerForm
-from customer.services import get_active_customer, is_walk_in_customer
+from customer.services import customer_account_summary, get_active_customer, is_walk_in_customer
 from store.filters import ProductsFilter, SalesDetailsFilter
 from .accounting import (
     account_balances,
@@ -283,6 +283,17 @@ def _apply_scope_stock(products, scope, tenant=None, store=None, branch=None):
             product.num_items = 0
 
 
+def _products_for_inventory_scope(tenant, scope, *, store=None, branch=None):
+    products = Products.objects.filter(tenant=tenant)
+    if scope == "branch" and branch:
+        return products.filter(branch_stocks__branch=branch).distinct()
+    if scope == "store" and store:
+        return products.filter(store_stocks__store=store).distinct()
+    if scope == "tenant" and tenant:
+        return products.filter(tenant_stocks__tenant=tenant).distinct()
+    return Products.objects.none()
+
+
 def _parse_jalali_date(value):
     if not value:
         return None
@@ -370,10 +381,10 @@ def transfer_inventory(request):
         product = form.cleaned_data["product"]
         from_scope = scope
         to_scope = form.cleaned_data["to_scope"]
-        from_store = scope_obj.get("store")
         from_branch = scope_obj.get("branch")
-        to_store = form.cleaned_data.get("to_store")
+        from_store = scope_obj.get("store") or (from_branch.store if from_branch else None)
         to_branch = form.cleaned_data.get("to_branch")
+        to_store = form.cleaned_data.get("to_store") or (to_branch.store if to_branch else None)
         package_qty = safe_int(form.cleaned_data.get("package_qty"))
         item_qty = safe_int(form.cleaned_data.get("item_qty"))
 
@@ -383,14 +394,17 @@ def transfer_inventory(request):
             messages.error(request, _("Quantity must be greater than 0."))
             return redirect("transfer-inventory")
 
-        if to_scope == from_scope:
-            messages.error(request, _("Transfers must be between a store and a branch."))
-            return redirect("transfer-inventory")
         if to_scope == "store" and to_store and to_store.tenant_id != tenant.id:
             messages.error(request, _("Invalid destination store."))
             return redirect("transfer-inventory")
         if to_scope == "branch" and to_branch and to_branch.store.tenant_id != tenant.id:
             messages.error(request, _("Invalid destination branch."))
+            return redirect("transfer-inventory")
+        if from_scope == "branch" and to_scope == "branch" and from_branch and to_branch and from_branch.id == to_branch.id:
+            messages.error(request, _("Source and destination branches must be different."))
+            return redirect("transfer-inventory")
+        if from_scope == "store" and to_scope == "store" and from_store and to_store and from_store.id == to_store.id:
+            messages.error(request, _("Source and destination stores must be different."))
             return redirect("transfer-inventory")
 
         try:
@@ -577,7 +591,13 @@ def products_display(request):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
     currency_filter = request.GET.get("currency", "all")
-    product = Products.objects.filter(tenant=tenant).order_by('-id')
+    scope, scope_obj = _resolve_inventory_scope(request, tenant, branch)
+    product = _products_for_inventory_scope(
+        tenant,
+        scope,
+        store=scope_obj.get("store"),
+        branch=scope_obj.get("branch"),
+    ).order_by('-id')
     if currency_filter == "usd":
         product = product.filter(currency_category="usd")
     elif currency_filter == "afn":
@@ -591,7 +611,6 @@ def products_display(request):
     except EmptyPage:
         page_obj = p.page(p.num_pages)
     # paginator end
-    scope, scope_obj = _resolve_inventory_scope(request, tenant, branch)
     _apply_scope_stock(
         list(page_obj.object_list),
         scope,
@@ -619,8 +638,18 @@ def products_display(request):
         'currency_filter': currency_filter,
         'exchange_rate': exchange_rate,
         'exchange_form': exchange_form,
-        'usd_count': Products.objects.filter(tenant=tenant, currency_category="usd").count(),
-        'afn_count': Products.objects.filter(tenant=tenant, currency_category="afn").count(),
+        'usd_count': _products_for_inventory_scope(
+            tenant,
+            scope,
+            store=scope_obj.get("store"),
+            branch=scope_obj.get("branch"),
+        ).filter(currency_category="usd").count(),
+        'afn_count': _products_for_inventory_scope(
+            tenant,
+            scope,
+            store=scope_obj.get("store"),
+            branch=scope_obj.get("branch"),
+        ).filter(currency_category="afn").count(),
         'can_transfer': can_transfer_stock(request.user, tenant, active_branch_id=request.session.get("active_branch_id")),
     }
     return render(request, 'purchase/product.html', context)
@@ -1027,10 +1056,12 @@ def sold_product_detail(request, pk):
     sales_id = get_object_or_404(SalesDetails, pk=pk, tenant=tenant, branch=branch)
    
     sales_products = SalesProducts.objects.filter(sale_detail=pk).select_related('product')
+    customer_summary = customer_account_summary(sales_id.customer, tenant, branch=branch)
 
     context = {
         'sales_products':sales_products,
         'sales_info':sales_id,
+        'customer_summary': customer_summary,
     }
     return render(request, 'sale/sold_products_detail.html', context)
 

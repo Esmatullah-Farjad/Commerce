@@ -2,13 +2,11 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Count, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 
 from client.services import active_branch, active_tenant
 from store.accounting import record_customer_payment_entry
-from store.models import SalesDetails
 from store.utils import to_decimal
 
 from .forms import CustomerForm, CustomerPaymentForm
@@ -17,6 +15,8 @@ from .services import (
     WALK_IN_CUSTOMER_ADDRESS,
     WALK_IN_CUSTOMER_NAME,
     WALK_IN_CUSTOMER_PHONE,
+    customer_account_summary,
+    customer_sales_queryset,
     get_or_create_walk_in_customer,
     set_active_customer,
 )
@@ -56,12 +56,33 @@ def create_customer(request):
             ):
                 customer = get_or_create_walk_in_customer(tenant)
             else:
-                customer, _ = Customer.objects.get_or_create(
-                    tenant=tenant,
-                    name=name,
-                    phone=phone,
-                    address=address,
-                )
+                existing_customer = None
+                if phone not in (None, "", WALK_IN_CUSTOMER_PHONE):
+                    existing_customer = (
+                        Customer.objects
+                        .filter(tenant=tenant, phone=phone)
+                        .order_by("id")
+                        .first()
+                    )
+
+                if existing_customer:
+                    update_fields = []
+                    if name and existing_customer.name != name:
+                        existing_customer.name = name
+                        update_fields.append("name")
+                    if address and existing_customer.address != address:
+                        existing_customer.address = address
+                        update_fields.append("address")
+                    if update_fields:
+                        existing_customer.save(update_fields=update_fields)
+                    customer = existing_customer
+                else:
+                    customer = Customer.objects.create(
+                        tenant=tenant,
+                        name=name,
+                        phone=phone,
+                        address=address,
+                    )
 
             set_active_customer(request, customer)
             messages.success(request, _("Customer has been added successfully."))
@@ -88,32 +109,31 @@ def customer(request):
         phone = request.POST.get("phone")
         customers = customers.filter(phone=phone)
 
-    customer_data = []
+    paid_customers = []
+    unpaid_customers = []
     for customer_obj in customers:
-        sales_data = SalesDetails.objects.filter(
-            customer=customer_obj,
-            tenant=tenant,
-            branch=branch,
-        ).aggregate(
-            total_amount=Sum("total_amount"),
-            total_paid=Sum("paid_amount"),
-            total_unpaid=Sum("unpaid_amount"),
-            bill_count=Count("bill_number"),
-        )
-        customer_data.append(
-            {
-                "customer": customer_obj,
-                "total_amount": sales_data["total_amount"] or 0,
-                "total_paid": sales_data["total_paid"] or 0,
-                "total_unpaid": sales_data["total_unpaid"] or 0,
-                "bill_count": sales_data["bill_count"],
-            }
-        )
+        account = customer_account_summary(customer_obj, tenant, branch=branch)
+        if not account["bill_count"]:
+            continue
+        row = {
+            "customer": customer_obj,
+            "total_amount": account["total_amount"],
+            "total_paid": account["total_paid"],
+            "total_unpaid": account["total_due"],
+            "bill_count": account["bill_count"],
+        }
+        if account["has_unpaid"]:
+            unpaid_customers.append(row)
+        else:
+            paid_customers.append(row)
 
     return render(
         request,
         "partials/management/_customer-view.html",
-        {"customer_data": customer_data},
+        {
+            "unpaid_customers": unpaid_customers,
+            "paid_customers": paid_customers,
+        },
     )
 
 
@@ -122,20 +142,11 @@ def create_payment(request, cid):
     branch = active_branch(request)
     customer_obj = get_object_or_404(Customer, pk=cid, tenant=tenant)
 
-    sales_details = (
-        SalesDetails.objects
-        .filter(customer=customer_obj, tenant=tenant, branch=branch)
-        .order_by("-id")
-    )
-
-    totals = sales_details.aggregate(
-        total_amount=Sum("total_amount"),
-        total_paid=Sum("paid_amount"),
-        total_unpaid=Sum("unpaid_amount"),
-    )
-    total_amount = to_decimal(totals["total_amount"] or 0)
-    total_paid = to_decimal(totals["total_paid"] or 0)
-    total_due = to_decimal(totals["total_unpaid"] or 0)
+    account = customer_account_summary(customer_obj, tenant, branch=branch)
+    sales_details = account["sales_queryset"]
+    total_amount = account["total_amount"]
+    total_paid = account["total_paid"]
+    total_due = account["total_due"]
 
     if request.method == "POST":
         form = CustomerPaymentForm(request.POST)
@@ -146,6 +157,13 @@ def create_payment(request, cid):
                 messages.error(request, "Payment amount must be greater than 0.")
                 return redirect("create-payment", cid=customer_obj.id)
 
+            if paid_amount > total_due:
+                messages.error(
+                    request,
+                    f"Payment cannot be greater than unpaid amount ({total_due}).",
+                )
+                return redirect("create-payment", cid=customer_obj.id)
+
             with transaction.atomic():
                 payment = form.save(commit=False)
                 payment.customer = customer_obj
@@ -153,29 +171,31 @@ def create_payment(request, cid):
                 payment.branch = branch
                 payment.save()
 
-                last_sale = (
-                    SalesDetails.objects
+                remaining_payment = paid_amount
+                unpaid_sales = (
+                    customer_sales_queryset(customer_obj, tenant, branch=branch)
                     .select_for_update()
-                    .filter(customer=customer_obj, tenant=tenant, branch=branch)
-                    .order_by("-id")
-                    .first()
+                    .filter(unpaid_amount__gt=0)
+                    .order_by("created_at", "id")
                 )
 
-                if not last_sale:
-                    messages.error(request, "No sales record found for this customer.")
+                if not unpaid_sales.exists():
+                    messages.error(request, "No unpaid sales record found for this customer.")
                     return redirect("create-payment", cid=customer_obj.id)
 
-                current_unpaid = to_decimal(last_sale.unpaid_amount or 0)
-                if paid_amount > current_unpaid:
-                    messages.error(
-                        request,
-                        f"Payment cannot be greater than unpaid amount ({current_unpaid}).",
-                    )
-                    return redirect("create-payment", cid=customer_obj.id)
-
-                last_sale.unpaid_amount = current_unpaid - paid_amount
-                last_sale.paid_amount = to_decimal(last_sale.paid_amount) + paid_amount
-                last_sale.save(update_fields=["unpaid_amount", "paid_amount"])
+                for sale in unpaid_sales:
+                    current_unpaid = to_decimal(sale.unpaid_amount or 0)
+                    if current_unpaid <= Decimal("0.00"):
+                        continue
+                    allocation = min(remaining_payment, current_unpaid)
+                    if allocation <= Decimal("0.00"):
+                        break
+                    sale.unpaid_amount = current_unpaid - allocation
+                    sale.paid_amount = to_decimal(sale.paid_amount or 0) + allocation
+                    sale.save(update_fields=["unpaid_amount", "paid_amount"])
+                    remaining_payment -= allocation
+                    if remaining_payment <= Decimal("0.00"):
+                        break
 
                 store = branch.store if branch else None
                 record_customer_payment_entry(
