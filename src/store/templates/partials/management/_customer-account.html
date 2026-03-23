@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load custom_filters %}
+{% load humanize %}
 
 {% block dashboard %}
 
@@ -43,21 +44,36 @@
   </div>
 
   <!-- Summary cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
     <div class="rounded-xl border border-gray-200 p-4">
-      <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Total" %}</div>
-      <div class="mt-1 text-lg font-semibold text-gray-900">{{ total_amount }}</div>
+      <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Total Billed" %}</div>
+      <div class="mt-1 text-lg font-semibold text-gray-900">{{ total_amount|intcomma }}</div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 p-4">
+      <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Carried Forward" %}</div>
+      <div class="mt-1 text-lg font-semibold text-gray-900">{{ total_carried_forward|intcomma }}</div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 p-4">
+      <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Total Payable History" %}</div>
+      <div class="mt-1 text-lg font-semibold text-gray-900">{{ total_payable|intcomma }}</div>
     </div>
 
     <div class="rounded-xl border border-gray-200 p-4">
       <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Paid" %}</div>
-      <div class="mt-1 text-lg font-semibold text-gray-900">{{ total_paid }}</div>
+      <div class="mt-1 text-lg font-semibold text-gray-900">{{ total_paid|intcomma }}</div>
     </div>
 
-    <div class="rounded-xl border border-gray-200 p-4">
-      <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Unpaid" %}</div>
+    <div class="rounded-xl border border-gray-200 p-4 sm:col-span-2 xl:col-span-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="text-xs uppercase tracking-wide text-gray-500">{% trans "Outstanding Balance" %}</div>
+        <div class="text-xs text-gray-500">
+          {% trans "Formula:" %} {{ total_amount|intcomma }} - {{ total_paid|intcomma }} = {{ total_due|intcomma }}
+        </div>
+      </div>
       <div class="mt-1 text-lg font-semibold {% if total_due > 0 %}text-red-600{% else %}text-green-600{% endif %}">
-        {{ total_due }}
+        {{ total_due|intcomma }}
       </div>
     </div>
   </div>
@@ -75,10 +91,11 @@
             <th class="px-4 py-3 text-left font-medium">#</th>
             <th class="px-4 py-3 text-left font-medium">{% trans "Invoice" %}</th>
             <th class="px-4 py-3 text-left font-medium">{% trans "Date" %}</th>
-            <th class="px-4 py-3 text-left font-medium">{% trans "Total" %}</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Bill Amount" %}</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Carry Forward" %}</th>
+            <th class="px-4 py-3 text-left font-medium">{% trans "Payable" %}</th>
             <th class="px-4 py-3 text-left font-medium">{% trans "Paid" %}</th>
             <th class="px-4 py-3 text-left font-medium">{% trans "Unpaid" %}</th>
-            <th class="px-4 py-3 text-left font-medium">{% trans "Due" %}</th>
             <th class="px-4 py-3 text-left font-medium">{% trans "Status" %}</th>
           </tr>
         </thead>
@@ -88,14 +105,15 @@
             <tr class="hover:bg-gray-50">
               <td class="px-4 py-3 text-gray-700">{{ forloop.counter }}</td>
               <td class="px-4 py-3 text-gray-900 font-medium">
-                {{ s.invoice_no|default:s.id }}
+                {{ s.bill_number|default:s.id }}
               </td>
-              <td class="px-4 py-3 text-gray-700">{{ s.date|date:"Y-m-d" }}</td>
-              <td class="px-4 py-3 text-gray-700">{{ s.total_amount }}</td>
-              <td class="px-4 py-3 text-gray-700">{{ s.paid_amount }}</td>
-              <td class="px-4 py-3 text-gray-700">{{ s.unpaid_amount }}</td>
+              <td class="px-4 py-3 text-gray-700">{{ s.created_at|date:"Y-m-d" }}</td>
+              <td class="px-4 py-3 text-gray-700">{{ s.total_amount|intcomma }}</td>
+              <td class="px-4 py-3 text-gray-700">{{ s.carried_forward_amount|intcomma }}</td>
+              <td class="px-4 py-3 font-medium text-gray-900">{{ s.payable_amount|default:s.total_amount|intcomma }}</td>
+              <td class="px-4 py-3 text-gray-700">{{ s.paid_amount|intcomma }}</td>
               <td class="px-4 py-3 font-medium {% if s.unpaid_amount > 0 %}text-red-600{% else %}text-gray-700{% endif %}">
-                {{ s.unpaid_amount }}
+                {{ s.unpaid_amount|intcomma }}
               </td>
               <td class="px-4 py-3">
                 {% if s.unpaid_amount|default:0|add:0 > 0 %}
@@ -111,7 +129,7 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="8" class="px-4 py-10 text-center text-gray-500">
+              <td colspan="9" class="px-4 py-10 text-center text-gray-500">
                 {% trans "No sales found for this customer." %}
               </td>
             </tr>

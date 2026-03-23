@@ -25,7 +25,7 @@
         </span>
         {% endif %}
         <span class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
-          {% trans 'Customer' %}: {{ active_customer.name|default:_('Walk-in Customer') }}
+          {% trans 'Customer' %}: {{ active_customer_label }}
         </span>
       </div>
 
@@ -112,7 +112,7 @@
             <div class="flex items-center gap-2 text-xs text-slate-500">
             <span class="hidden sm:inline">{% trans 'Tip:' %}</span>
             <span class="hidden sm:inline rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-semibold text-slate-600">
-                Ctrl/⌘ + K
+                Ctrl/Cmd + K
             </span>
 
             <!-- HTMX loading indicator -->
@@ -141,7 +141,7 @@
             autocomplete="off"
             class="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 py-2.5 text-sm text-slate-800 shadow-sm
                     placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
-            placeholder="{% trans 'Search by name, category, or barcode…' %}"
+            placeholder="{% trans 'Search by name, category, or barcode...' %}"
             value="{{ request.GET.search|default_if_none:'' }}"
             hx-get="{% url 'search-products' %}"
             hx-trigger="keyup changed delay:250ms"
@@ -173,7 +173,7 @@
       <div class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
         <span class="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800 ring-1 ring-inset ring-teal-600/15">
           <span class="h-1.5 w-1.5 rounded-full bg-teal-600"></span>
-          {% trans 'Selling For' %}: {{ active_customer.name|default:_('Walk-in Customer') }}
+          {% trans 'Selling For' %}: {{ active_customer_label }}
         </span>
 
         <span class="text-xs uppercase tracking-[0.18em] text-slate-400">{% trans 'Category' %}</span>
@@ -225,7 +225,7 @@
             <!-- Image -->
             <td class="px-3 py-2.5">
               {% if item.image %}
-                <img src="{{ item.image.url }}" alt="image" class="h-9 w-9 rounded-lg object-cover border border-slate-200">
+                <img src="{{ item.image.url }}" alt="{% trans 'Product image' %}" class="h-9 w-9 rounded-lg object-cover border border-slate-200">
               {% else %}
                 <div class="h-9 w-9 rounded-lg border border-slate-200 bg-slate-100"></div>
               {% endif %}

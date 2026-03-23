@@ -127,7 +127,7 @@
                 {% trans 'Currency Category' %}
               </span>
               <span id="currency-badge" class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                AFN
+                {% trans 'AFN' %}
               </span>
               <span id="currency-hint" class="text-slate-500">{% trans 'Auto-set from purchase unit.' %}</span>
             </div>
@@ -185,9 +185,11 @@
               </div>
 
               <div>
-                <label for="id_package_sale_price" class="block text-sm font-semibold text-slate-900">{% trans 'Package Sale Price' %}</label>
+                <label for="id_package_sale_price" class="block text-sm font-semibold text-slate-900">{% trans 'Package Sale Price (Afghani)' %}</label>
                 <p class="text-xs text-slate-500 mt-0.5">{{ form.package_sale_price.help_text }}</p>
-                <div class="mt-2">{{ form.package_sale_price }}</div>
+                <div class="mt-2">
+                  {{ form.package_sale_price }} 
+                </div>
               </div>
 
               <!-- Image -->
@@ -208,7 +210,7 @@
                         </svg>
                         <span class="text-sm text-slate-700">{% trans 'Upload image' %}</span>
                       </div>
-                      <span class="text-xs text-slate-500">PNG/JPG • 5MB</span>
+                      <span class="text-xs text-slate-500">{% trans 'PNG/JPG - 5MB' %}</span>
                     </div>
                     {{ form.image }}
                   </div>
@@ -334,10 +336,10 @@
       const option = purchaseUnitSelect.selectedOptions[0];
       const currency = option ? option.getAttribute("data-currency") : null;
       if (currency === "usd") {
-        badge.textContent = "USD";
+        badge.textContent = "{% trans 'USD' %}";
         badge.className = "rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700";
       } else {
-        badge.textContent = "AFN";
+        badge.textContent = "{% trans 'AFN' %}";
         badge.className = "rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700";
       }
     };

@@ -62,7 +62,7 @@
           </p>
           <p class="mt-1 text-2xl font-bold text-slate-800">
             {{ sales_details.total_sale|default:"0" }}
-            <span class="text-sm text-slate-500">AFN</span>
+            <span class="text-sm text-slate-500">{% trans 'AFN' %}</span>
           </p>
         </div>
         <div
@@ -96,7 +96,7 @@
           </p>
           <p class="mt-1 text-2xl font-bold">
             {{ sales_details.total_paid|default:"0" }}
-            <span class="text-sm text-teal-100">AFN</span>
+            <span class="text-sm text-teal-100">{% trans 'AFN' %}</span>
           </p>
         </div>
         <div
@@ -128,7 +128,7 @@
           </p>
           <p class="mt-1 text-2xl font-bold text-slate-800">
             {{ sales_details.total_unpaid|default:"0" }}
-            <span class="text-sm text-slate-500">AFN</span>
+            <span class="text-sm text-slate-500">{% trans 'AFN' %}</span>
           </p>
         </div>
         <div

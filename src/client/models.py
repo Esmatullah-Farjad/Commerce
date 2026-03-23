@@ -21,10 +21,10 @@ class Tenant(models.Model):
 
 class TenantMember(models.Model):
     ROLE_CHOICES = [
-        ("owner", "Owner"),
-        ("admin", "Admin"),
-        ("manager", "Manager"),
-        ("staff", "Staff"),
+        ("owner", _("Owner")),
+        ("admin", _("Admin")),
+        ("manager", _("Manager")),
+        ("staff", _("Staff")),
     ]
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="memberships")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tenant_memberships")
@@ -75,9 +75,9 @@ class Branch(models.Model):
 
 class BranchMember(models.Model):
     ROLE_CHOICES = [
-        ("admin", "Admin"),
-        ("manager", "Manager"),
-        ("staff", "Staff"),
+        ("admin", _("Admin")),
+        ("manager", _("Manager")),
+        ("staff", _("Staff")),
     ]
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="memberships")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="branch_memberships")
@@ -105,9 +105,9 @@ class BranchMember(models.Model):
 
 class StoreMember(models.Model):
     ROLE_CHOICES = [
-        ("admin", "Admin"),
-        ("manager", "Manager"),
-        ("staff", "Staff"),
+        ("admin", _("Admin")),
+        ("manager", _("Manager")),
+        ("staff", _("Staff")),
     ]
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="memberships")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="store_memberships")
@@ -135,8 +135,8 @@ class StoreMember(models.Model):
 
 class UserOnboarding(models.Model):
     STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("active", "Active"),
+        ("pending", _("Pending")),
+        ("active", _("Active")),
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="onboarding")
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="onboarding_requests")

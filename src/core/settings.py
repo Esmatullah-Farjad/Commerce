@@ -134,7 +134,7 @@ USE_L10N = True
 
 LANGUAGES = [
     ('en', _('English')),
-    ('fa', _('Persian')),  # Persian (Farsi)
+    ('fa', _('Dari')),
 ]
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),  # This is where translation files will be stored

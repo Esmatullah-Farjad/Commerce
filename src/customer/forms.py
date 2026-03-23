@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from store.form_utils import BASE_INPUT_CLASSES, apply_tailwind_classes
 
@@ -16,13 +17,13 @@ class CustomerForm(forms.ModelForm):
             apply_tailwind_classes(visible.field)
 
         self.fields["name"].widget.attrs.update(
-            {"placeholder": "Customer name", "autocomplete": "off"}
+            {"placeholder": _("Customer name"), "autocomplete": "off"}
         )
         self.fields["phone"].widget.attrs.update(
-            {"placeholder": "Customer phone", "autocomplete": "off"}
+            {"placeholder": _("Customer phone"), "autocomplete": "off"}
         )
         self.fields["address"].widget.attrs.update(
-            {"placeholder": "Address", "autocomplete": "off"}
+            {"placeholder": _("Address"), "autocomplete": "off"}
         )
 
 

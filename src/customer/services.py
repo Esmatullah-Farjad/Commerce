@@ -60,16 +60,22 @@ def customer_account_summary(customer, tenant, branch=None):
     sales_queryset = customer_sales_queryset(customer, tenant, branch=branch)
     totals = sales_queryset.aggregate(
         total_amount=Sum("total_amount"),
+        total_payable=Sum("payable_amount"),
+        total_carried_forward=Sum("carried_forward_amount"),
         total_paid=Sum("paid_amount"),
         total_unpaid=Sum("unpaid_amount"),
         bill_count=Count("id"),
     )
     total_amount = to_decimal(totals["total_amount"] or 0)
+    total_payable = to_decimal(totals["total_payable"] or 0)
+    total_carried_forward = to_decimal(totals["total_carried_forward"] or 0)
     total_paid = to_decimal(totals["total_paid"] or 0)
     total_due = to_decimal(totals["total_unpaid"] or 0)
     return {
         "sales_queryset": sales_queryset,
         "total_amount": total_amount,
+        "total_payable": total_payable,
+        "total_carried_forward": total_carried_forward,
         "total_paid": total_paid,
         "total_due": total_due,
         "bill_count": totals["bill_count"] or 0,

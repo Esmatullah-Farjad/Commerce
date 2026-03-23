@@ -145,6 +145,8 @@ def create_payment(request, cid):
     account = customer_account_summary(customer_obj, tenant, branch=branch)
     sales_details = account["sales_queryset"]
     total_amount = account["total_amount"]
+    total_payable = account["total_payable"]
+    total_carried_forward = account["total_carried_forward"]
     total_paid = account["total_paid"]
     total_due = account["total_due"]
 
@@ -154,13 +156,13 @@ def create_payment(request, cid):
             paid_amount = to_decimal(form.cleaned_data["payment_amount"])
 
             if paid_amount <= Decimal("0.00"):
-                messages.error(request, "Payment amount must be greater than 0.")
+                messages.error(request, _("Payment amount must be greater than 0."))
                 return redirect("create-payment", cid=customer_obj.id)
 
             if paid_amount > total_due:
                 messages.error(
                     request,
-                    f"Payment cannot be greater than unpaid amount ({total_due}).",
+                    _("Payment cannot be greater than unpaid amount (%(amount)s).") % {"amount": total_due},
                 )
                 return redirect("create-payment", cid=customer_obj.id)
 
@@ -180,7 +182,7 @@ def create_payment(request, cid):
                 )
 
                 if not unpaid_sales.exists():
-                    messages.error(request, "No unpaid sales record found for this customer.")
+                    messages.error(request, _("No unpaid sales record found for this customer."))
                     return redirect("create-payment", cid=customer_obj.id)
 
                 for sale in unpaid_sales:
@@ -206,8 +208,7 @@ def create_payment(request, cid):
                     created_by=request.user,
                     reference_id=payment.id,
                 )
-
-            messages.success(request, "Customer payment added successfully.")
+            messages.success(request, _("Customer payment added successfully."))
             return redirect("create-payment", cid=customer_obj.id)
     else:
         form = CustomerPaymentForm()
@@ -216,6 +217,8 @@ def create_payment(request, cid):
         "customer": customer_obj,
         "sales_details": sales_details,
         "total_amount": total_amount,
+        "total_payable": total_payable,
+        "total_carried_forward": total_carried_forward,
         "total_paid": total_paid,
         "total_due": total_due,
         "has_unpaid": total_due > 0,

@@ -5,7 +5,7 @@
     <tr class="hover:bg-slate-50" data-product-id={{item.id}}
     data-end-point-url={% url 'add-to-cart' %}>
         <td class="px-4 py-3">
-            <img src="{{item.image.url}}" alt="image" class="h-10 w-10 rounded-xl object-cover">
+            <img src="{{item.image.url}}" alt="{% trans 'Product image' %}" class="h-10 w-10 rounded-xl object-cover">
         </td>
         <td class="px-4 py-3" style="width:200px">{{item.name}}</td>
         <td class="px-4 py-3">

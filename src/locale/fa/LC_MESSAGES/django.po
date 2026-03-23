@@ -3,533 +3,3831 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: InventoryHub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-26 17:40+0430\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2026-03-23 11:20+0430\n"
+"PO-Revision-Date: 2026-03-23 00:00+0430\n"
+"Last-Translator: OpenAI Codex\n"
+"Language-Team: Dari (Afghanistan)\n"
+"Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-#: .\src\core\settings.py:121
-msgid "Persian"
-msgstr "فارسی"
 
-msgid "English"
-msgstr "انگلیسی"
+#: .\src\client\forms.py:13 .\src\store\models.py:353
+#: .\src\store\templates\partials\management\_financial_reports.html:16
+#: .\src\store\templates\tenancy\activate_user.html:25
+#: .\src\store\templates\tenancy\pending_users.html:16
+#: .\src\templates\_base.html:127 .\src\templates\home.html:21
+msgid "Tenant"
+msgstr "مؤسسه"
 
+#: .\src\client\forms.py:15 .\src\store\templates\auth\register.html:147
+msgid "Select a tenant"
+msgstr "یک مؤسسه را انتخاب کنید"
 
+#: .\src\client\forms.py:18 .\src\store\forms.py:134 .\src\store\models.py:354
+#: .\src\store\templates\partials\management\_financial_reports.html:17
+#: .\src\store\templates\partials\management\_financial_reports.html:21
+#: .\src\store\templates\tenancy\activate_user.html:26
+#: .\src\store\templates\tenancy\pending_users.html:31
+#: .\src\store\templates\tenancy\select_branch.html:28
+#: .\src\store\templates\tenancy\select_branch.html:44
+#: .\src\templates\_base.html:131
+msgid "Store"
+msgstr "فروشگاه"
 
-msgid "Purchase"
-msgstr "خرید"
+#: .\src\client\forms.py:23 .\src\store\templates\auth\register.html:176
+msgid "Select a store"
+msgstr "یک فروشگاه را انتخاب کنید"
 
-msgid "Sale"
-msgstr "فروش"
+#: .\src\client\forms.py:37 .\src\client\forms.py:46
+msgid "Username"
+msgstr "نام کاربری"
 
-msgid "Home"
-msgstr "خانه"
-
-msgid "Cart"
-msgstr "سبد خرید"
-
-msgid "Hello"
-msgstr "سلام و خوش آمدید"
-
-msgid "Language"
-msgstr "زبان"
-
-msgid "Error"
-msgstr "خظا"
-
-msgid "Sign In"
-msgstr "ورود"
-
-msgid "Sign Up"
-msgstr "ثبت نام"
-
-msgid "Sign Out"
-msgstr "خروج"
-
-msgid "Admin Dashboard"
-msgstr "پنل مدیریت"
-
-msgid "My Profile"
-msgstr "پروفایل من"
-
-
-msgid "Success"
-msgstr "موفقیت"
-
-msgid "Email/Username"
-msgstr "ایمیل/نام کاربری"
-
-msgid "Password"
-msgstr "گذرواژه"
-
-msgid "To continue to your account, please sign in"
-msgstr "برای ادامه به حساب خود، لطفاً وارد شوید"
-
-msgid "Don't have an account ?"
-msgstr "حساب کاربری ندارید؟"
-
-msgid "Create One"
-msgstr "یک حساب بسازید"
-
-msgid "forgot password?"
-msgstr "رمز عبور خود را فراموش کرده اید؟"
-
-msgid "Enter email"
-msgstr "ایمیل خود را وارد کنید"
-
-msgid "Enter password"
-msgstr "رمز عبور خود را وارد کنید"
-
-#landing page translation
-msgid "Store Management System"
-msgstr "سیستم مدیریت فروشگاه"
-
-msgid "A Store Management System is a software solution designed to manage and streamline various operations of a retail business. It typically includes features like inventory management, sales and billing, customer management, employee tracking, and reporting. The system helps store owners and managers track stock levels, process transactions efficiently, and generate reports to make informed business decisions"
-msgstr "سیستم مدیریت فروشگاه یک راه‌حل نرم‌افزاری است که برای مدیریت و ساده‌سازی عملیات مختلف یک کسب‌وکار خرده‌فروشی طراحی شده است. این سیستم معمولاً شامل ویژگی‌هایی مانند مدیریت موجودی، فروش و صدور صورت‌حساب، مدیریت مشتریان، پیگیری کارکنان و گزارش‌گیری است. سیستم به صاحبان فروشگاه و مدیران کمک می‌کند تا سطوح موجودی را ردیابی کنند، تراکنش‌ها را به‌طور کارآمد پردازش کنند و گزارش‌هایی را برای تصمیم‌گیری‌های تجاری آگاهانه تولید کنند"
-
-msgid "Inventory"
-msgstr "موجودی"
-msgid "Our platform offers comprehensive Inventory Management, allowing you to track stock levels, manage reorders, and optimize inventory efficiently"
-msgstr "پلتفرم ما مدیریت موجودی کامل را ارائه می‌دهد که به شما امکان می‌دهد سطح موجودی را ردیابی، سفارشات مجدد را مدیریت و موجودی را به‌طور بهینه تنظیم کنید"
-
-msgid "Financial"
-msgstr "مالی"
-msgid "Our platform provides perfect financial management, ensuring seamless tracking of expenses, revenues, and financial reports"
-msgstr "پلتفرم ما مدیریت مالی ایده‌آل را ارائه می‌دهد که ردیابی هزینه‌ها، درآمدها و گزارش‌های مالی را به‌طور یکپارچه انجام می‌دهد"
-
-msgid "Report"
-msgstr "گزارش"
-msgid "Our platform offers perfect report generation with customizable date selection, providing detailed insights based on your needs"
-msgstr "پلتفرم ما تولید گزارش‌ ایده‌آل با انتخاب تاریخ قابل تنظیم را ارائه می‌دهد، که بینش‌های دقیقی بر اساس نیاز شما فراهم می‌کند"
-
-msgid "Daily Dashboard"
-msgstr "داشبورد روزانه"
-msgid "Our platform provides a Daily Dashboard, offering real-time insights into sales, inventory, and key metrics for better decision-making"
-msgstr "پلتفرم ما داشبورد روزانه را ارائه می‌دهد که بینش‌های لحظه‌ای از فروش، موجودی و معیارهای کلیدی برای تصمیم‌گیری بهتر فراهم می‌کند"
-
-msgid "Customers"
-msgstr "مشتریان"
-msgid "Our platform offers customer management, enabling you to track customer details, purchase history, and engagement for personalized services"
-msgstr "پلتفرم ما مدیریت مشتریان را ارائه می‌دهد که به شما امکان می‌دهد جزئیات مشتری، تاریخچه خرید و تعاملات را برای خدمات شخصی‌سازی شده ردیابی کنید"
-
-msgid "Invoice"
-msgstr "فاکتور"
-msgid "Our platform offers seamless invoice generation, allowing easy creation and management of invoices for every transaction"
-msgstr "پلتفرم ما تولید فاکتور بدون دردسر را ارائه می‌دهد که ایجاد و مدیریت فاکتورها برای هر تراکنش را ساده می‌کند"
-
-msgid "Billing"
-msgstr "صورتحساب"
-msgid "Our platform provides efficient billing management, streamlining invoicing, payment tracking, and transaction processing"
-msgstr "پلتفرم ما مدیریت صورتحساب کارآمدی را ارائه می‌دهد که صدور فاکتور، ردیابی پرداخت‌ها و پردازش تراکنش‌ها را ساده می‌کند"
-
-msgid "Contact us"
-msgstr "تماس با ما"
-
-msgid "About us"
-msgstr "در باره ما"
-
-#Sign up translation
-msgid "Something went wrong. Please fix the below error"
-msgstr "مشکلی پیش آمده است. لطفاً خطای زیر را برطرف کنید"
-
-msgid "The user has been registered successfully"
-msgstr "کاربر با موفقیت ثبت شد"
-
-msgid "Sign Up to Manage Your Store Efficiently"
-msgstr "ثبت نام کنید تا فروشگاه خود را به صورت کارآمد مدیریت کنید"
-
-msgid "Already have an account ?"
-msgstr "آیا قبلاً حساب کاربری دارید؟"
-
+#: .\src\client\forms.py:38
 msgid "First Name"
 msgstr "نام"
 
+#: .\src\client\forms.py:39
 msgid "Last Name"
 msgstr "نام خانوادگی"
 
-msgid "Confrim Password"
-msgstr "تأیید رمز عبور"
+#: .\src\client\forms.py:40
+msgid "Email"
+msgstr "ایمیل"
 
-msgid "Invalid username or password"
-msgstr "نام کاربری یا رمز عبور نامعتبر است"
+#: .\src\client\forms.py:41 .\src\client\forms.py:51
+#: .\src\store\templates\auth\login.html:66
+msgid "Password"
+msgstr "گذرواژه"
 
-msgid "Welcome !"
-msgstr "خوش آمدید !"
+#: .\src\client\forms.py:42 .\src\client\forms.py:56
+msgid "Confirm Password"
+msgstr "تأیید گذرواژه"
 
-#product view page
+#: .\src\client\forms.py:65
+#, python-format
+msgid "Username %(username)s already exists. Please choose another."
+msgstr ""
+"نام کاربری %(username)s از قبل موجود است. لطفاً گزینه دیگری را انتخاب کنید."
 
-msgid "Products"
-msgstr "محصولات"
+#: .\src\client\forms.py:73
+#, python-format
+msgid "Email %(email)s already exists. Please choose another."
+msgstr "ایمیل %(email)s از قبل موجود است. لطفاً گزینه دیگری را انتخاب کنید."
 
-msgid "This page showcases all available products for sale"
-msgstr "این صفحه تمامی محصولات موجود برای فروش را نمایش می‌دهد"
+#: .\src\client\forms.py:92
+msgid "Selected store does not belong to the chosen tenant."
+msgstr "فروشگاه انتخاب‌شده مربوط به مؤسسه انتخاب‌شده نیست."
 
-msgid "category"
-msgstr "دسته بندی"
+#: .\src\client\forms.py:98
+#: .\src\client\templates\tenancy\branch_management.html:211
+#: .\src\client\templates\tenancy\branch_management.html:328
+#: .\src\client\templates\tenancy\branch_management.html:466
+#: .\src\store\forms.py:135 .\src\store\models.py:355
+#: .\src\store\templates\partials\_print_invoice.html:188
+#: .\src\store\templates\partials\management\_financial_reports.html:18
+#: .\src\store\templates\partials\management\_financial_reports.html:25
+#: .\src\store\templates\purchase\purchase.html:33
+#: .\src\store\templates\sale\product_view.html:19
+#: .\src\templates\_base.html:136 .\src\templates\home.html:26
+#: .\src\templates\partials\_context_switcher.html:16
+#: .\src\templates\partials\_context_switcher.html:20
+msgid "Branch"
+msgstr "شعبه"
 
-msgid "Quantity"
-msgstr "تعداد"
+#: .\src\client\forms.py:100
+msgid "Select a branch"
+msgstr "یک شعبه را انتخاب کنید"
 
-msgid "Package"
-msgstr "بسته"
+#: .\src\client\forms.py:128
+msgid "Employee"
+msgstr "کارمند"
 
-msgid "Item Price"
-msgstr "قیمت فی دانه"
+#: .\src\client\forms.py:129 .\src\store\templates\sale\product_view.html:24
+msgid "Role"
+msgstr "نقش"
 
-msgid "Package Price"
-msgstr "قیمت فی بسته"
+#: .\src\client\forms.py:156
+msgid "Selected user must belong to the active tenant."
+msgstr "کاربر انتخاب‌شده باید متعلق به مؤسسه فعال باشد."
 
-msgid "ADD"
-msgstr "اضافه"
+#: .\src\client\forms.py:158
+msgid "Selected user is already assigned to this branch."
+msgstr "کاربر انتخاب‌شده قبلاً به این شعبه اختصاص یافته است."
 
-msgid "--select--"
-msgstr "--انتخاب کردن--"
+#: .\src\client\models.py:24
+msgid "Owner"
+msgstr "مالک"
 
-msgid "Name"
-msgstr "نام"
-
-msgid "Search the products"
-msgstr "محصول خود را جستجو کنید"
-
-msgid "ALL"
-msgstr "همه"
-
-msgid "admin"
+#: .\src\client\models.py:25 .\src\client\models.py:78
+#: .\src\client\models.py:108
+msgid "Admin"
 msgstr "مدیر"
 
-#customer Cart translations
-msgid "Customer Cart"
-msgstr "سبد خرید مشتری"
-
-msgid "Make sure everything looks right before completing your order"
-msgstr "قبل از نهایی کردن سفارش، مطمئن شوید که همه چیز درست است"
-
-msgid "Looks like you haven’t added anything yet."
-msgstr "به نظر می‌رسد هنوز چیزی به سبد خریدتان اضافه نکرده‌اید."
-
-msgid "Let’s start shopping!"
-msgstr "!بیایید خرید را شروع کنیم"
-
-msgid "Your Cart is Empty"
-msgstr "سبد خرید شما خالی است"
-
-msgid "Customer Name"
-msgstr "نام مشتری"
-
-msgid "Phone"
-msgstr "تلفن"
-
-msgid "Address"
-msgstr "آدرس"
-
-msgid "Invoice Number"
-msgstr "شماره فاکتور"
-
-msgid "Total"
-msgstr "قیمت کل"
-
-msgid "Grand Total"
-msgstr "قیمت مجموعه قابل پرداخت"
-
-msgid "AFN"
-msgstr "افغانی"
-
-#cusotmer detisl for sale page
-msgid "Customer Details"
-msgstr "جزئیات مشتری"
-
-msgid "Please enter the customer details"
-msgstr "لطفاً جزئیات مشتری را وارد کنید"
-
-msgid "Full Name"
-msgstr "نام و تخلص"
-
-msgid "Adress"
-msgstr "آدرس"
-
-msgid "Proceed to Sale"
-msgstr "برو به بخش فروش"
-
-msgid "Customer has been added successfuly"
-msgstr "مشتری با موفقیت اضافه شد"
-
-msgid "Items added to Customer Cart"
-msgstr "مورد به سبد خرید مشتری اضافه شد"
-
-msgid "Paid Amount"
-msgstr "مبلغ پرداخت شده"
-
-msgid "Unpaid Amount"
-msgstr "مبلغ باقی مانده"
-
-msgid "Sold Products"
-msgstr "فروش شده"
-
-#Home page translateion
- msgid "Overview of today’s sales and metrics"
- msgstr "مروری بر فروش و معیارهای امروز"
-
- msgid "Today's Sales Amount"
- msgstr "میزان فروش امروز"
-
- msgid "Total Paid Amount"
- msgstr "مجموع مبلغ پرداخت‌شده"
-
- msgid "Total Unpaid Amount"
- msgstr "مجموع مبلغ پرداخت‌ نشده"
-
- msgid "Today's Customers Count"
- msgstr "تعداد مشتریان امروز"
-
- msgid "Ten Best-Selling Products"
- msgstr "ده پرفروش‌ترین محصولات"
-
- msgid "An Overview of the Most Popular Products"
- msgstr "مروری بر پرفروش‌ترین محصولات"
-
- msgid "Total Units Sold"
- msgstr "مجموع بسته‌های فروخته‌شده"
-
- msgid "Category"
- msgstr "دسته بندی"
-
- msgid "Inventory Shortage"
- msgstr "کمبود موجودی"
-
- msgid "The following products have fallen below the minimum stock level and require immediate restocking to prevent supply disruptions."
- msgstr "محصولات زیر از سطح حداقل موجودی پایین‌تر آمده‌اند و نیاز به تأمین فوری دارند تا از اختلال در عرضه جلوگیری شود."
-
- msgid "Number of Remaining Packages"
- msgstr "تعداد بسته های باقی مانده"
-
-#Purchase page translation
-msgid "Purchase Page"
-msgstr "صفحه خرید"
-
-msgid "Please use the form below to accurately enter the details of your purchased inventory items"
-msgstr "لطفاً از فورم زیر برای درج دقیق جزئیات اجناس خریداری‌شده استفاده نمایید."
-
-msgid "Available Products"
-msgstr "محصولات موجود"
-
-msgid "Code"
-msgstr "بار کد"
-
-msgid "Number of Items"
-msgstr "تعداد اقلام"
-
-msgid "Number of Packages"
-msgstr "تعداد بسته ها"
-
-msgid "Package Contain"
-msgstr "محتویات بسته"
-
-msgid "Package Purchase Price"
-msgstr "قیمت خرید بسته"
-
-msgid "Package Sale Price"
-msgstr "قیمت فروش بسته"
-
-msgid "Image"
-msgstr "تصویر"
-
-msgid "Description"
-msgstr "توضیحات"
-
-#products list translation
-msgid "Available Products List"
-msgstr "لیست محصولات موجود"
-
-msgid "Browse through the complete list of products available for purchase. You can view details, pricing, and availability for each item."
-msgstr "از طریق لیست کامل محصولات موجود برای خرید مرور کنید. شما می‌توانید جزئیات، قیمت‌ها و موجودیت هر کالا را مشاهده کنید."
-
-msgid "Total Purchase Price"
-msgstr "قیمت کل خرید"
-
-msgid "Item Sales Price"
-msgstr "قیمت فروش کالا"
-
-msgid "Stock"
-msgstr "موجودی"
-
-#sales summary page translation
-
-msgid "Sales Summary"
-msgstr "خلاصهٔ فروش"
-
-msgid "Bill Number"
-msgstr "نمبربل"
-
-msgid "Total Amount"
-msgstr "مجموع مبلغ"
-
-msgid "Item quantity"
-msgstr "تعداد جنس"
-
-msgid "Package quantity"
-msgstr "تعداد بسته"
-
-msgid "Total price"
-msgstr "قیمت مجموعی"
-
-msgid "Package price"
-msgstr "قیمت بسته"
-
-msgid "Item price"
-msgstr "قیمت جنس"
-
-msgid "Date"
-msgstr "تاریخ"
-
-msgid "Print"
-msgstr "چاپ"
-
-msgid "Products Sales Details"
-msgstr "جزئیات فروش محصولات"
-
-msgid "View detailed information about each product's sales, including quantities sold, total sales value, and customer details."
-msgstr "مشاهدهٔ اطلاعات دقیق در مورد فروش هر محصول، شامل تعداد فروش رفته، ارزش کل فروش، و جزئیات مشتری."
-
-msgid "Enter your bill number"
-msgstr "بل نمبر خود را وارد کنید"
-
-msgid "Return"
-msgstr "برگشت"
-
-#dashbaord translation
-msgid "Menu"
-msgstr "منو"
-
-msgid "Sales Overview"
-msgstr "مروری بر فروش"
-
+#: .\src\client\models.py:26 .\src\client\models.py:79
+#: .\src\client\models.py:109
+msgid "Manager"
+msgstr "سرپرست"
+
+#: .\src\client\models.py:27 .\src\client\models.py:80
+#: .\src\client\models.py:110
+msgid "Staff"
+msgstr "کارمند"
+
+#: .\src\client\models.py:96
+msgid "User must be a member of the branch tenant first."
+msgstr "کاربر باید ابتدا عضو مؤسسه این شعبه باشد."
+
+#: .\src\client\models.py:126
+msgid "User must be a member of the store tenant first."
+msgstr "کاربر باید ابتدا عضو مؤسسه این فروشگاه باشد."
+
+#: .\src\client\models.py:138 .\src\store\models.py:442
+#: .\src\store\templates\tenancy\pending_users.html:37
+msgid "Pending"
+msgstr "در انتظار"
+
+#: .\src\client\models.py:139
+#: .\src\client\templates\tenancy\branch_management.html:256
+msgid "Active"
+msgstr "فعال"
+
+#: .\src\client\models.py:168 .\src\store\models.py:262
+#: .\src\store\models.py:379 .\src\store\models.py:426
+msgid "Store must belong to the selected tenant."
+msgstr "فروشگاه باید مربوط به مؤسسه انتخاب‌شده باشد."
+
+#: .\src\client\models.py:171
+msgid "Assigned branch must belong to the selected store."
+msgstr "شعبه اختصاص‌یافته باید مربوط به فروشگاه انتخاب‌شده باشد."
+
+#: .\src\client\models.py:173
+msgid "Assigned branch must belong to the selected tenant."
+msgstr "شعبه اختصاص‌یافته باید مربوط به مؤسسه انتخاب‌شده باشد."
+
+#: .\src\client\templates\tenancy\branch_management.html:5
+#: .\src\client\templates\tenancy\branch_management.html:41
+#: .\src\templates\navbar.html:71
+msgid "Branch Management"
+msgstr "مدیریت شعبه"
+
+#: .\src\client\templates\tenancy\branch_management.html:40
+msgid "Branch Reports"
+msgstr "گزارش‌های شعبه"
+
+#: .\src\client\templates\tenancy\branch_management.html:43
+msgid ""
+"Monitor branch sales, stock, finance, and employees from one place. Open "
+"filters only when you need to change branch or reporting period."
+msgstr ""
+
+#: .\src\client\templates\tenancy\branch_management.html:70
+#, fuzzy
+#| msgid "Apply filters"
+msgid "Open Filters"
+msgstr "اعمال فیلترها"
+
+#: .\src\client\templates\tenancy\branch_management.html:79
+#, fuzzy
+#| msgid "Today's Sales"
+msgid "Total Sales"
+msgstr "فروش امروز"
+
+#: .\src\client\templates\tenancy\branch_management.html:81
+#: .\src\client\templates\tenancy\branch_management.html:123
+#, fuzzy
+#| msgid "records"
+msgid "sales records"
+msgstr "مورد"
+
+#: .\src\client\templates\tenancy\branch_management.html:84
+#: .\src\client\templates\tenancy\branch_management.html:149
+#: .\src\client\templates\tenancy\branch_management.html:213
+#: .\src\store\templates\partials\_list.html:17
+#: .\src\store\templates\partials\management\_income-view.html:21
+#: .\src\store\templates\partials\management\_summary-view.html:28
+#: .\src\store\templates\partials\management\_summary-view.html:44
+#: .\src\templates\navbar.html:127
 msgid "Income"
 msgstr "درآمد"
 
-msgid "Customer Overview"
-msgstr "مروری بر مشتریان"
+#: .\src\client\templates\tenancy\branch_management.html:86
+msgid "Other income within the selected range"
+msgstr ""
 
-msgid "Return Items"
-msgstr "بازگشت کالاها"
-
-msgid "Expense"
+#: .\src\client\templates\tenancy\branch_management.html:89
+#: .\src\client\templates\tenancy\branch_management.html:153
+#: .\src\client\templates\tenancy\branch_management.html:214
+#, fuzzy
+#| msgid "Expense"
+msgid "Expenses"
 msgstr "هزینه"
 
-msgid "Number of Bills"
-msgstr "تعداد بل‌ها"
+#: .\src\client\templates\tenancy\branch_management.html:91
+#, fuzzy
+#| msgid "Branch Reports"
+msgid "Branch expense total"
+msgstr "گزارش‌های شعبه"
 
-msgid "View detailed insights into your customers' purchases and activities."
-msgstr "نمایی دقیق از خریدها و فعالیت‌های مشتریان خود را مشاهده کنید."
+#: .\src\client\templates\tenancy\branch_management.html:94
+#: .\src\client\templates\tenancy\branch_management.html:128
+#: .\src\client\templates\tenancy\branch_management.html:157
+#: .\src\client\templates\tenancy\branch_management.html:215
+#, fuzzy
+#| msgid "Gross Profit"
+msgid "Profit"
+msgstr "سود ناخالص"
 
-msgid "Pay"
-msgstr "پرداخت"
+#: .\src\client\templates\tenancy\branch_management.html:98
+#, fuzzy
+#| msgid "Latest income entries"
+msgid "Sales + income - expenses"
+msgstr "تازه‌ترین ثبت‌های عاید"
 
-msgid "Paid"
-msgstr "پرداخت شده"
+#: .\src\client\templates\tenancy\branch_management.html:101
+#: .\src\client\templates\tenancy\branch_management.html:216
+#: .\src\store\templates\partials\product_list.html:19
+#: .\src\templates\home.html:282
+msgid "Stock"
+msgstr "موجودی"
 
-msgid "Customers Billing Overview"
-msgstr "بررسی صورتحساب مشتری"
+#: .\src\client\templates\tenancy\branch_management.html:103
+#, fuzzy
+#| msgid "Search the products"
+msgid "active products"
+msgstr "محصول خود را جستجو کنید"
 
-msgid "Review customer purchases, payment status, and outstanding balances."
-msgstr "بررسی خریدهای مشتری، وضعیت پرداخت و مبالغ باقی‌مانده."
+#: .\src\client\templates\tenancy\branch_management.html:106
+msgid "Employees"
+msgstr "کارمندان"
 
-msgid "Paid Category"
-msgstr "دسته بندی پرداخت شده ها"
+#: .\src\client\templates\tenancy\branch_management.html:108
+msgid "Assigned branch members"
+msgstr "اعضای تعیین‌شده شعبه"
 
-msgid "Unpaid Category"
-msgstr "دسته‌ بندی پرداخت‌ نشده ها"
+#: .\src\client\templates\tenancy\branch_management.html:122
+msgid "Branch Activity Dashboard"
+msgstr "داشبورد فعالیت شعبه"
 
+#: .\src\client\templates\tenancy\branch_management.html:133
+#, fuzzy
+#| msgid "Description"
+msgid "Open section"
+msgstr "توضیحات"
+
+# sales summary page translation
+#: .\src\client\templates\tenancy\branch_management.html:138
+#, fuzzy
+#| msgid "Sales Summary"
+msgid "Sales and finance summary"
+msgstr "خلاصهٔ فروش"
+
+#: .\src\client\templates\tenancy\branch_management.html:141
+#, fuzzy
+#| msgid "Sales Trend"
+msgid "Sales records"
+msgstr "روند فروش"
+
+#: .\src\client\templates\tenancy\branch_management.html:145
+#, fuzzy
+#| msgid "Total Payable"
+msgid "Total sales"
+msgstr "مجموع قابل پرداخت"
+
+#: .\src\client\templates\tenancy\branch_management.html:166
+#, fuzzy
+#| msgid "Summary"
+msgid "Stock summary"
+msgstr "خلاصه"
+
+#: .\src\client\templates\tenancy\branch_management.html:169
+#, fuzzy
+#| msgid "Back to Products"
+msgid "Tracked products"
+msgstr "برگشت به محصولات"
+
+#: .\src\client\templates\tenancy\branch_management.html:173
+msgid "Products with stock"
+msgstr ""
+
+#: .\src\client\templates\tenancy\branch_management.html:177
+#, fuzzy
+#| msgid "Total Amount"
+msgid "Total stock units"
+msgstr "مجموع مبلغ"
+
+#: .\src\client\templates\tenancy\branch_management.html:181
+msgid "Branch employees"
+msgstr "کارمندان شعبه"
+
+#: .\src\client\templates\tenancy\branch_management.html:198
+msgid "Branch Comparison"
+msgstr "مقایسه شعبه‌ها"
+
+#: .\src\client\templates\tenancy\branch_management.html:199
+#, fuzzy
+#| msgid "Select a branch before checking out sales."
+msgid "See how each branch performs in the same period."
+msgstr "پیش از نهایی‌کردن فروش، یک شعبه را انتخاب کنید."
+
+#: .\src\client\templates\tenancy\branch_management.html:203
+msgid "Branches"
+msgstr "شعبه‌ها"
+
+#: .\src\client\templates\tenancy\branch_management.html:212
+#: .\src\store\templates\partials\management\_financial_reports.html:38
+#: .\src\store\templates\partials\management\_financial_reports.html:152
+#: .\src\store\templates\partials\management\_summary-view.html:24
+#: .\src\store\templates\partials\management\_summary-view.html:43
+#: .\src\store\templates\partials\management\_summary-view.html:118
+#: .\src\store\views.py:1291
+#, fuzzy
+#| msgid "Sale"
+msgid "Sales"
+msgstr "فروش"
+
+#: .\src\client\templates\tenancy\branch_management.html:224
+#, fuzzy
+#| msgid "Employees"
+msgid "employees"
+msgstr "کارمندان"
+
+#: .\src\client\templates\tenancy\branch_management.html:249
+#, fuzzy
+#| msgid "Product Information"
+msgid "Manage Branch Information"
+msgstr "معلومات محصول"
+
+#: .\src\client\templates\tenancy\branch_management.html:250
+#, fuzzy
+#| msgid "Customer phone"
+msgid "No phone"
+msgstr "شماره تلفن مشتری"
+
+#: .\src\client\templates\tenancy\branch_management.html:254
+#: .\src\store\templates\partials\management\_customer-account.html:99
+#: .\src\store\templates\partials\management\_customer-view.html:210
+#: .\src\store\templates\sale\sold_products_detail.html:131
 msgid "Status"
 msgstr "وضعیت"
 
-msgid "Management Page"
-msgstr "صفحه مدیریت"
+#: .\src\client\templates\tenancy\branch_management.html:256
+#, fuzzy
+#| msgid "Active"
+msgid "Inactive"
+msgstr "فعال"
 
-msgid "Enter your customer phone number"
-msgstr "شماره تلفن مشتری خود را وارد کنید"
+#: .\src\client\templates\tenancy\branch_management.html:301
+msgid "Branch is active"
+msgstr "شعبه فعال است"
 
-msgid "Go Back"
-msgstr "برگشت"
+#: .\src\client\templates\tenancy\branch_management.html:307
+#, fuzzy
+#| msgid "Hover for details"
+msgid "Save branch details"
+msgstr "برای دیدن جزئیات نشانگر را ببرید"
 
-msgid "Conversion factor to the base unit (e.g., 7 for Sir if base is KG). Leave blank if conversion is product-specific."
-msgstr "عامل تبدیل به واحد اصلی (مثلاً ۷ برای سیر اگر واحد اصلی کیلوگرام باشد). اگر تبدیل به واحد مخصوص محصول است، این قسمت را خالی بگذارید."
+#: .\src\client\templates\tenancy\branch_management.html:323
+#, fuzzy
+#| msgid "Employees"
+msgid "Manage Employees"
+msgstr "کارمندان"
 
-msgid "Purchase Unit"
-msgstr "واحد خرید"
+#: .\src\client\templates\tenancy\branch_management.html:324
+#, fuzzy
+#| msgid "Employee access updated for this branch."
+msgid "employees assigned to this branch"
+msgstr "دسترسی کارمند برای این شعبه به‌روزرسانی شد."
 
-msgid "Update Products"
-msgstr "به‌روزرسانی محصولات"
+#: .\src\client\templates\tenancy\branch_management.html:345
+msgid "Assign employee"
+msgstr "تعیین کارمند"
 
-msgid "Add Products"
-msgstr "افزودن محصولات"
+#: .\src\client\templates\tenancy\branch_management.html:368
+#, fuzzy
+#| msgid "Update Product"
+msgid "Update role"
+msgstr "به‌روزرسانی محصول"
 
-msgid "Unit"
-msgstr "واحد"
+#: .\src\client\templates\tenancy\branch_management.html:377
+msgid "Remove"
+msgstr ""
 
-msgid "Base Unit Settings"
-msgstr "تنظیم واحد اصلی"
+#: .\src\client\templates\tenancy\branch_management.html:385
+#, fuzzy
+#| msgid "Selected user is already assigned to this branch."
+msgid "No employees are assigned to this branch yet."
+msgstr "کاربر انتخاب‌شده قبلاً به این شعبه اختصاص یافته است."
 
-msgid "Produts Base Unit Settings"
-msgstr "تنظیمات واحد اصلی محصولات"
+#: .\src\client\templates\tenancy\branch_management.html:400
+#, fuzzy
+#| msgid "Branch Activity Dashboard"
+msgid "Recent Branch Activity"
+msgstr "داشبورد فعالیت شعبه"
 
-msgid "Set the inventory base unit for your products"
-msgstr "واحد اصلی موجودی برای محصولات خود را تنظیم کنید"
+#: .\src\client\templates\tenancy\branch_management.html:401
+msgid "Latest inventory movement for the selected branch."
+msgstr ""
 
-msgid "Add System Base Unit"
-msgstr "افزودن واحد اصلی سیستم"
+#: .\src\client\templates\tenancy\branch_management.html:405
+msgid "Entries"
+msgstr ""
 
-msgid "Update System Base Unit"
-msgstr "به‌روزرسانی واحد اصلی سیستم"
+#: .\src\client\templates\tenancy\branch_management.html:413
+#: .\src\store\templates\partials\_print_invoice.html:210
+#: .\src\store\templates\partials\management\_customer-account.html:93
+#: .\src\store\templates\partials\management\_expense-view.html:44
+#: .\src\store\templates\partials\management\_expense-view.html:121
+#: .\src\store\templates\partials\management\_financial_reports.html:94
+#: .\src\store\templates\partials\management\_income-view.html:46
+#: .\src\store\templates\partials\management\_income-view.html:123
+#: .\src\store\templates\partials\management\_return-view.html:95
+#: .\src\store\templates\sale\sold_products_detail.html:81
+#: .\src\store\templates\sale\sold_products_view.html:91
+msgid "Date"
+msgstr "تاریخ"
 
-msgid "System Base Units"
-msgstr "واحدهای اصلی سیستم"
+#: .\src\client\templates\tenancy\branch_management.html:414
+#: .\src\store\templates\partials\management\_financial_reports.html:94
+msgid "Type"
+msgstr "نوع"
 
-msgid "Is Weight Base"
-msgstr "آیا مبنای وزن است"
+#: .\src\client\templates\tenancy\branch_management.html:415
+#: .\src\store\forms.py:137 .\src\templates\home.html:210
+#: .\src\templates\home.html:280
+msgid "Product"
+msgstr "محصول"
 
-msgid "Conversion to Base Unit"
-msgstr "تبدیل به واحد مبنا"
+#: .\src\client\templates\tenancy\branch_management.html:416
+#: .\src\store\templates\partials\_cart_table.html:42
+#: .\src\store\templates\sale\product_view.html:210
+#: .\src\store\templates\stock\transfer.html:35
+msgid "Quantity"
+msgstr "تعداد"
 
-msgid "The Summary Page offers a quick overview of the store’s key metrics, including inventory levels, sales, recent transactions, and pending orders—all in a clear, easy-to-read dashboard."
-msgstr "صفحه خلاصه یک نمای سریع از شاخص‌های کلیدی فروشگاه، از جمله موجودی کالا، فروش، تراکنش‌های اخیر و سفارشات در انتظار را در قالب یک داشبورد واضح و قابل فهم ارائه می‌دهد."
+#: .\src\client\templates\tenancy\branch_management.html:417
+#, fuzzy
+#| msgid "Username"
+msgid "User"
+msgstr "نام کاربری"
 
-msgid "Store Dashboard"
-msgstr "داشبورد فروشگاه"
+#: .\src\client\templates\tenancy\branch_management.html:436
+msgid "No branch activity was recorded in the selected period."
+msgstr ""
 
-msgid "Enter your customer code"
-msgstr "کد مشتری خود را وارد کنید"
+#: .\src\client\templates\tenancy\branch_management.html:451
+#, fuzzy
+#| msgid "Filter Branch"
+msgid "Filters"
+msgstr "فیلتر شعبه"
 
-msgid "Ignore Customer"
-msgstr "رد کردن مشتری"
+#: .\src\client\templates\tenancy\branch_management.html:452
+msgid "Branch and Date Range"
+msgstr "شعبه و بازه تاریخ"
 
+#: .\src\client\templates\tenancy\branch_management.html:453
+msgid "Choose the branch and reporting period you want to inspect."
+msgstr "شعبه و دوره گزارشی را که می‌خواهید بررسی کنید انتخاب کنید."
+
+#: .\src\client\templates\tenancy\branch_management.html:456
+msgid "Close filters"
+msgstr "بستن فیلترها"
+
+#: .\src\client\templates\tenancy\branch_management.html:476
+#, fuzzy
+#| msgid "From Store"
+msgid "From date"
+msgstr "از فروشگاه"
+
+#: .\src\client\templates\tenancy\branch_management.html:480
+#, fuzzy
+#| msgid "No data"
+msgid "To date"
+msgstr "بدون داده"
+
+#: .\src\client\templates\tenancy\branch_management.html:486
+#: .\src\store\templates\partials\management\_base_unit-view.html:109
+#, fuzzy
+#| msgid "Balance"
+msgid "Cancel"
+msgstr "مانده"
+
+#: .\src\client\templates\tenancy\branch_management.html:489
+msgid "Apply filters"
+msgstr "اعمال فیلترها"
+
+#: .\src\client\views.py:117
+msgid "Welcome !"
+msgstr "خوش آمدید !"
+
+#: .\src\client\views.py:147 .\src\client\views.py:261
+#: .\src\client\views.py:314
+msgid "No active branch assigned to your account for this tenant."
+msgstr ""
+
+#: .\src\client\views.py:155
+msgid "Select the tenant you want to work in."
+msgstr "مؤسسه‌ای را که می‌خواهید در آن کار کنید انتخاب کنید."
+
+#: .\src\client\views.py:160
+msgid "No tenant assigned to this account. Please contact an admin."
+msgstr ""
+
+#: .\src\client\views.py:178
+#, fuzzy
+#| msgid "Account created. Your account is pending admin activation."
+msgid "Your account is inactive. Please contact an admin for activation."
+msgstr "حساب ایجاد شد. حساب شما در انتظار فعال‌سازی مدیر است."
+
+#: .\src\client\views.py:183
+msgid "Invalid username or password"
+msgstr "نام کاربری یا رمز عبور نامعتبر است"
+
+#: .\src\client\views.py:203
+msgid "Account created. Your account is pending admin activation."
+msgstr "حساب ایجاد شد. حساب شما در انتظار فعال‌سازی مدیر است."
+
+# Sign up translation
+#: .\src\client\views.py:207
+#, fuzzy
+#| msgid "Something went wrong. Please fix the below error"
+msgid "Something Went wrong. Please fix the below error !"
+msgstr "مشکلی پیش آمده است. لطفاً خطای زیر را برطرف کنید"
+
+#: .\src\client\views.py:243
+#, fuzzy
+#| msgid "Invalid destination store."
+msgid "Invalid tenant selection."
+msgstr "فروشگاه مقصد نامعتبر است."
+
+#: .\src\client\views.py:324
+#, fuzzy
+#| msgid "No active branch selected."
+msgid "Invalid branch selection."
+msgstr "هیچ شعبه فعالی انتخاب نشده است."
+
+#: .\src\client\views.py:354
+msgid "You are not authorized to switch to that branch."
+msgstr ""
+
+#: .\src\client\views.py:377
+#, fuzzy
+#| msgid "You do not have permission to transfer stock."
+msgid "You do not have permission to manage branches."
+msgstr "شما اجازه انتقال موجودی را ندارید."
+
+#: .\src\client\views.py:382
+#, fuzzy
+#| msgid "No reporting scope available for your account."
+msgid "No branches are available for this tenant."
+msgstr "هیچ محدوده گزارشی برای حساب شما در دسترس نیست."
+
+#: .\src\client\views.py:398
+msgid "Branch details updated successfully."
+msgstr "جزئیات شعبه با موفقیت به‌روزرسانی شد."
+
+#: .\src\client\views.py:400
+#, fuzzy
+#| msgid "Please correct the errors below."
+msgid "Please correct the branch details form."
+msgstr "لطفاً خطاهای زیر را اصلاح کنید."
+
+#: .\src\client\views.py:416
+msgid "Employee access updated for this branch."
+msgstr "دسترسی کارمند برای این شعبه به‌روزرسانی شد."
+
+#: .\src\client\views.py:418
+#, fuzzy
+#| msgid "Please correct the errors below."
+msgid "Please correct the employee assignment form."
+msgstr "لطفاً خطاهای زیر را اصلاح کنید."
+
+#: .\src\client\views.py:428
+msgid "Employee assignment not found."
+msgstr "اختصاص کارمند یافت نشد."
+
+#: .\src\client\views.py:431
+msgid "Employee removed from this branch."
+msgstr "کارمند از این شعبه حذف شد."
+
+#: .\src\client\views.py:444
+#, fuzzy
+#| msgid "Employee role updated successfully."
+msgid "Invalid employee role update request."
+msgstr "نقش کارمند با موفقیت به‌روزرسانی شد."
+
+#: .\src\client\views.py:453
+msgid "Employee role updated successfully."
+msgstr "نقش کارمند با موفقیت به‌روزرسانی شد."
+
+#: .\src\client\views.py:503
+#, fuzzy
+#| msgid "You do not have permission to transfer stock."
+msgid "You do not have permission to view pending users."
+msgstr "شما اجازه انتقال موجودی را ندارید."
+
+#: .\src\client\views.py:528
+#, fuzzy
+#| msgid "You do not have permission to transfer stock."
+msgid "You do not have permission to activate users."
+msgstr "شما اجازه انتقال موجودی را ندارید."
+
+#: .\src\client\views.py:533
+msgid "This user is already processed."
+msgstr ""
+
+#: .\src\client\views.py:543
+msgid "No branches available for this store. Please create one first."
+msgstr ""
+
+#: .\src\client\views.py:577
+msgid ""
+"User activated successfully. Tenant, store, and branch access were assigned."
+msgstr ""
+
+#: .\src\core\settings.py:136 .\src\templates\landing-page.html:73
+#: .\src\templates\navbar.html:216
+msgid "English"
+msgstr "انگلیسی"
+
+#: .\src\core\settings.py:137 .\src\templates\landing-page.html:69
+#: .\src\templates\navbar.html:215
+msgid "Dari"
+msgstr "دری"
+
+#: .\src\customer\forms.py:20
+msgid "Customer name"
+msgstr "نام مشتری"
+
+#: .\src\customer\forms.py:23
+msgid "Customer phone"
+msgstr "شماره تلفن مشتری"
+
+#: .\src\customer\forms.py:26
+#: .\src\store\templates\partials\_cart_table.html:22
+#: .\src\store\templates\partials\_customer_form.html:70
+#: .\src\store\templates\partials\_print_invoice.html:225
+#: .\src\store\templates\partials\management\_customer-account.html:41
+#: .\src\store\templates\partials\management\_customer-view.html:114
+#: .\src\store\templates\partials\management\_customer-view.html:204
+#: .\src\store\templates\sale\product_view.html:78
+#: .\src\store\templates\sale\sold_products_detail.html:96
+msgid "Address"
+msgstr "آدرس"
+
+#: .\src\customer\models.py:29
+#: .\src\store\templates\partials\management\_financial_reports.html:57
+msgid "Cash"
+msgstr "نقدی"
+
+#: .\src\customer\models.py:30
+msgid "Bank Transfer"
+msgstr "انتقال بانکی"
+
+#: .\src\customer\models.py:31
+msgid "Hesab Pay"
+msgstr "حساب‌پی"
+
+#: .\src\customer\models.py:32
+msgid "Hawala"
+msgstr "حواله"
+
+#: .\src\customer\models.py:67 .\src\store\models.py:148
+msgid "Customer must belong to the selected tenant."
+msgstr "مشتری باید مربوط به مؤسسه انتخاب‌شده باشد."
+
+#: .\src\customer\models.py:69 .\src\store\models.py:150
+#: .\src\store\models.py:264 .\src\store\models.py:384
+#: .\src\store\models.py:428
+msgid "Branch must belong to the selected tenant."
+msgstr "شعبه باید مربوط به مؤسسه انتخاب‌شده باشد."
+
+#: .\src\customer\models.py:76
+msgid "Deleted Customer"
+msgstr "مشتری حذف‌شده"
+
+#: .\src\customer\views.py:88
+msgid "Customer has been added successfully."
+msgstr "مشتری با موفقیت اضافه شد."
+
+#: .\src\customer\views.py:91 .\src\store\views.py:567
+msgid "Something went wrong. Please fix the errors below."
+msgstr "مشکلی پیش آمد. لطفاً خطاهای زیر را اصلاح کنید."
+
+#: .\src\customer\views.py:100
+msgid "Customer has been selected successfully."
+msgstr "مشتری با موفقیت انتخاب شد."
+
+#: .\src\customer\views.py:159
+msgid "Payment amount must be greater than 0."
+msgstr "مبلغ پرداخت باید بیشتر از ۰ باشد."
+
+#: .\src\customer\views.py:165
+#, python-format
+msgid "Payment cannot be greater than unpaid amount (%(amount)s)."
+msgstr "مبلغ پرداخت نمی‌تواند از مبلغ بدهی (%(amount)s) بیشتر باشد."
+
+#: .\src\customer\views.py:185
+msgid "No unpaid sales record found for this customer."
+msgstr "هیچ سابقه فروش پرداخت‌نشده برای این مشتری یافت نشد."
+
+#: .\src\customer\views.py:211
+msgid "Customer payment added successfully."
+msgstr "پرداخت مشتری با موفقیت ثبت شد."
+
+#: .\src\store\forms.py:48
+#, python-format
+msgid "%(name)s (Base: %(base)s)"
+msgstr "%(name)s (پایه: %(base)s)"
+
+#: .\src\store\forms.py:138
+msgid "From"
+msgstr "از"
+
+#: .\src\store\forms.py:139
+msgid "To"
+msgstr "به"
+
+#: .\src\store\forms.py:140
+msgid "From Store"
+msgstr "از فروشگاه"
+
+#: .\src\store\forms.py:141
+msgid "From Branch"
+msgstr "از شعبه"
+
+#: .\src\store\forms.py:142
+msgid "To Store"
+msgstr "به فروشگاه"
+
+#: .\src\store\forms.py:143
+msgid "To Branch"
+msgstr "به شعبه"
+
+#: .\src\store\forms.py:144
+msgid "Package Quantity"
+msgstr "تعداد بسته"
+
+#: .\src\store\forms.py:145
+msgid "Item Quantity"
+msgstr "تعداد قلم"
+
+#: .\src\store\forms.py:203
+msgid "From and To locations must be different."
+msgstr "محل‌های مبدأ و مقصد باید متفاوت باشند."
+
+#: .\src\store\forms.py:206
+msgid "Select a source store."
+msgstr "یک فروشگاه مبدأ را انتخاب کنید."
+
+#: .\src\store\forms.py:208
+msgid "Select a source branch."
+msgstr "یک شعبه مبدأ را انتخاب کنید."
+
+#: .\src\store\forms.py:210
+msgid "Select a destination store."
+msgstr "یک فروشگاه مقصد را انتخاب کنید."
+
+#: .\src\store\forms.py:212
+msgid "Select a destination branch."
+msgstr "یک شعبه مقصد را انتخاب کنید."
+
+#: .\src\store\forms.py:215 .\src\store\views.py:395
+#, fuzzy
+#| msgid "Payment amount must be greater than 0."
+msgid "Quantity must be greater than 0."
+msgstr "مبلغ پرداخت باید بیشتر از ۰ باشد."
+
+#: .\src\store\models.py:32
+msgid "Select the base unit this converts to (optional)."
+msgstr "واحد پایه‌ای را که این مورد به آن تبدیل می‌شود انتخاب کنید (اختیاری)."
+
+#: .\src\store\models.py:38
+msgid ""
+"Conversion factor to the base unit (e.g., 7 for Sir if base is KG). Leave "
+"blank if conversion is product-specific."
+msgstr ""
+"عامل تبدیل به واحد اصلی (مثلاً ۷ برای سیر اگر واحد اصلی کیلوگرام باشد). اگر "
+"تبدیل به واحد مخصوص محصول است، این قسمت را خالی بگذارید."
+
+#: .\src\store\models.py:64 .\src\store\templates\partials\product_list.html:51
+#: .\src\store\templates\purchase\purchase.html:339
+msgid "USD"
+msgstr "USD"
+
+#: .\src\store\models.py:65 .\src\store\templates\partials\_cart_table.html:147
+#: .\src\store\templates\partials\_cart_table.html:152
+#: .\src\store\templates\partials\_cart_table.html:159
+#: .\src\store\templates\partials\_print_invoice.html:262
+#: .\src\store\templates\partials\_print_invoice.html:267
+#: .\src\store\templates\partials\_print_invoice.html:272
+#: .\src\store\templates\partials\_print_invoice.html:276
+#: .\src\store\templates\partials\_print_invoice.html:280
+#: .\src\store\templates\partials\management\_expense-view.html:71
+#: .\src\store\templates\partials\management\_financial_reports.html:38
+#: .\src\store\templates\partials\management\_financial_reports.html:39
+#: .\src\store\templates\partials\management\_financial_reports.html:40
+#: .\src\store\templates\partials\management\_financial_reports.html:41
+#: .\src\store\templates\partials\management\_income-view.html:73
+#: .\src\store\templates\partials\management\_summary-view.html:24
+#: .\src\store\templates\partials\management\_summary-view.html:25
+#: .\src\store\templates\partials\management\_summary-view.html:26
+#: .\src\store\templates\partials\management\_summary-view.html:28
+#: .\src\store\templates\partials\management\_summary-view.html:29
+#: .\src\store\templates\partials\product_list.html:53
+#: .\src\store\templates\purchase\purchase.html:130
+#: .\src\store\templates\purchase\purchase.html:342
+#: .\src\templates\home.html:65 .\src\templates\home.html:99
+#: .\src\templates\home.html:131
+msgid "AFN"
+msgstr "افغانی"
+
+#: .\src\store\models.py:203
+msgid "Asset"
+msgstr "دارایی"
+
+#: .\src\store\models.py:204
+msgid "Liability"
+msgstr "بدهی"
+
+#: .\src\store\models.py:205
+msgid "Equity"
+msgstr "سرمایه"
+
+#: .\src\store\models.py:206
+msgid "Revenue"
+msgstr "عواید"
+
+#: .\src\store\models.py:207 .\src\store\models.py:241
+#: .\src\store\templates\partials\_list.html:20
+#: .\src\store\templates\partials\management\_financial_reports.html:154
+#: .\src\store\templates\partials\management\_summary-view.html:45
+#: .\src\store\views.py:1291 .\src\templates\navbar.html:131
+msgid "Expense"
+msgstr "هزینه"
+
+#: .\src\store\models.py:238
+#: .\src\store\templates\partials\_cart_table.html:210
+#: .\src\templates\navbar.html:62
+msgid "Sale"
+msgstr "فروش"
+
+#: .\src\store\models.py:239 .\src\store\models.py:401
+msgid "Purchase"
+msgstr "خرید"
+
+#: .\src\store\models.py:240
+#: .\src\store\templates\partials\_cart_table.html:171
+msgid "Payment"
+msgstr "پرداخت"
+
+#: .\src\store\models.py:242
+#: .\src\store\templates\partials\management\_financial_reports.html:75
+#: .\src\store\views.py:1291 .\src\store\views.py:1507
+msgid "Other Income"
+msgstr "سایر عواید"
+
+#: .\src\store\models.py:243 .\src\store\models.py:404
+msgid "Adjustment"
+msgstr "تعدیل"
+
+#: .\src\store\models.py:266 .\src\store\models.py:430
+msgid "Branch must belong to the selected store."
+msgstr "شعبه باید مربوط به فروشگاه انتخاب‌شده باشد."
+
+#: .\src\store\models.py:290
+msgid "Account tenant must match journal entry tenant."
+msgstr "مؤسسه حساب باید با مؤسسه سند ژورنال یکسان باشد."
+
+#: .\src\store\models.py:292
+msgid "Debit and credit amounts cannot be negative."
+msgstr "مبالغ بدهکار و بستانکار نمی‌توانند منفی باشند."
+
+#: .\src\store\models.py:294
+msgid "Either debit or credit must be greater than zero."
+msgstr "یا مبلغ بدهکار یا مبلغ بستانکار باید بیشتر از صفر باشد."
+
+#: .\src\store\models.py:296
+msgid "A line cannot have both debit and credit values."
+msgstr "یک سطر نمی‌تواند هم‌زمان هم مقدار بدهکار و هم مقدار بستانکار داشته باشد."
+
+#: .\src\store\models.py:374 .\src\store\models.py:424
+msgid "Product must belong to the selected tenant."
+msgstr "محصول باید مربوط به مؤسسه انتخاب‌شده باشد."
+
+#: .\src\store\models.py:387
+msgid "Source branch must belong to source store."
+msgstr "شعبه مبدأ باید مربوط به فروشگاه مبدأ باشد."
+
+#: .\src\store\models.py:389
+msgid "Destination branch must belong to destination store."
+msgstr "شعبه مقصد باید مربوط به فروشگاه مقصد باشد."
+
+#: .\src\store\models.py:402
+msgid "Transfer In"
+msgstr "انتقال به داخل"
+
+#: .\src\store\models.py:403
+msgid "Transfer Out"
+msgstr "انتقال به بیرون"
+
+#: .\src\store\models.py:443
+msgid "Approved"
+msgstr "تأیید شد"
+
+#: .\src\store\models.py:444
+msgid "Rejected"
+msgstr "رد شد"
+
+#: .\src\store\templates\auth\login.html:5
+#: .\src\store\templates\auth\login.html:29
+#: .\src\store\templates\auth\login.html:124
+#: .\src\store\templates\auth\register.html:221 .\src\templates\navbar.html:197
+msgid "Sign In"
+msgstr "ورود"
+
+#: .\src\store\templates\auth\login.html:30
+msgid "Sign in to continue to Inventory Management."
+msgstr "برای ادامه به مدیریت موجودی، وارد شوید."
+
+#: .\src\store\templates\auth\login.html:40
+msgid "Email/Username"
+msgstr "ایمیل/نام کاربری"
+
+#: .\src\store\templates\auth\login.html:55
+msgid "Enter email or username"
+msgstr "ایمیل یا نام کاربری را وارد کنید"
+
+#: .\src\store\templates\auth\login.html:82
+msgid "Enter password"
+msgstr "رمز عبور خود را وارد کنید"
+
+#: .\src\store\templates\auth\login.html:93
+#: .\src\store\templates\auth\login.html:94
+#: .\src\store\templates\auth\login.html:153
+#: .\src\store\templates\auth\login.html:154
+msgid "Show password"
+msgstr "نمایش گذرواژه"
+
+#: .\src\store\templates\auth\login.html:107
+msgid "Forgot password?"
+msgstr "گذرواژه را فراموش کرده‌اید؟"
+
+#: .\src\store\templates\auth\login.html:129
+#, fuzzy
+#| msgid "Don't have an account ?"
+msgid "Don't have an account?"
+msgstr "حساب کاربری ندارید؟"
+
+#: .\src\store\templates\auth\login.html:131
+msgid "Create one"
+msgstr "یکی بسازید"
+
+#: .\src\store\templates\auth\login.html:138
+#: .\src\store\templates\auth\register.html:227
+msgid "Inventory Management System"
+msgstr "سیستم مدیریت موجودی"
+
+#: .\src\store\templates\auth\login.html:153
+#: .\src\store\templates\auth\login.html:154
+msgid "Hide password"
+msgstr "پنهان‌کردن گذرواژه"
+
+#: .\src\store\templates\auth\register.html:5
+#: .\src\store\templates\auth\register.html:214 .\src\templates\navbar.html:188
+msgid "Sign Up"
+msgstr "ثبت نام"
+
+#: .\src\store\templates\auth\register.html:28
+msgid "Create account"
+msgstr "ایجاد حساب"
+
+#: .\src\store\templates\auth\register.html:29
+msgid ""
+"Request access to a tenant and store. An admin will activate your account."
+msgstr ""
+
+#: .\src\store\templates\auth\register.html:37
+#, fuzzy
+#| msgid "Hover for details"
+msgid "Personal details"
+msgstr "برای دیدن جزئیات نشانگر را ببرید"
+
+#: .\src\store\templates\auth\register.html:39
+msgid "Step 1"
+msgstr ""
+
+#: .\src\store\templates\auth\register.html:114
+msgid "Tenant and store selection"
+msgstr ""
+
+#: .\src\store\templates\auth\register.html:116
+msgid "Step 2"
+msgstr ""
+
+#: .\src\store\templates\auth\register.html:119
+msgid "Choose the tenant and store you want to join."
+msgstr "مؤسسه و فروشگاهی را که می‌خواهید به آن بپیوندید انتخاب کنید."
+
+#: .\src\store\templates\auth\register.html:124
+#, fuzzy
+#| msgid "Select a tenant"
+msgid "Search tenant"
+msgstr "یک مؤسسه را انتخاب کنید"
+
+#: .\src\store\templates\auth\register.html:130
+msgid "Type to filter tenants"
+msgstr ""
+
+#: .\src\store\templates\auth\register.html:161
+msgid "No tenants are available. Please contact an admin."
+msgstr ""
+
+#: .\src\store\templates\auth\register.html:193
+#: .\src\store\templates\auth\register.html:279
+#, fuzzy
+#| msgid "Store must belong to the selected tenant."
+msgid "Stores are filtered by the selected tenant."
+msgstr "فروشگاه باید مربوط به مؤسسه انتخاب‌شده باشد."
+
+#: .\src\store\templates\auth\register.html:199
+msgid "What happens next?"
+msgstr ""
+
+#: .\src\store\templates\auth\register.html:200
+msgid ""
+"Your account will stay in pending status until an admin activates it and "
+"assigns you to a branch."
+msgstr ""
+
+#: .\src\store\templates\auth\register.html:219
+msgid "Already have an account?"
+msgstr "از قبل حساب دارید؟"
+
+#: .\src\store\templates\auth\register.html:269
+#, fuzzy
+#| msgid "No reporting scope available for your account."
+msgid "No stores available for this tenant yet."
+msgstr "هیچ محدوده گزارشی برای حساب شما در دسترس نیست."
+
+#: .\src\store\templates\auth\register.html:270
+#, fuzzy
+#| msgid "Select a destination store."
+msgid "Select a tenant to see stores."
+msgstr "یک فروشگاه مقصد را انتخاب کنید."
+
+# product view page
+#: .\src\store\templates\customer\customer_list.html:7
+#: .\src\store\templates\purchase\product.html:7
+#: .\src\store\templates\sale\product_view.html:7
+#: .\src\templates\navbar.html:54
+msgid "Products"
+msgstr "محصولات"
+
+#: .\src\store\templates\dashboard\dashboard-view.html:7
+#, fuzzy
+#| msgid "Finance Dashboard"
+msgid "Management Dashboard"
+msgstr "داشبورد مالی"
+
+#: .\src\store\templates\partials\_cart_table.html:14
+#: .\src\store\templates\partials\_customer_form.html:50
+#: .\src\store\templates\partials\management\_customer-view.html:112
+#: .\src\store\templates\partials\management\_customer-view.html:202
+#: .\src\store\templates\sale\sold_products_detail.html:86
+msgid "Full Name"
+msgstr "نام و تخلص"
+
+#: .\src\store\templates\partials\_cart_table.html:18
+#: .\src\store\templates\partials\_customer_form.html:60
+#: .\src\store\templates\partials\_print_invoice.html:219
+#: .\src\store\templates\partials\management\_customer-account.html:38
+#: .\src\store\templates\partials\management\_customer-view.html:35
+#: .\src\store\templates\partials\management\_customer-view.html:113
+#: .\src\store\templates\partials\management\_customer-view.html:203
+#: .\src\store\templates\sale\product_view.html:72
+#: .\src\store\templates\sale\sold_products_detail.html:91
+msgid "Phone"
+msgstr "تلفن"
+
+#: .\src\store\templates\partials\_cart_table.html:28
+msgid "Cart Items"
+msgstr "اقلام سبد"
+
+#: .\src\store\templates\partials\_cart_table.html:40
+#: .\src\store\templates\partials\product_list.html:10
+#: .\src\store\templates\sale\product_view.html:208
+msgid "Image"
+msgstr "تصویر"
+
+#: .\src\store\templates\partials\_cart_table.html:41
+#: .\src\store\templates\partials\management\_base_unit-view.html:54
+#: .\src\store\templates\partials\management\_base_unit-view.html:139
+#: .\src\store\templates\partials\product_list.html:11
+#: .\src\store\templates\purchase\product_update.html:30
+#: .\src\store\templates\sale\product_view.html:209
+#: .\src\store\templates\sale\sold_products_detail.html:174
+msgid "Name"
+msgstr "نام"
+
+#: .\src\store\templates\partials\_cart_table.html:43
+#: .\src\store\templates\sale\product_view.html:211
+msgid "Package"
+msgstr "بسته"
+
+#: .\src\store\templates\partials\_cart_table.html:44
+#: .\src\store\templates\sale\product_view.html:212
+msgid "Item Price"
+msgstr "قیمت فی دانه"
+
+#: .\src\store\templates\partials\_cart_table.html:45
+#: .\src\store\templates\sale\product_view.html:213
+msgid "Package Price"
+msgstr "قیمت فی بسته"
+
+#: .\src\store\templates\partials\_cart_table.html:46
+#: .\src\store\templates\partials\_print_invoice.html:238
+#: .\src\store\templates\partials\management\_return-view.html:96
+#: .\src\store\templates\partials\management\_summary-view.html:72
+msgid "Total"
+msgstr "قیمت کل"
+
+#: .\src\store\templates\partials\_cart_table.html:47
+#: .\src\store\templates\partials\management\_base_unit-view.html:143
+#: .\src\store\templates\partials\management\_customer-view.html:120
+#: .\src\store\templates\partials\management\_return-view.html:98
+#: .\src\store\templates\partials\product_list.html:20
+#: .\src\store\templates\sale\product_view.html:214
+#: .\src\store\templates\sale\sold_products_detail.html:180
+msgid "Action"
+msgstr "عملکرد"
+
+#: .\src\store\templates\partials\_cart_table.html:60
+#: .\src\store\templates\partials\_search_list.html:8
+#: .\src\store\templates\sale\product_view.html:228
+msgid "Product image"
+msgstr "تصویر محصول"
+
+#: .\src\store\templates\partials\_cart_table.html:69
+#: .\src\store\templates\partials\management\_expense-view.html:60
+#: .\src\store\templates\partials\management\_expense-view.html:122
+#: .\src\store\templates\partials\product_list.html:12
+#: .\src\store\templates\purchase\product_update.html:22
+#: .\src\store\templates\purchase\purchase.html:176
+#: .\src\store\templates\sale\product_view.html:179
+#: .\src\store\templates\sale\product_view.html:240
+#: .\src\templates\home.html:211 .\src\templates\home.html:281
+msgid "Category"
+msgstr "دسته بندی"
+
+#: .\src\store\templates\partials\_cart_table.html:79
+#: .\src\store\templates\partials\_cart_table.html:93
+#: .\src\store\templates\partials\_search_list.html:13
+#: .\src\store\templates\partials\_search_list.html:21
+#: .\src\store\templates\sale\product_view.html:265
+#: .\src\store\templates\sale\product_view.html:283
+msgid "--select--"
+msgstr "--انتخاب کردن--"
+
+#: .\src\store\templates\partials\_cart_table.html:84
+#: .\src\store\templates\sale\product_view.html:271
+msgid "Max"
+msgstr "حداکثر"
+
+#: .\src\store\templates\partials\_cart_table.html:98
+#: .\src\store\templates\sale\product_view.html:289
+msgid "Available"
+msgstr "موجود"
+
+#: .\src\store\templates\partials\_cart_table.html:128
+#: .\src\store\templates\partials\management\_base_unit-view.html:192
+#: .\src\store\templates\partials\product_list.html:90
+msgid "Delete"
+msgstr "حذف"
+
+#: .\src\store\templates\partials\_cart_table.html:142
+msgid "Summary"
+msgstr "خلاصه"
+
+#: .\src\store\templates\partials\_cart_table.html:146
+msgid "Current Bill Amount"
+msgstr "مبلغ فعلی بل"
+
+#: .\src\store\templates\partials\_cart_table.html:151
+msgid "Carried Forward Unpaid"
+msgstr "بدهی انتقال‌یافته"
+
+#: .\src\store\templates\partials\_cart_table.html:158
+#: .\src\store\templates\partials\_print_invoice.html:271
+#: .\src\store\templates\sale\sold_products_detail.html:116
+msgid "Total Payable"
+msgstr "مجموع قابل پرداخت"
+
+#: .\src\store\templates\partials\_cart_table.html:163
+#: .\src\store\templates\partials\management\_customer-account.html:72
+msgid "Formula:"
+msgstr "فرمول:"
+
+#: .\src\store\templates\partials\_cart_table.html:172
+msgid "Unpaid is calculated automatically"
+msgstr "مبلغ پرداخت‌نشده به‌صورت خودکار محاسبه می‌شود"
+
+#: .\src\store\templates\partials\_cart_table.html:179
+#: .\src\store\templates\sale\sold_products_detail.html:120
+msgid "Paid Amount"
+msgstr "مبلغ پرداخت شده"
+
+#: .\src\store\templates\partials\_cart_table.html:192
+#: .\src\store\templates\sale\sold_products_detail.html:124
+msgid "Unpaid Amount"
+msgstr "مبلغ باقی مانده"
+
+#: .\src\store\templates\partials\_cart_table.html:230
+msgid "Your Cart is Empty"
+msgstr "سبد خرید شما خالی است"
+
+#: .\src\store\templates\partials\_cart_table.html:232
+#, fuzzy
+#| msgid "Looks like you haven’t added anything yet."
+msgid "Looks like you haven't added anything yet."
+msgstr "به نظر می‌رسد هنوز چیزی به سبد خریدتان اضافه نکرده‌اید."
+
+#: .\src\store\templates\partials\_cart_table.html:234
+msgid "Start shopping"
+msgstr "آغاز خرید"
+
+#: .\src\store\templates\partials\_customer_form.html:16
+#, fuzzy
+#| msgid "Customer Code"
+msgid "Customer found"
+msgstr "کد مشتری"
+
+#: .\src\store\templates\partials\_customer_form.html:18
+msgid "This customer already exists. You can proceed to sale."
+msgstr ""
+
+#: .\src\store\templates\partials\_customer_form.html:24
+msgid "Proceed to Sale"
+msgstr "برو به بخش فروش"
+
+#: .\src\store\templates\partials\_customer_form.html:28
+msgid "Or change the code to search another customer."
+msgstr ""
+
+#: .\src\store\templates\partials\_customer_form.html:40
+#, fuzzy
+#| msgid "Customer"
+msgid "New customer"
+msgstr "مشتری"
+
+#: .\src\store\templates\partials\_customer_form.html:41
+#, fuzzy
+#| msgid "Something went wrong. Please fix the errors below."
+msgid "No customer found. Please fill the details below."
+msgstr "مشکلی پیش آمد. لطفاً خطاهای زیر را اصلاح کنید."
+
+#: .\src\store\templates\partials\_customer_form.html:81
+#, fuzzy
+#| msgid "Proceed to Sale"
+msgid "Add Customer & Proceed to Sale"
+msgstr "برو به بخش فروش"
+
+# cusotmer detisl for sale page
+#: .\src\store\templates\partials\_customer_modal.html:11
+msgid "Customer Details"
+msgstr "جزئیات مشتری"
+
+#: .\src\store\templates\partials\_customer_modal.html:14
+msgid "Search by customer code to continue, or create a new customer."
+msgstr "برای ادامه، با کد مشتری جستجو کنید یا مشتری جدید بسازید."
+
+#: .\src\store\templates\partials\_customer_modal.html:21
+msgid "Close"
+msgstr "بستن"
+
+#: .\src\store\templates\partials\_customer_modal.html:31
 msgid "Customer Code"
 msgstr "کد مشتری"
 
+#: .\src\store\templates\partials\_customer_modal.html:49
+msgid "Enter your customer code"
+msgstr "کد مشتری خود را وارد کنید"
+
+#: .\src\store\templates\partials\_customer_modal.html:59
+msgid "Auto-check"
+msgstr "بررسی خودکار"
+
+#: .\src\store\templates\partials\_customer_modal.html:64
+msgid "Tip: Start typing to instantly check the customer."
+msgstr "نکته: برای بررسی فوری مشتری، نوشتن را آغاز کنید."
+
+#: .\src\store\templates\partials\_customer_modal.html:71
+msgid "Result"
+msgstr "نتیجه"
+
+#: .\src\store\templates\partials\_customer_modal.html:78
+msgid "Checking..."
+msgstr "در حال بررسی..."
+
+#: .\src\store\templates\partials\_customer_modal.html:84
+msgid ""
+"Enter a customer code above to load details or show the new customer form."
+msgstr ""
+"در بالا کد مشتری را وارد کنید تا جزئیات بارگذاری شود یا فورم مشتری جدید "
+"نمایش داده شود."
+
+#: .\src\store\templates\partials\_customer_modal.html:98
+msgid "Ignore Customer"
+msgstr "رد کردن مشتری"
+
+#: .\src\store\templates\partials\_customer_modal.html:103
+msgid "Ignoring will proceed without linking a customer."
+msgstr "با نادیده‌گرفتن، ادامه بدون وصل‌کردن مشتری انجام می‌شود."
+
+#: .\src\store\templates\partials\_list.html:11
+msgid "Sales Overview"
+msgstr "مروری بر فروش"
+
+#: .\src\store\templates\partials\_list.html:14 .\src\templates\navbar.html:149
+msgid "Base Unit Settings"
+msgstr "تنظیم واحد اصلی"
+
+#: .\src\store\templates\partials\_list.html:23 .\src\templates\navbar.html:141
+msgid "Return Items"
+msgstr "بازگشت کالاها"
+
+#: .\src\store\templates\partials\_list.html:26 .\src\templates\navbar.html:145
+msgid "Customer Overview"
+msgstr "مروری بر مشتریان"
+
+#: .\src\store\templates\partials\_list.html:29
+#: .\src\store\templates\partials\management\_stock_management.html:9
+#: .\src\templates\navbar.html:153
+#, fuzzy
+#| msgid "Branch Management"
+msgid "Stock Management"
+msgstr "مدیریت شعبه"
+
+#: .\src\store\templates\partials\_print_invoice.html:10
+#: .\src\store\templates\partials\management\_customer-account.html:92
+msgid "Invoice"
+msgstr "فاکتور"
+
+#: .\src\store\templates\partials\_print_invoice.html:206
+#, fuzzy
+#| msgid "Invoice"
+msgid "Invoice No"
+msgstr "فاکتور"
+
+#: .\src\store\templates\partials\_print_invoice.html:214
+#: .\src\store\templates\partials\management\_return-view.html:94
+#: .\src\store\templates\partials\management\_summary-view.html:72
+#: .\src\store\templates\sale\product_view.html:28
+#: .\src\store\templates\sale\sold_products_view.html:85
+msgid "Customer"
+msgstr "مشتری"
+
+#: .\src\store\templates\partials\_print_invoice.html:236
+#, fuzzy
+#| msgid "Items"
+msgid "Item"
+msgstr "اقلام"
+
+#: .\src\store\templates\partials\_print_invoice.html:237
+msgid "Qty"
+msgstr ""
+
+#: .\src\store\templates\partials\_print_invoice.html:248
+#: .\src\store\templates\partials\product_list.html:18
+#: .\src\store\templates\stock\transfer.html:43
+msgid "Items"
+msgstr "اقلام"
+
+#: .\src\store\templates\partials\_print_invoice.html:248
+#, fuzzy
+#| msgid "Packages"
+msgid "Packs"
+msgstr "بسته‌ها"
+
+#: .\src\store\templates\partials\_print_invoice.html:261
+#: .\src\store\templates\partials\management\_customer-account.html:94
+#: .\src\store\templates\sale\sold_products_detail.html:108
+#: .\src\store\templates\sale\sold_products_view.html:86
+msgid "Bill Amount"
+msgstr "مبلغ بل"
+
+#: .\src\store\templates\partials\_print_invoice.html:266
+#: .\src\store\templates\partials\management\_customer-account.html:95
+#: .\src\store\templates\sale\sold_products_view.html:87
+msgid "Carry Forward"
+msgstr "انتقالی"
+
+#: .\src\store\templates\partials\_print_invoice.html:275
+#: .\src\store\templates\partials\management\_customer-account.html:64
+#: .\src\store\templates\partials\management\_customer-account.html:97
+#: .\src\store\templates\partials\management\_customer-account.html:125
+#: .\src\store\templates\partials\management\_customer-account.html:224
+#: .\src\store\templates\partials\management\_customer-view.html:90
+#: .\src\store\templates\partials\management\_customer-view.html:117
+#: .\src\store\templates\partials\management\_customer-view.html:207
+#: .\src\store\templates\partials\management\_customer-view.html:251
+#: .\src\store\templates\partials\management\_summary-view.html:25
+#: .\src\store\templates\partials\management\_summary-view.html:62
+#: .\src\store\templates\partials\management\_summary-view.html:119
+#: .\src\store\templates\partials\management\_summary-view.html:128
+#: .\src\store\templates\sale\sold_products_detail.html:138
+#: .\src\store\templates\sale\sold_products_view.html:89
+msgid "Paid"
+msgstr "پرداخت شده"
+
+#: .\src\store\templates\partials\_print_invoice.html:279
+#: .\src\store\templates\partials\management\_customer-view.html:148
+#: .\src\store\templates\partials\management\_customer-view.html:238
+msgid "Remaining"
+msgstr "باقی‌مانده"
+
+#: .\src\store\templates\partials\_print_invoice.html:285
+msgid "Thank you for your business."
+msgstr ""
+
+#: .\src\store\templates\partials\_print_invoice.html:289
+msgid "Print"
+msgstr "چاپ"
+
+#: .\src\store\templates\partials\_print_invoice.html:290
+msgid "Go Back"
+msgstr "برگشت"
+
+#: .\src\store\templates\partials\_search_list.html:32
+msgid "ADD"
+msgstr "اضافه"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:19
+#, fuzzy
+#| msgid "Produts Base Unit Settings"
+msgid "Product Base Unit Settings"
+msgstr "تنظیمات واحد اصلی محصولات"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:20
+#, fuzzy
+#| msgid "Set the inventory base unit for your products"
+msgid "Define inventory base units and conversion rules."
+msgstr "واحد اصلی موجودی برای محصولات خود را تنظیم کنید"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:33
+msgid "Update System Base Unit"
+msgstr "به‌روزرسانی واحد اصلی سیستم"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:35
+msgid "Add System Base Unit"
+msgstr "افزودن واحد اصلی سیستم"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:39
+msgid ""
+"Use clear names (e.g., kg, gram, liter). Conversion is relative to your base "
+"unit."
+msgstr ""
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:65
+msgid "Is Weight Base"
+msgstr "آیا مبنای وزن است"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:68
+#: .\src\store\templates\partials\management\_base_unit-view.html:155
+msgid "Yes"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:77
+#: .\src\store\templates\partials\management\_base_unit-view.html:141
+#, fuzzy
+#| msgid "Purchase Unit"
+msgid "Base Unit"
+msgstr "واحد خرید"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:88
+msgid "Conversion to Base Unit"
+msgstr "تبدیل به واحد مبنا"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:100
+#: .\src\store\templates\partials\management\_customer-view.html:60
+#: .\src\store\templates\sale\product_view.html:113
+msgid "Tip:"
+msgstr "نکته:"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:100
+msgid "Conversion examples: gram → 0.001 (base: kg), liter → 1 (base: liter)."
+msgstr ""
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:119
+#: .\src\store\templates\partials\management\_stock_management.html:36
+#, fuzzy
+#| msgid "Update Product"
+msgid "Update"
+msgstr "به‌روزرسانی محصول"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:121
+#: .\src\store\templates\partials\management\_expense-view.html:99
+#: .\src\store\templates\partials\management\_income-view.html:101
+msgid "Save"
+msgstr "ذخیره"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:131
+msgid "System Base Units"
+msgstr "واحدهای اصلی سیستم"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:132
+msgid "Manage units and conversions"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:140
+#, fuzzy
+#| msgid "Is Weight Base"
+msgid "Weight Base"
+msgstr "آیا مبنای وزن است"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:142
+#, fuzzy
+#| msgid "Conversion to Base Unit"
+msgid "Conversion"
+msgstr "تبدیل به واحد مبنا"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:159
+msgid "No"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:168
+msgid "Self"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:181
+#: .\src\store\templates\partials\product_list.html:79
+msgid "Edit"
+msgstr "ویرایش"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:189
+#, fuzzy
+#| msgid "Are you sure you want to delete"
+msgid "Are you sure you want to delete this unit?"
+msgstr "آیا مطمئن هستید که می‌خواهید حذف کنید"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:210
+#, fuzzy
+#| msgid "No sales found"
+msgid "No units found"
+msgstr "هیچ فروشی یافت نشد"
+
+#: .\src\store\templates\partials\management\_base_unit-view.html:211
+#, fuzzy
+#| msgid "Add your first income entry using the form."
+msgid "Add a new unit using the form above."
+msgstr "اولین ثبت عاید خود را با استفاده از این فورم اضافه کنید."
+
+#: .\src\store\templates\partials\management\_customer-account.html:19
+#, fuzzy
+#| msgid "Customers Billing Overview"
+msgid "Customers Billing Account"
+msgstr "بررسی صورتحساب مشتری"
+
+#: .\src\store\templates\partials\management\_customer-account.html:20
+msgid "Review customer account and process the payment."
+msgstr ""
+
+#: .\src\store\templates\partials\management\_customer-account.html:31
+#, fuzzy
+#| msgid "Customer"
+msgid "Customer Bill"
+msgstr "مشتری"
+
+#: .\src\store\templates\partials\management\_customer-account.html:32
+msgid "Account summary & payment"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_customer-account.html:49
+#: .\src\store\templates\partials\management\_customer-view.html:116
+#: .\src\store\templates\partials\management\_customer-view.html:206
+msgid "Total Billed"
+msgstr "مجموع بل"
+
+#: .\src\store\templates\partials\management\_customer-account.html:54
+#: .\src\store\templates\sale\sold_products_detail.html:112
+#, fuzzy
+#| msgid "Carry Forward"
+msgid "Carried Forward"
+msgstr "انتقالی"
+
+#: .\src\store\templates\partials\management\_customer-account.html:59
+#, fuzzy
+#| msgid "Total Payable"
+msgid "Total Payable History"
+msgstr "مجموع قابل پرداخت"
+
+#: .\src\store\templates\partials\management\_customer-account.html:70
+#, fuzzy
+#| msgid "No outstanding balance"
+msgid "Outstanding Balance"
+msgstr "بدون مانده بدهی"
+
+#: .\src\store\templates\partials\management\_customer-account.html:84
+#, fuzzy
+#| msgid "Sales Desk"
+msgid "Sales Details"
+msgstr "میز فروش"
+
+#: .\src\store\templates\partials\management\_customer-account.html:96
+#: .\src\store\templates\sale\sold_products_view.html:88
+msgid "Payable"
+msgstr "قابل پرداخت"
+
+#: .\src\store\templates\partials\management\_customer-account.html:98
+#: .\src\store\templates\partials\management\_customer-account.html:121
+#: .\src\store\templates\partials\management\_return-view.html:97
+#: .\src\store\templates\partials\management\_summary-view.html:26
+#: .\src\store\templates\partials\management\_summary-view.html:63
+#: .\src\store\templates\partials\management\_summary-view.html:120
+#: .\src\store\templates\partials\management\_summary-view.html:128
+#: .\src\store\templates\sale\sold_products_view.html:90
+#, fuzzy
+#| msgid "Total Unpaid"
+msgid "Unpaid"
+msgstr "مجموع پرداخت‌نشده"
+
+#: .\src\store\templates\partials\management\_customer-account.html:133
+#, fuzzy
+#| msgid "No unpaid sales record found for this customer."
+msgid "No sales found for this customer."
+msgstr "هیچ سابقه فروش پرداخت‌نشده برای این مشتری یافت نشد."
+
+#: .\src\store\templates\partials\management\_customer-account.html:147
+#, fuzzy
+#| msgid "Unpaid Amount"
+msgid "Pay Unpaid Amount"
+msgstr "مبلغ باقی مانده"
+
+#: .\src\store\templates\partials\management\_customer-account.html:148
+#, fuzzy
+#| msgid "Review purchases, payment status, and outstanding balances."
+msgid "Submit a payment to reduce the outstanding balance."
+msgstr "خریدها، وضعیت پرداخت و مانده‌های باقی‌مانده را بررسی کنید."
+
+#: .\src\store\templates\partials\management\_customer-account.html:152
+#: .\src\store\templates\partials\management\_financial_reports.html:110
+msgid "Balance"
+msgstr "مانده"
+
+#: .\src\store\templates\partials\management\_customer-account.html:161
+#, fuzzy
+#| msgid "Balance"
+msgid "Unpaid Balance"
+msgstr "مانده"
+
+#: .\src\store\templates\partials\management\_customer-account.html:211
+#, fuzzy
+#| msgid "Payment"
+msgid "Submit Payment"
+msgstr "پرداخت"
+
+#: .\src\store\templates\partials\management\_customer-account.html:219
+#, fuzzy
+#| msgid "Payment"
+msgid "Payment Status"
+msgstr "پرداخت"
+
+#: .\src\store\templates\partials\management\_customer-account.html:220
+#, fuzzy
+#| msgid "All invoices combined."
+msgid "All invoices are fully paid."
+msgstr "همه فاکتورها باهم."
+
+#: .\src\store\templates\partials\management\_customer-view.html:21
+msgid "Customers Billing Overview"
+msgstr "بررسی صورتحساب مشتری"
+
+#: .\src\store\templates\partials\management\_customer-view.html:22
+msgid "Review purchases, payment status, and outstanding balances."
+msgstr "خریدها، وضعیت پرداخت و مانده‌های باقی‌مانده را بررسی کنید."
+
+#: .\src\store\templates\partials\management\_customer-view.html:49
+#, fuzzy
+#| msgid "Enter your customer phone number"
+msgid "Enter customer phone number…"
+msgstr "شماره تلفن مشتری خود را وارد کنید"
+
+#: .\src\store\templates\partials\management\_customer-view.html:56
+#: .\src\store\templates\sale\scanner_view.html:36
+#: .\src\store\templates\sale\sold_products_view.html:60
+msgid "Enter"
+msgstr "اینتر"
+
+#: .\src\store\templates\partials\management\_customer-view.html:60
+msgid "Search exact phone for best results."
+msgstr "برای بهترین نتیجه، شماره دقیق را جستجو کنید."
+
+#: .\src\store\templates\partials\management\_customer-view.html:72
+#: .\src\store\templates\sale\sold_products_view.html:74
+msgid "Search"
+msgstr "جستجو"
+
+#: .\src\store\templates\partials\management\_customer-view.html:79
+msgid "How to read the balance"
+msgstr "چگونه مانده را بخوانیم"
+
+#: .\src\store\templates\partials\management\_customer-view.html:81
+msgid "For every customer: Total billed = Paid amount + Balance due."
+msgstr "برای هر مشتری: مجموع بل = مبلغ پرداخت‌شده + مانده بدهی."
+
+#: .\src\store\templates\partials\management\_customer-view.html:86
+msgid "Total billed"
+msgstr "مجموع بل"
+
+#: .\src\store\templates\partials\management\_customer-view.html:87
+msgid "All invoices combined."
+msgstr "همه فاکتورها باهم."
+
+#: .\src\store\templates\partials\management\_customer-view.html:91
+msgid "Amount already collected."
+msgstr "مبلغی که قبلاً دریافت شده است."
+
+#: .\src\store\templates\partials\management\_customer-view.html:94
+msgid "Balance due"
+msgstr "مانده بدهی"
+
+#: .\src\store\templates\partials\management\_customer-view.html:95
+msgid "The remaining gap between total and paid."
+msgstr "تفاوت باقی‌مانده میان مجموع و مبلغ پرداخت‌شده."
+
+#: .\src\store\templates\partials\management\_customer-view.html:104
+msgid "Unpaid Customers"
+msgstr "مشتریان بدهکار"
+
+#: .\src\store\templates\partials\management\_customer-view.html:105
+msgid "Borrowers / outstanding balances"
+msgstr "قرض‌داران / مانده‌های باز"
+
+#: .\src\store\templates\partials\management\_customer-view.html:115
+#: .\src\store\templates\partials\management\_customer-view.html:205
+msgid "Bills"
+msgstr "بل‌ها"
+
+#: .\src\store\templates\partials\management\_customer-view.html:118
+#: .\src\store\templates\partials\management\_customer-view.html:208
+msgid "Balance Due"
+msgstr "مانده بدهی"
+
+#: .\src\store\templates\partials\management\_customer-view.html:119
+#: .\src\store\templates\partials\management\_customer-view.html:209
+msgid "Breakdown"
+msgstr "تفکیک"
+
+#: .\src\store\templates\partials\management\_customer-view.html:144
+#: .\src\store\templates\partials\management\_customer-view.html:234
+msgid "Collected"
+msgstr "دریافت‌شده"
+
+#: .\src\store\templates\partials\management\_customer-view.html:152
+msgid "Gap:"
+msgstr "تفاوت:"
+
+#: .\src\store\templates\partials\management\_customer-view.html:165
+msgid "Pay"
+msgstr "پرداخت"
+
+#: .\src\store\templates\partials\management\_customer-view.html:176
+msgid "No customers with unpaid bills."
+msgstr "هیچ مشتری با بل پرداخت‌نشده وجود ندارد."
+
+#: .\src\store\templates\partials\management\_customer-view.html:194
+msgid "Paid Customers"
+msgstr "مشتریان تسویه‌شده"
+
+#: .\src\store\templates\partials\management\_customer-view.html:195
+msgid "No outstanding balance"
+msgstr "بدون مانده بدهی"
+
+#: .\src\store\templates\partials\management\_customer-view.html:242
+msgid "Settled:"
+msgstr "تصفیه‌شده:"
+
+#: .\src\store\templates\partials\management\_customer-view.html:258
+msgid "No fully paid customers found."
+msgstr "هیچ مشتری کاملاً تسویه‌شده یافت نشد."
+
+#: .\src\store\templates\partials\management\_expense-view.html:19
+msgid "Expense Management"
+msgstr "مدیریت مصارف"
+
+#: .\src\store\templates\partials\management\_expense-view.html:20
+msgid "Track operational costs and keep your cash flow clear."
+msgstr "مصارف عملیاتی را ثبت کنید و جریان نقدی خود را شفاف نگه دارید."
+
+#: .\src\store\templates\partials\management\_expense-view.html:37
+msgid "Add Expense Record"
+msgstr "افزودن ثبت مصرف"
+
+#: .\src\store\templates\partials\management\_expense-view.html:38
+msgid "Log daily operational costs"
+msgstr "ثبت مصارف روزانه عملیاتی"
+
+#: .\src\store\templates\partials\management\_expense-view.html:68
+#: .\src\store\templates\partials\management\_expense-view.html:123
+#: .\src\store\templates\partials\management\_financial_reports.html:94
+#: .\src\store\templates\partials\management\_income-view.html:70
+#: .\src\store\templates\partials\management\_income-view.html:125
+msgid "Amount"
+msgstr "مبلغ"
+
+#: .\src\store\templates\partials\management\_expense-view.html:77
+msgid "Enter the expense amount."
+msgstr "مبلغ مصرف را وارد کنید."
+
+#: .\src\store\templates\partials\management\_expense-view.html:82
+#: .\src\store\templates\partials\management\_expense-view.html:124
+#: .\src\store\templates\partials\management\_income-view.html:84
+#: .\src\store\templates\partials\management\_income-view.html:126
+#: .\src\store\templates\purchase\product_update.html:60
+msgid "Description"
+msgstr "توضیحات"
+
+#: .\src\store\templates\partials\management\_expense-view.html:108
+msgid "Expense Records"
+msgstr "سوابق مصارف"
+
+#: .\src\store\templates\partials\management\_expense-view.html:109
+msgid "Latest expense entries"
+msgstr "تازه‌ترین ثبت‌های مصرف"
+
+#: .\src\store\templates\partials\management\_expense-view.html:113
+#: .\src\store\templates\partials\management\_income-view.html:115
+#: .\src\store\templates\partials\management\_return-view.html:86
+msgid "records"
+msgstr "مورد"
+
+#: .\src\store\templates\partials\management\_expense-view.html:150
+msgid "No expense records yet"
+msgstr "هنوز هیچ ثبت مصرفی وجود ندارد"
+
+#: .\src\store\templates\partials\management\_expense-view.html:151
+msgid "Add your first expense entry using the form."
+msgstr "اولین ثبت مصرف خود را با استفاده از این فورم اضافه کنید."
+
+#: .\src\store\templates\partials\management\_financial_reports.html:10
+msgid "Finance Dashboard"
+msgstr "داشبورد مالی"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:11
+#: .\src\templates\navbar.html:135
+msgid "Financial Reports"
+msgstr "گزارش‌های مالی"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:12
+msgid "Interactive compact financial analytics for management."
+msgstr "تحلیل‌های مالی فشرده و تعاملی برای مدیریت."
+
+#: .\src\store\templates\partials\management\_financial_reports.html:28
+#: .\src\store\templates\partials\management\_summary-view.html:16
+msgid "From YYYY-MM-DD"
+msgstr "از YYYY-MM-DD"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:30
+#: .\src\store\templates\partials\management\_summary-view.html:17
+msgid "To YYYY-MM-DD"
+msgstr "تا YYYY-MM-DD"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:31
+#: .\src\store\templates\partials\management\_summary-view.html:18
+msgid "Apply"
+msgstr "اعمال"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:39
+#: .\src\store\templates\partials\management\_financial_reports.html:153
+msgid "Purchases"
+msgstr "خریدها"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:40
+msgid "Gross Profit"
+msgstr "سود ناخالص"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:41
+msgid "Net Profit/Loss"
+msgstr "سود/زیان خالص"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:47
+msgid "Finance Trend"
+msgstr "روند مالی"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:47
+msgid "Hover for values"
+msgstr "برای دیدن مقادیر نشانگر را ببرید"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:52
+msgid "Assets vs Liabilities"
+msgstr "دارایی‌ها در برابر بدهی‌ها"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:55
+#: .\src\store\views.py:1514
+msgid "Assets"
+msgstr "دارایی‌ها"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:56
+#: .\src\store\views.py:1514
+msgid "Liabilities"
+msgstr "بدهی‌ها"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:58
+#: .\src\store\templates\purchase\product.html:31
+#: .\src\templates\_base.html:116
+msgid "Inventory"
+msgstr "موجودی"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:62
+msgid "Transaction Types"
+msgstr "انواع تراکنش"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:71
+msgid "P&L Mix"
+msgstr "ترکیب سود و زیان"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:74
+#: .\src\store\views.py:1507
+msgid "Sales Revenue"
+msgstr "عواید فروش"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:76
+#: .\src\store\views.py:1507
+msgid "COGS"
+msgstr "بهای تمام‌شده کالای فروش‌رفته"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:77
+msgid "Op. Expense"
+msgstr "مصرف عملیاتی"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:82
+msgid "Top Ledger Balances"
+msgstr "بالاترین مانده‌های دفتر کل"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:90
+msgid "Journal Transactions"
+msgstr "تراکنش‌های ژورنال"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:94
+msgid "Ref"
+msgstr "مرجع"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:99
+#: .\src\store\templates\partials\management\_financial_reports.html:115
+msgid "No data"
+msgstr "بدون داده"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:106
+msgid "General Ledger"
+msgstr "دفتر کل"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:110
+#: .\src\store\templates\partials\product_list.html:44
+#: .\src\store\templates\purchase\product_update.html:26
+msgid "Code"
+msgstr "بار کد"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:110
+msgid "Account"
+msgstr "حساب"
+
+#: .\src\store\templates\partials\management\_financial_reports.html:155
+#: .\src\store\templates\partials\management\_summary-view.html:29
+#: .\src\store\templates\partials\management\_summary-view.html:46
+msgid "Net"
+msgstr "خالص"
+
+#: .\src\store\templates\partials\management\_income-view.html:22
+msgid "Record other income and review previous entries."
+msgstr "سایر عواید را ثبت کرده و ثبت‌های قبلی را مرور کنید."
+
+#: .\src\store\templates\partials\management\_income-view.html:39
+msgid "Add Income Record"
+msgstr "افزودن ثبت عاید"
+
+#: .\src\store\templates\partials\management\_income-view.html:40
+msgid "All fields are saved immediately"
+msgstr "همه فیلدها فوراً ذخیره می‌شوند"
+
+#: .\src\store\templates\partials\management\_income-view.html:62
+#: .\src\store\templates\partials\management\_income-view.html:124
+msgid "Source"
+msgstr "منبع"
+
+#: .\src\store\templates\partials\management\_income-view.html:79
+msgid "Enter the total income amount."
+msgstr "مجموع مبلغ عاید را وارد کنید."
+
+#: .\src\store\templates\partials\management\_income-view.html:110
+msgid "Other Income Records"
+msgstr "سوابق سایر عواید"
+
+#: .\src\store\templates\partials\management\_income-view.html:111
+msgid "Latest income entries"
+msgstr "تازه‌ترین ثبت‌های عاید"
+
+#: .\src\store\templates\partials\management\_income-view.html:152
+msgid "No income records yet"
+msgstr "هنوز هیچ ثبت عایدی وجود ندارد"
+
+#: .\src\store\templates\partials\management\_income-view.html:153
+msgid "Add your first income entry using the form."
+msgstr "اولین ثبت عاید خود را با استفاده از این فورم اضافه کنید."
+
+#: .\src\store\templates\partials\management\_return-view.html:22
+#, fuzzy
+#| msgid "Expense Management"
+msgid "Returns Management"
+msgstr "مدیریت مصارف"
+
+#: .\src\store\templates\partials\management\_return-view.html:23
+msgid "Search invoices and process returned items quickly."
+msgstr ""
+
+#: .\src\store\templates\partials\management\_return-view.html:29
+#, fuzzy
+#| msgid "Create invoice"
+msgid "Open invoices"
+msgstr "ایجاد فاکتور"
+
+# sales summary page translation
+#: .\src\store\templates\partials\management\_return-view.html:32
+#, fuzzy
+#| msgid "Sales Summary"
+msgid "Sales summary"
+msgstr "خلاصهٔ فروش"
+
+#: .\src\store\templates\partials\management\_return-view.html:42
+#: .\src\store\templates\sale\sold_products_detail.html:76
+#: .\src\store\templates\sale\sold_products_view.html:40
+#: .\src\store\templates\sale\sold_products_view.html:84
+msgid "Bill Number"
+msgstr "نمبربل"
+
+#: .\src\store\templates\partials\management\_return-view.html:48
+#, fuzzy
+#| msgid "Enter your bill number"
+msgid "Search by bill number"
+msgstr "بل نمبر خود را وارد کنید"
+
+#: .\src\store\templates\partials\management\_return-view.html:54
+#: .\src\store\templates\sale\product_view.html:66
+msgid "Customer Name"
+msgstr "نام مشتری"
+
+#: .\src\store\templates\partials\management\_return-view.html:60
+#, fuzzy
+#| msgid "Enter your customer code"
+msgid "Search by customer"
+msgstr "کد مشتری خود را وارد کنید"
+
+#: .\src\store\templates\partials\management\_return-view.html:73
+#, fuzzy
+#| msgid "Invoice"
+msgid "Find invoice"
+msgstr "فاکتور"
+
+#: .\src\store\templates\partials\management\_return-view.html:82
+#, fuzzy
+#| msgid "Recent Sales"
+msgid "Recent Invoices"
+msgstr "فروش‌های اخیر"
+
+#: .\src\store\templates\partials\management\_return-view.html:83
+msgid "Open any invoice to return items."
+msgstr ""
+
+#: .\src\store\templates\partials\management\_return-view.html:93
+#: .\src\store\templates\partials\management\_summary-view.html:72
+msgid "Bill"
+msgstr "بل"
+
+#: .\src\store\templates\partials\management\_return-view.html:114
+#, fuzzy
+#| msgid "Manager"
+msgid "Manage"
+msgstr "سرپرست"
+
+#: .\src\store\templates\partials\management\_return-view.html:130
+#, fuzzy
+#| msgid "No sales found"
+msgid "No invoices found"
+msgstr "هیچ فروشی یافت نشد"
+
+#: .\src\store\templates\partials\management\_return-view.html:131
+msgid "Try another search or return to the invoice list."
+msgstr ""
+
+#: .\src\store\templates\partials\management\_stock_management.html:10
+msgid "Manage your Stock"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_stock_management.html:14
+msgid "All Goods"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_stock_management.html:18
+#: .\src\store\templates\purchase\product.html:54
+msgid "Dollar Goods"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_stock_management.html:22
+#: .\src\store\templates\purchase\product.html:60
+msgid "Afghani Goods"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_stock_management.html:28
+msgid "Update the US Dollar rate to Afghani"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_stock_management.html:32
+#, fuzzy
+#| msgid "Today's Sales"
+msgid "Today Rate"
+msgstr "فروش امروز"
+
+#: .\src\store\templates\partials\management\_summary-view.html:11
+#: .\src\templates\navbar.html:170
+msgid "Admin Dashboard"
+msgstr "پنل مدیریت"
+
+#: .\src\store\templates\partials\management\_summary-view.html:12
+msgid "Sales Intelligence"
+msgstr "هوش فروش"
+
+#: .\src\store\templates\partials\management\_summary-view.html:13
+msgid "Interactive and compact sales analytics."
+msgstr "تحلیل‌های فشرده و تعاملی فروش."
+
+#: .\src\store\templates\partials\management\_summary-view.html:27
+#: .\src\templates\home.html:453
+msgid "Customers"
+msgstr "مشتریان"
+
+#: .\src\store\templates\partials\management\_summary-view.html:27
+msgid "distinct"
+msgstr ""
+
+#: .\src\store\templates\partials\management\_summary-view.html:35
+msgid "Sales Trend"
+msgstr "روند فروش"
+
+#: .\src\store\templates\partials\management\_summary-view.html:35
+msgid "Hover for details"
+msgstr "برای دیدن جزئیات نشانگر را ببرید"
+
+#: .\src\store\templates\partials\management\_summary-view.html:40
+msgid "Revenue vs Cost"
+msgstr "عواید در برابر هزینه"
+
+#: .\src\store\templates\partials\management\_summary-view.html:50
+msgid "Top Products"
+msgstr "محصولات برتر"
+
+#: .\src\store\templates\partials\management\_summary-view.html:59
+msgid "Payment Mix"
+msgstr "ترکیب پرداخت"
+
+#: .\src\store\templates\partials\management\_summary-view.html:68
+msgid "Recent Sales"
+msgstr "فروش‌های اخیر"
+
+#: .\src\store\templates\partials\management\_summary-view.html:78
+msgid "No sales"
+msgstr "بدون فروش"
+
+#: .\src\store\templates\partials\product_list.html:13
+msgid "Currency"
+msgstr "ارز"
+
+#: .\src\store\templates\partials\product_list.html:14
+#: .\src\store\templates\purchase\product_update.html:34
+msgid "Package Contain"
+msgstr "محتویات بسته"
+
+#: .\src\store\templates\partials\product_list.html:15
+#: .\src\store\templates\purchase\product_update.html:46
+msgid "Package Sale Price"
+msgstr "قیمت فروش بسته"
+
+#: .\src\store\templates\partials\product_list.html:16
+msgid "Item Sales Price"
+msgstr "قیمت فروش کالا"
+
+#: .\src\store\templates\partials\product_list.html:17
+#: .\src\store\templates\stock\transfer.html:39
+msgid "Packages"
+msgstr "بسته‌ها"
+
+#: .\src\store\templates\partials\product_list.html:66
+#: .\src\store\templates\sale\product_view.html:246
+msgid "Out"
+msgstr "ناموجود"
+
+#: .\src\store\templates\partials\product_list.html:91
+msgid "Are you sure you want to delete"
+msgstr "آیا مطمئن هستید که می‌خواهید حذف کنید"
+
+#: .\src\store\templates\partials\product_list.html:115
+msgid "Previous"
+msgstr "قبلی"
+
+#: .\src\store\templates\partials\product_list.html:121
+msgid "Page"
+msgstr "صفحه"
+
+#: .\src\store\templates\partials\product_list.html:122
+msgid "of"
+msgstr "از"
+
+#: .\src\store\templates\partials\product_list.html:131
+msgid "Next"
+msgstr "بعدی"
+
+#: .\src\store\templates\partials\product_list.html:147
+msgid "No Products Found"
+msgstr "هیچ محصولی یافت نشد"
+
+#: .\src\store\templates\partials\product_list.html:148
+msgid "There are currently no items available in inventory."
+msgstr "در حال حاضر هیچ قلمی در موجودی موجود نیست."
+
+#: .\src\store\templates\partials\product_list.html:154
+msgid "Add Product"
+msgstr "افزودن محصول"
+
+#: .\src\store\templates\purchase\product.html:28
+#: .\src\store\templates\purchase\product_update.html:15
+msgid "Available Products"
+msgstr "محصولات موجود"
+
+#: .\src\store\templates\purchase\product.html:35
+msgid "Browse products, view pricing, and check availability."
+msgstr ""
+
+#: .\src\store\templates\purchase\product.html:48
+msgid "All"
+msgstr ""
+
+#: .\src\store\templates\purchase\product.html:75
+#: .\src\store\templates\stock\transfer.html:4
+#: .\src\store\templates\stock\transfer.html:102
+#: .\src\templates\navbar.html:158
+#, fuzzy
+#| msgid "Transfer Out"
+msgid "Transfer Stock"
+msgstr "انتقال به بیرون"
+
+#: .\src\store\templates\purchase\product.html:85
+#, fuzzy
+#| msgid "Purchase"
+msgid "New Purchase"
+msgstr "خرید"
+
+#: .\src\store\templates\purchase\product.html:95
+msgid "USD Exchange Rate"
+msgstr ""
+
+#: .\src\store\templates\purchase\product.html:97
+msgid "Used to convert USD-priced products into AFN pricing."
+msgstr ""
+
+#: .\src\store\templates\purchase\product.html:101
+#, fuzzy
+#| msgid "Currency"
+msgid "Current"
+msgstr "ارز"
+
+#: .\src\store\templates\purchase\product.html:113
+#, fuzzy
+#| msgid "Update Product"
+msgid "Update Rate"
+msgstr "به‌روزرسانی محصول"
+
+#: .\src\store\templates\purchase\product_update.html:5
+#: .\src\store\templates\purchase\product_update.html:12
+#: .\src\store\templates\purchase\product_update.html:66
+#: .\src\store\templates\purchase\purchase.html:24
+#: .\src\store\templates\purchase\purchase.html:247
+msgid "Update Product"
+msgstr "به‌روزرسانی محصول"
+
+#: .\src\store\templates\purchase\product_update.html:13
+msgid "Edit your product details below"
+msgstr ""
+
+#: .\src\store\templates\purchase\product_update.html:38
+#: .\src\store\templates\purchase\purchase.html:170
+msgid "Package Purchase Price"
+msgstr "قیمت خرید بسته"
+
+#: .\src\store\templates\purchase\product_update.html:42
+#: .\src\store\templates\purchase\purchase.html:164
+msgid "Number of Packages"
+msgstr "تعداد بسته ها"
+
+#: .\src\store\templates\purchase\product_update.html:50
+#, fuzzy
+#| msgid "Upload image"
+msgid "Update Image"
+msgstr "بارگذاری تصویر"
+
+#: .\src\store\templates\purchase\product_update.html:54
+#, fuzzy
+#| msgid "Current Cart"
+msgid "Current Image:"
+msgstr "سبد فعلی"
+
+# Purchase page translation
+#: .\src\store\templates\purchase\purchase.html:5
+msgid "Purchase Page"
+msgstr "صفحه خرید"
+
+#: .\src\store\templates\purchase\purchase.html:26
+#: .\src\templates\navbar.html:46
+msgid "Add New Product"
+msgstr "افزودن محصول جدید"
+
+#: .\src\store\templates\purchase\purchase.html:29
+msgid "Enter accurate details for proper inventory tracking."
+msgstr "برای ردیابی دقیق موجودی، جزئیات صحیح را وارد کنید."
+
+#: .\src\store\templates\purchase\purchase.html:48
+msgid "View Products"
+msgstr "مشاهده محصولات"
+
+#: .\src\store\templates\purchase\purchase.html:60
+msgid "New Item"
+msgstr "قلم جدید"
+
+#: .\src\store\templates\purchase\purchase.html:68
+msgid "Add stock to branch"
+msgstr ""
+
+#: .\src\store\templates\purchase\purchase.html:94
+msgid "Purchase Unit"
+msgstr "واحد خرید"
+
+#: .\src\store\templates\purchase\purchase.html:107
+#, fuzzy
+#| msgid "Auto-set from purchase unit."
+msgid "Select purchase unit"
+msgstr "به‌صورت خودکار از واحد خرید تعیین می‌شود."
+
+#: .\src\store\templates\purchase\purchase.html:127
+msgid "Currency Category"
+msgstr "دسته‌بندی ارز"
+
+#: .\src\store\templates\purchase\purchase.html:132
+msgid "Auto-set from purchase unit."
+msgstr "به‌صورت خودکار از واحد خرید تعیین می‌شود."
+
+#: .\src\store\templates\purchase\purchase.html:139
+msgid "Product Information"
+msgstr "معلومات محصول"
+
+#: .\src\store\templates\purchase\purchase.html:145
+msgid "Product Code"
+msgstr "کود محصول"
+
+#: .\src\store\templates\purchase\purchase.html:151
+msgid "Product Name"
+msgstr "نام محصول"
+
+#: .\src\store\templates\purchase\purchase.html:157
+msgid "Unit of Measurement"
+msgstr "واحد اندازه‌گیری"
+
+#: .\src\store\templates\purchase\purchase.html:159
+msgid "Base unit shown in the list (e.g., Box (Base: Piece))."
+msgstr "واحد پایه در فهرست نمایش داده می‌شود (مثلاً Box (Base: Piece))."
+
+#: .\src\store\templates\purchase\purchase.html:182
+msgid "Package Contents"
+msgstr "محتویات بسته"
+
+#: .\src\store\templates\purchase\purchase.html:188
+msgid "Package Sale Price (Afghani)"
+msgstr "قیمت فروش بسته (افغانی)"
+
+#: .\src\store\templates\purchase\purchase.html:197
+msgid "Product Image"
+msgstr "تصویر محصول"
+
+#: .\src\store\templates\purchase\purchase.html:211
+msgid "Upload image"
+msgstr "بارگذاری تصویر"
+
+#: .\src\store\templates\purchase\purchase.html:213
+msgid "PNG/JPG - 5MB"
+msgstr "PNG/JPG - 5MB"
+
+#: .\src\store\templates\purchase\purchase.html:225
+msgid "Product Description"
+msgstr "توضیحات محصول"
+
+#: .\src\store\templates\purchase\purchase.html:236
+msgid "Updating existing product in inventory."
+msgstr "محصول موجود در انبار در حال به‌روزرسانی است."
+
+#: .\src\store\templates\purchase\purchase.html:238
+msgid "Adding new product to inventory."
+msgstr "محصول جدید به موجودی افزوده می‌شود."
+
+#: .\src\store\templates\purchase\purchase.html:249
+msgid "Add to Inventory"
+msgstr "افزودن به موجودی"
+
+#: .\src\store\templates\purchase\purchase.html:260
+msgid "Quick Tips"
+msgstr "نکته‌های سریع"
+
+#: .\src\store\templates\purchase\purchase.html:265
+msgid "Keep product codes unique and consistent."
+msgstr "کودهای محصول را یکتا و یکسان نگه دارید."
+
+#: .\src\store\templates\purchase\purchase.html:269
+msgid "Verify purchase and sale prices before saving."
+msgstr "پیش از ذخیره، قیمت‌های خرید و فروش را بررسی کنید."
+
+#: .\src\store\templates\purchase\purchase.html:273
+msgid "Upload clear images for easy identification."
+msgstr "برای شناسایی آسان، تصاویر واضح بارگذاری کنید."
+
+#: .\src\store\templates\purchase\purchase.html:277
+msgid "Use accurate package counts to maintain stock."
+msgstr "برای حفظ موجودی، تعداد دقیق بسته‌ها را وارد کنید."
+
+# customer Cart translations
+#: .\src\store\templates\sale\cart_view.html:7
+#: .\src\store\templates\sale\cart_view.html:27
+msgid "Customer Cart"
+msgstr "سبد خرید مشتری"
+
+#: .\src\store\templates\sale\cart_view.html:30
+msgid "Checkout"
+msgstr ""
+
+#: .\src\store\templates\sale\cart_view.html:34
+#, fuzzy
+#| msgid "Make sure everything looks right before completing your order"
+msgid "Make sure everything looks right before completing your order."
+msgstr "قبل از نهایی کردن سفارش، مطمئن شوید که همه چیز درست است"
+
+#: .\src\store\templates\sale\cart_view.html:50
+msgid "Back to Products"
+msgstr "برگشت به محصولات"
+
+#: .\src\store\templates\sale\cart_view.html:59
+#, fuzzy
+#| msgid "Cart Items"
+msgid "Scan Item"
+msgstr "اقلام سبد"
+
+#: .\src\store\templates\sale\product_view.html:15
+msgid "Sales Desk"
+msgstr "میز فروش"
+
+#: .\src\store\templates\sale\product_view.html:41
+msgid "Add Products"
+msgstr "افزودن محصولات"
+
+#: .\src\store\templates\sale\product_view.html:49
+#: .\src\store\templates\sale\scanner_view.html:7
+#: .\src\templates\navbar.html:81
+msgid "Scanner"
+msgstr "اسکنر"
+
+#: .\src\store\templates\sale\product_view.html:55
+msgid "Open Cart"
+msgstr "بازکردن سبد"
+
+#: .\src\store\templates\sale\product_view.html:87
+msgid "Apply Customer"
+msgstr "اعمال مشتری"
+
+#: .\src\store\templates\sale\product_view.html:96
+msgid "Use Walk-in"
+msgstr "استفاده از مشتری حضوری"
+
+#: .\src\store\templates\sale\product_view.html:109
+msgid "Search Products"
+msgstr "جستجوی محصولات"
+
+#: .\src\store\templates\sale\product_view.html:124
+msgid "Searching..."
+msgstr "در حال جستجو..."
+
+#: .\src\store\templates\sale\product_view.html:144
+msgid "Search by name, category, or barcode..."
+msgstr "با نام، دسته‌بندی یا بارکد جستجو کنید..."
+
+#: .\src\store\templates\sale\product_view.html:156
+msgid "Clear search"
+msgstr "پاک‌کردن جستجو"
+
+#: .\src\store\templates\sale\product_view.html:157
+#: .\src\store\templates\sale\scanner_view.html:92
+msgid "Clear"
+msgstr "پاک‌کردن"
+
+#: .\src\store\templates\sale\product_view.html:166
+msgid "Type to search. Results update automatically."
+msgstr "برای جستجو تایپ کنید. نتایج به‌صورت خودکار به‌روزرسانی می‌شوند."
+
+#: .\src\store\templates\sale\product_view.html:176
+msgid "Selling For"
+msgstr "فروش برای"
+
+#: .\src\store\templates\sale\product_view.html:187
+msgid "ALL"
+msgstr "همه"
+
+#: .\src\store\templates\sale\product_view.html:250
+#, fuzzy
+#| msgid "Stock"
+msgid "In Stock"
+msgstr "موجودی"
+
+#: .\src\store\templates\sale\product_view.html:319
+#, fuzzy
+#| msgid "Address"
+msgid "Add"
+msgstr "آدرس"
+
+#: .\src\store\templates\sale\product_view.html:337
+msgid "Items added to Customer Cart"
+msgstr "مورد به سبد خرید مشتری اضافه شد"
+
+#: .\src\store\templates\sale\scanner_view.html:25
 msgid "Scan or Enter Barcode"
 msgstr "بارکد را اسکن یا بارکد وارد کنید"
 
-msgid "To add a product to the shopping cart, scan its barcode or enter it in the input box"
-msgstr "برای افزودن یک محصول به سبد خرید، بارکد آن را اسکن کنید یا در کادر ورودی وارد نمایید"
+#: .\src\store\templates\sale\scanner_view.html:28
+msgid ""
+"Scan a barcode or type it and press Enter to add the product to the cart."
+msgstr ""
 
+#: .\src\store\templates\sale\scanner_view.html:33
+msgid "Tip"
+msgstr "نکته"
+
+#: .\src\store\templates\sale\scanner_view.html:33
+msgid "Keep cursor in input for faster scanning"
+msgstr "برای اسکن سریع‌تر، نشانگر را در کادر ورودی نگه دارید"
+
+#: .\src\store\templates\sale\scanner_view.html:51
 msgid "Use Product Search"
 msgstr "جستجوی محصول را استفاده کنید"
 
-msgid "Use Barcode Scanner"
-msgstr "از بارکود اسکنر استفاده کنید"
+#: .\src\store\templates\sale\scanner_view.html:61
+msgid "Barcode"
+msgstr "بارکد"
 
-msgid "Search product by its name of category"
-msgstr "محصول را بر اساس نام یا دسته‌بندی جستجو کنید"
+#: .\src\store\templates\sale\scanner_view.html:64
+msgid "Scan with your device or enter the code manually."
+msgstr "با دستگاه خود اسکن کنید یا کود را به‌صورت دستی وارد نمایید."
 
-msgid "Enter product barcode"
-msgstr "بارکود محصول را وارد کنید"
+#: .\src\store\templates\sale\scanner_view.html:78
+msgid "Scan or type barcode and press Enter..."
+msgstr "بارکد را اسکن یا تایپ کنید و Enter را بزنید..."
 
+#: .\src\store\templates\sale\scanner_view.html:114
+msgid "Current Cart"
+msgstr "سبد فعلی"
+
+#: .\src\store\templates\sale\scanner_view.html:115
+msgid "Updates automatically after each scan"
+msgstr "پس از هر اسکن به‌صورت خودکار به‌روزرسانی می‌شود"
+
+#: .\src\store\templates\sale\scanner_view.html:158
+#: .\src\store\templates\sale\scanner_view.html:236
+msgid "Ready to scan."
+msgstr "آماده اسکن."
+
+#: .\src\store\templates\sale\scanner_view.html:174
+msgid "Searching barcode..."
+msgstr "در حال جستجوی بارکد..."
+
+#: .\src\store\templates\sale\scanner_view.html:208
+msgid "added to cart."
+msgstr "به سبد اضافه شد."
+
+#: .\src\store\templates\sale\scanner_view.html:212
+msgid "Failed to add to cart."
+msgstr "افزودن به سبد ناکام شد."
+
+#: .\src\store\templates\sale\scanner_view.html:215 .\src\store\views.py:817
+#: .\src\store\views.py:1674
+msgid "Product not found."
+msgstr "محصول پیدا نشد."
+
+# sales summary page translation
+#: .\src\store\templates\sale\sold_products_detail.html:8
+#: .\src\store\templates\sale\sold_products_detail.html:24
+#: .\src\store\templates\sale\sold_products_view.html:8
+#: .\src\templates\navbar.html:121
+msgid "Sales Summary"
+msgstr "خلاصهٔ فروش"
+
+#: .\src\store\templates\sale\sold_products_detail.html:25
+msgid "Review sale details and item breakdown."
+msgstr ""
+
+#: .\src\store\templates\sale\sold_products_detail.html:39
+#, fuzzy
+#| msgid "Customer Name"
+msgid "Pay Customer Balance"
+msgstr "نام مشتری"
+
+#: .\src\store\templates\sale\sold_products_detail.html:50
+msgid "Back"
+msgstr "برگشت"
+
+#: .\src\store\templates\sale\sold_products_detail.html:62
+#, fuzzy
+#| msgid "Invoice"
+msgid "Print Invoice"
+msgstr "فاکتور"
+
+# cusotmer detisl for sale page
+#: .\src\store\templates\sale\sold_products_detail.html:72
+#, fuzzy
+#| msgid "Customer Details"
+msgid "Invoice Details"
+msgstr "جزئیات مشتری"
+
+#: .\src\store\templates\sale\sold_products_detail.html:104
+#, fuzzy
+#| msgid "Amount"
+msgid "Amounts"
+msgstr "مبلغ"
+
+#: .\src\store\templates\sale\sold_products_detail.html:134
+#, fuzzy
+#| msgid "Total Paid"
+msgid "Partially Paid"
+msgstr "مجموع پرداخت‌شده"
+
+#: .\src\store\templates\sale\sold_products_detail.html:146
+#, fuzzy
+#| msgid "Total Billed"
+msgid "Customer Total Billed"
+msgstr "مجموع بل"
+
+# cusotmer detisl for sale page
+#: .\src\store\templates\sale\sold_products_detail.html:150
+#, fuzzy
+#| msgid "Customer Details"
+msgid "Customer Total Bills"
+msgstr "جزئیات مشتری"
+
+#: .\src\store\templates\sale\sold_products_detail.html:154
+#, fuzzy
+#| msgid "Total Paid"
+msgid "Customer Total Paid"
+msgstr "مجموع پرداخت‌شده"
+
+# cusotmer detisl for sale page
+#: .\src\store\templates\sale\sold_products_detail.html:158
+#, fuzzy
+#| msgid "Customer Details"
+msgid "Customer Outstanding"
+msgstr "جزئیات مشتری"
+
+#: .\src\store\templates\sale\sold_products_detail.html:175
+msgid "Item price"
+msgstr "قیمت جنس"
+
+#: .\src\store\templates\sale\sold_products_detail.html:176
+msgid "Package price"
+msgstr "قیمت بسته"
+
+#: .\src\store\templates\sale\sold_products_detail.html:177
+#, fuzzy
+#| msgid "Item quantity"
+msgid "Item qty"
+msgstr "تعداد جنس"
+
+#: .\src\store\templates\sale\sold_products_detail.html:178
+#, fuzzy
+#| msgid "Package quantity"
+msgid "Package qty"
+msgstr "تعداد بسته"
+
+#: .\src\store\templates\sale\sold_products_detail.html:179
+msgid "Total price"
+msgstr "قیمت مجموعی"
+
+#: .\src\store\templates\sale\sold_products_detail.html:203
+#, fuzzy
+#| msgid "Are you sure you want to delete"
+msgid "Are you sure you want to return this item?"
+msgstr "آیا مطمئن هستید که می‌خواهید حذف کنید"
+
+#: .\src\store\templates\sale\sold_products_detail.html:206
+msgid "Return"
+msgstr "برگشت"
+
+#: .\src\store\templates\sale\sold_products_detail.html:225
+#, fuzzy
+#| msgid "No sales found"
+msgid "No items found"
+msgstr "هیچ فروشی یافت نشد"
+
+#: .\src\store\templates\sale\sold_products_detail.html:227
+msgid "Go back"
+msgstr ""
+
+#: .\src\store\templates\sale\sold_products_detail.html:243
+#, fuzzy
+#| msgid "Product deleted successfully"
+msgid "Return processed successfully!"
+msgstr "محصول با موفقیت حذف شد"
+
+#: .\src\store\templates\sale\sold_products_view.html:25
+msgid "Sales History"
+msgstr "تاریخچه فروش"
+
+#: .\src\store\templates\sale\sold_products_view.html:28
+msgid ""
+"Search by bill number and open a sale to view details or print the invoice."
+msgstr ""
+"با شماره بل جستجو کنید و یک فروش را برای دیدن جزئیات یا چاپ فاکتور باز کنید."
+
+#: .\src\store\templates\sale\sold_products_view.html:53
+msgid "Enter bill number..."
+msgstr "شماره بل را وارد کنید..."
+
+#: .\src\store\templates\sale\sold_products_view.html:156
+msgid "No sales found"
+msgstr "هیچ فروشی یافت نشد"
+
+#: .\src\store\templates\sale\sold_products_view.html:158
+msgid "Reset search"
+msgstr "بازنشانی جستجو"
+
+#: .\src\store\templates\stock\transfer.html:10
+#, fuzzy
+#| msgid "Transfer In"
+msgid "Transfer Inventory"
+msgstr "انتقال به داخل"
+
+#: .\src\store\templates\stock\transfer.html:11
+msgid "Move stock between tenant, store, and branch locations."
+msgstr ""
+
+#: .\src\store\templates\stock\transfer.html:19
+msgid "Transfers will be sent from your branch:"
+msgstr ""
+
+#: .\src\store\templates\stock\transfer.html:21
+msgid "Transfers will be sent from your store:"
+msgstr ""
+
+#: .\src\store\templates\tenancy\activate_user.html:4
+msgid "Activate User"
+msgstr "فعال‌سازی کاربر"
+
+#: .\src\store\templates\tenancy\activate_user.html:10
+#: .\src\store\templates\tenancy\activate_user.html:60
+msgid "Activate user"
+msgstr "فعال‌سازی کاربر"
+
+#: .\src\store\templates\tenancy\activate_user.html:12
+msgid ""
+"Assign a branch to complete activation. Store access is granted "
+"automatically."
+msgstr ""
+"برای تکمیل فعال‌سازی یک شعبه تعیین کنید. دسترسی فروشگاه به‌صورت خودکار داده "
+"می‌شود."
+
+#: .\src\store\templates\tenancy\activate_user.html:46
+msgid ""
+"No active branches available for this store. Create a branch before "
+"activating this user."
+msgstr ""
+
+#: .\src\store\templates\tenancy\activate_user.html:53
+msgid "Back to pending list"
+msgstr "برگشت به فهرست در انتظار"
+
+#: .\src\store\templates\tenancy\pending_users.html:4
+#: .\src\templates\navbar.html:178
+#, fuzzy
+#| msgid "Pending"
+msgid "Pending Users"
+msgstr "در انتظار"
+
+#: .\src\store\templates\tenancy\pending_users.html:10
+msgid "Pending user requests"
+msgstr ""
+
+#: .\src\store\templates\tenancy\pending_users.html:12
+msgid "Review new registrations and assign a branch before activation."
+msgstr ""
+
+#: .\src\store\templates\tenancy\pending_users.html:32
+msgid "Requested"
+msgstr ""
+
+#: .\src\store\templates\tenancy\pending_users.html:43
+msgid "Activate & assign branch"
+msgstr "فعال‌سازی و تعیین شعبه"
+
+#: .\src\store\templates\tenancy\pending_users.html:51
+msgid "No pending users for this tenant right now."
+msgstr ""
+
+#: .\src\store\templates\tenancy\select_branch.html:4
+#: .\src\store\templates\tenancy\select_branch.html:19
+#: .\src\templates\_base.html:143 .\src\templates\_base.html:158
+#, fuzzy
+#| msgid "Select a branch"
+msgid "Select Branch"
+msgstr "یک شعبه را انتخاب کنید"
+
+#: .\src\store\templates\tenancy\select_branch.html:20
+msgid "Choose where you are operating today."
+msgstr "محلی را که امروز در آن فعالیت می‌کنید انتخاب کنید."
+
+#: .\src\store\templates\tenancy\select_branch.html:66
+msgid "No branches found. Ask an admin to create a branch."
+msgstr ""
+
+#: .\src\store\templates\tenancy\select_branch.html:77
+#: .\src\store\templates\tenancy\select_tenant.html:54
+msgid "Continue"
+msgstr "ادامه"
+
+#: .\src\store\templates\tenancy\select_tenant.html:4
+#: .\src\store\templates\tenancy\select_tenant.html:19
+#, fuzzy
+#| msgid "Select a tenant"
+msgid "Select Tenant"
+msgstr "یک مؤسسه را انتخاب کنید"
+
+#: .\src\store\templates\tenancy\select_tenant.html:20
+msgid "Choose the workspace you want to manage."
+msgstr "فضای کاری موردنظر برای مدیریت را انتخاب کنید."
+
+#: .\src\store\templates\tenancy\select_tenant.html:43
+msgid "No tenants found for your account. Ask an admin to add you to a tenant."
+msgstr ""
+
+#: .\src\store\views.py:362
+msgid "You do not have permission to transfer stock."
+msgstr "شما اجازه انتقال موجودی را ندارید."
+
+#: .\src\store\views.py:371
+msgid "Transfers are only allowed from a branch or store location."
+msgstr "انتقال‌ها فقط از موقعیت شعبه یا فروشگاه مجاز است."
+
+#: .\src\store\views.py:399
+msgid "Invalid destination store."
+msgstr "فروشگاه مقصد نامعتبر است."
+
+#: .\src\store\views.py:402
+msgid "Invalid destination branch."
+msgstr "شعبه مقصد نامعتبر است."
+
+#: .\src\store\views.py:405
+msgid "Source and destination branches must be different."
+msgstr "شعبه مبدأ و مقصد باید متفاوت باشند."
+
+#: .\src\store\views.py:408
+msgid "Source and destination stores must be different."
+msgstr "فروشگاه مبدأ و مقصد باید متفاوت باشند."
+
+#: .\src\store\views.py:474
+msgid "Transfer completed successfully."
+msgstr "انتقال با موفقیت انجام شد."
+
+#: .\src\store\views.py:495
+msgid "Select a branch before adding inventory."
+msgstr "پیش از افزودن موجودی، یک شعبه را انتخاب کنید."
+
+#: .\src\store\views.py:564
+msgid "Product added successfully."
+msgstr "محصول با موفقیت اضافه شد."
+
+#: .\src\store\views.py:631 .\src\store\views.py:1638
+msgid "Exchange rate has been updated successfully"
+msgstr "نرخ ارز با موفقیت به‌روزرسانی شد"
+
+#: .\src\store\views.py:634 .\src\store\views.py:1184 .\src\store\views.py:1216
+#: .\src\store\views.py:1559 .\src\store\views.py:1579
+#: .\src\store\views.py:1640
+msgid "Something went wrong. Please try again"
+msgstr "مشکلی پیش آمد. لطفاً دوباره تلاش کنید"
+
+#: .\src\store\views.py:684
+msgid "Product updated successfully."
+msgstr "محصول با موفقیت به‌روزرسانی شد."
+
+#: .\src\store\views.py:687
+msgid "Please correct the errors below."
+msgstr "لطفاً خطاهای زیر را اصلاح کنید."
+
+#: .\src\store\views.py:700
+msgid "Product deleted successfully"
+msgstr "محصول با موفقیت حذف شد"
+
+#: .\src\store\views.py:707
+msgid "Select a branch before creating a sale."
+msgstr "پیش از ایجاد فروش، یک شعبه را انتخاب کنید."
+
+#: .\src\store\views.py:735
+msgid "Walk-in Customer"
+msgstr "مشتری حضوری"
+
+#: .\src\store\views.py:798
+msgid "Invalid JSON body."
+msgstr "بدنه JSON نامعتبر است."
+
+#: .\src\store\views.py:812
+msgid "Select an active branch before selling."
+msgstr "پیش از فروش، یک شعبه فعال انتخاب کنید."
+
+#: .\src\store\views.py:822
+msgid "Invalid quantity."
+msgstr "تعداد نامعتبر است."
+
+#: .\src\store\views.py:824
+msgid "Select a quantity before adding to cart."
+msgstr "پیش از افزودن به سبد، یک تعداد انتخاب کنید."
+
+#: .\src\store\views.py:835
+#, python-format
+msgid "Only %(count)s items are available in %(branch)s."
+msgstr "فقط %(count)s قلم در %(branch)s موجود است."
+
+#: .\src\store\views.py:857
+msgid "Invalid request."
+msgstr "درخواست نامعتبر است."
+
+#: .\src\store\views.py:885
+msgid "Select a branch before checking out sales."
+msgstr "پیش از نهایی‌کردن فروش، یک شعبه را انتخاب کنید."
+
+#: .\src\store\views.py:934
+#, python-format
+msgid "Insufficient stock for %(product)s."
+msgstr "موجودی %(product)s کافی نیست."
+
+#: .\src\store\views.py:977
+msgid "Paid amount cannot be negative."
+msgstr "مبلغ پرداختی نمی‌تواند منفی باشد."
+
+#: .\src\store\views.py:980 .\src\store\views.py:1000
+msgid "Paid amount cannot be greater than the total payable amount."
+msgstr "مبلغ پرداختی نمی‌تواند از مجموع قابل پرداخت بیشتر باشد."
+
+#: .\src\store\views.py:1074
+msgid "Products have been sold successfully."
+msgstr "محصولات با موفقیت فروخته شدند."
+
+#: .\src\store\views.py:1078
+#, python-format
+msgid "An error occurred: %(error)s"
+msgstr "یک خطا رخ داد: %(error)s"
+
+#: .\src\store\views.py:1182
+msgid "Income has been added successfully"
+msgstr "عاید با موفقیت اضافه شد"
+
+#: .\src\store\views.py:1214
+msgid "Expense has been added successfully"
+msgstr "مصرف با موفقیت اضافه شد"
+
+#: .\src\store\views.py:1288
+msgid "Unknown Product"
+msgstr "محصول نامشخص"
+
+#: .\src\store\views.py:1291
+msgid "Net Position"
+msgstr "وضعیت خالص"
+
+#: .\src\store\views.py:1331
+msgid "No reporting scope available for your account."
+msgstr "هیچ محدوده گزارشی برای حساب شما در دسترس نیست."
+
+#: .\src\store\views.py:1507
+msgid "Operating Expense"
+msgstr "مصرف عملیاتی"
+
+#: .\src\store\views.py:1556
+msgid "Unit has been saved successfully"
+msgstr "واحد با موفقیت ذخیره شد"
+
+#: .\src\store\views.py:1576
+msgid "Unit has been updated successfully"
+msgstr "واحد با موفقیت به‌روزرسانی شد"
+
+#: .\src\store\views.py:1596
+msgid "Unit has been deleted successfully"
+msgstr "واحد با موفقیت حذف شد"
+
+#: .\src\store\views.py:1598
+msgid "Unable to delete the unit"
+msgstr "امکان حذف واحد وجود ندارد"
+
+#: .\src\store\views.py:1666
+msgid "No barcode provided."
+msgstr "هیچ بارکدی ارسال نشده است."
+
+#: .\src\store\views.py:1671
+msgid "No active branch selected."
+msgstr "هیچ شعبه فعالی انتخاب نشده است."
+
+#: .\src\store\views.py:1677
+msgid "Product is not available in this branch."
+msgstr "این محصول در این شعبه موجود نیست."
+
+#: .\src\store\views.py:1689
+msgid "Invalid method."
+msgstr "روش درخواست نامعتبر است."
+
+# landing page translation
+#: .\src\templates\_base.html:117 .\src\templates\home.html:13
+msgid "Store Management System"
+msgstr "سیستم مدیریت فروشگاه"
+
+#: .\src\templates\_base.html:164
+#, fuzzy
+#| msgid "Log daily operational costs"
+msgid "Live operations"
+msgstr "ثبت مصارف روزانه عملیاتی"
+
+#: .\src\templates\footer.html:7
+msgid "Logo"
+msgstr "نشان"
+
+#: .\src\templates\footer.html:9
+msgid "All rights reserved"
+msgstr "همه حقوق محفوظ است"
+
+#: .\src\templates\footer.html:12 .\src\templates\home.html:2
+#: .\src\templates\navbar.html:37
+msgid "Home"
+msgstr "خانه"
+
+#: .\src\templates\footer.html:13
+msgid "Contact us"
+msgstr "تماس با ما"
+
+#: .\src\templates\footer.html:14
+msgid "About us"
+msgstr "در باره ما"
+
+#: .\src\templates\home.html:16
+msgid "Today's sales & inventory overview"
+msgstr "مروری بر فروش و موجودی امروز"
+
+#: .\src\templates\home.html:47
+msgid "Filter Branch"
+msgstr "فیلتر شعبه"
+
+#: .\src\templates\home.html:61
+msgid "Today's Sales"
+msgstr "فروش امروز"
+
+#: .\src\templates\home.html:95
+msgid "Total Paid"
+msgstr "مجموع پرداخت‌شده"
+
+#: .\src\templates\home.html:127
+msgid "Total Unpaid"
+msgstr "مجموع پرداخت‌نشده"
+
+#: .\src\templates\home.html:159
+msgid "Today's Customers"
+msgstr "مشتریان امروز"
+
+#: .\src\templates\home.html:193
+msgid "Top Selling Products"
+msgstr "پرفروش‌ترین محصولات"
+
+#: .\src\templates\home.html:196
+msgid "Most popular items today"
+msgstr "محبوب‌ترین اقلام امروز"
+
+#: .\src\templates\home.html:200
+msgid "View All →"
+msgstr "مشاهده همه →"
+
+#: .\src\templates\home.html:212
+msgid "Sold"
+msgstr "فروخته‌شده"
+
+#: .\src\templates\home.html:248
+msgid "No sales data available"
+msgstr "هیچ داده فروشی در دسترس نیست"
+
+#: .\src\templates\home.html:261
+msgid "Low Stock Alert"
+msgstr "هشدار کمبود موجودی"
+
+#: .\src\templates\home.html:264
+msgid "Products running low on inventory"
+msgstr "محصولاتی که موجودی آن‌ها رو به کاهش است"
+
+#: .\src\templates\home.html:325
+msgid "All products are well-stocked!"
+msgstr ""
+
+#: .\src\templates\home.html:337
+msgid "Quick Actions"
+msgstr "اقدامات سریع"
+
+#: .\src\templates\home.html:364
+msgid "New Sale"
+msgstr "فروش جدید"
+
+#: .\src\templates\home.html:367
+msgid "Create invoice"
+msgstr "ایجاد فاکتور"
+
+#: .\src\templates\home.html:394
+msgid "Add Stock"
+msgstr "افزودن موجودی"
+
+#: .\src\templates\home.html:396
+msgid "Update inventory"
+msgstr "به‌روزرسانی موجودی"
+
+#: .\src\templates\home.html:423
+msgid "Reports"
+msgstr "گزارش‌ها"
+
+#: .\src\templates\home.html:425
+msgid "View analytics"
+msgstr "مشاهده تحلیل‌ها"
+
+#: .\src\templates\home.html:455
+msgid "Manage clients"
+msgstr "مدیریت مشتریان"
+
+#: .\src\templates\landing-page.html:5
+msgid "InventoryHub - multi-tenant inventory and accounting"
+msgstr ""
+
+#: .\src\templates\landing-page.html:15
+#, fuzzy
+#| msgid "Inventory Management System"
+msgid "Inventory management background"
+msgstr "سیستم مدیریت موجودی"
+
+#: .\src\templates\landing-page.html:32 .\src\templates\landing-page.html:403
+#, fuzzy
+#| msgid "Inventory"
+msgid "InventoryHub"
+msgstr "موجودی"
+
+#: .\src\templates\landing-page.html:33
+#, fuzzy
+#| msgid "Inventory Management System"
+msgid "Inventory and branch management"
+msgstr "سیستم مدیریت موجودی"
+
+#: .\src\templates\landing-page.html:38 .\src\templates\landing-page.html:407
+msgid "Features"
+msgstr ""
+
+#: .\src\templates\landing-page.html:39 .\src\templates\landing-page.html:408
+msgid "Pricing"
+msgstr ""
+
+#: .\src\templates\landing-page.html:40
+msgid "About"
+msgstr "درباره"
+
+#: .\src\templates\landing-page.html:46 .\src\templates\landing-page.html:391
+#: .\src\templates\landing-page.html:409
+#, fuzzy
+#| msgid "Sign In"
+msgid "Sign in"
+msgstr "ورود"
+
+#: .\src\templates\landing-page.html:51 .\src\templates\landing-page.html:410
+msgid "Register"
+msgstr ""
+
+#: .\src\templates\landing-page.html:60 .\src\templates\navbar.html:208
+msgid "Language"
+msgstr "زبان"
+
+#: .\src\templates\landing-page.html:87
+msgid "Multi-tenant SaaS for retail operations"
+msgstr ""
+
+#: .\src\templates\landing-page.html:91
+msgid "Manage your store and every branch"
+msgstr ""
+
+#: .\src\templates\landing-page.html:93
+msgid "from one powerful platform"
+msgstr ""
+
+#: .\src\templates\landing-page.html:98
+msgid ""
+"InventoryHub helps retailers manage sales, purchases, inventory, and "
+"accounting across all stores and branches with clarity and control."
+msgstr ""
+
+#: .\src\templates\landing-page.html:107
+msgid "Start free trial"
+msgstr ""
+
+#: .\src\templates\landing-page.html:115
+msgid "See pricing"
+msgstr ""
+
+#: .\src\templates\landing-page.html:122
+msgid "No credit card required"
+msgstr ""
+
+#: .\src\templates\landing-page.html:126
+msgid "Fast onboarding"
+msgstr ""
+
+#: .\src\templates\landing-page.html:130
+msgid "Multi-branch ready"
+msgstr ""
+
+#: .\src\templates\landing-page.html:141
+msgid "Trusted companies"
+msgstr ""
+
+#: .\src\templates\landing-page.html:155 .\src\templates\landing-page.html:174
+msgid "Default logo"
+msgstr ""
+
+# cusotmer detisl for sale page
+#: .\src\templates\landing-page.html:162
+#, fuzzy
+#| msgid "Customer Details"
+msgid "Trusted retail teams"
+msgstr "جزئیات مشتری"
+
+#: .\src\templates\landing-page.html:188
+msgid "Built for store owners"
+msgstr ""
+
+#: .\src\templates\landing-page.html:191
+msgid "Everything you need to run multi-branch operations"
+msgstr ""
+
+#: .\src\templates\landing-page.html:194
+msgid ""
+"Control data, teams, transactions, stock, and accounting for every location "
+"from one elegant dashboard."
+msgstr ""
+
+#: .\src\templates\landing-page.html:209
+msgid "Store and branch profiles"
+msgstr ""
+
+#: .\src\templates\landing-page.html:211
+msgid ""
+"Manage store details, branch settings, contacts, and business information in "
+"one organized system."
+msgstr ""
+
+#: .\src\templates\landing-page.html:214
+msgid "Centralized branch records"
+msgstr ""
+
+#: .\src\templates\landing-page.html:215
+msgid "Organized tenant information"
+msgstr ""
+
+#: .\src\templates\landing-page.html:229
+msgid "Sales and purchase workflow"
+msgstr ""
+
+#: .\src\templates\landing-page.html:231
+msgid ""
+"Track sales, create purchase orders, and keep your branch inventory aligned "
+"in real time."
+msgstr ""
+
+#: .\src\templates\landing-page.html:234
+msgid "Purchase and sales control"
+msgstr ""
+
+#: .\src\templates\landing-page.html:235
+#, fuzzy
+#| msgid "Log daily operational costs"
+msgid "Live operational visibility"
+msgstr "ثبت مصارف روزانه عملیاتی"
+
+#: .\src\templates\landing-page.html:249
+msgid "Stock and accounting control"
+msgstr ""
+
+#: .\src\templates\landing-page.html:251
+msgid ""
+"Monitor stock movement, costs, and financial performance with clear "
+"reporting and better decisions."
+msgstr ""
+
+#: .\src\templates\landing-page.html:254
+#, fuzzy
+#| msgid "Inventory Shortage"
+msgid "Inventory monitoring"
+msgstr "کمبود موجودی"
+
+#: .\src\templates\landing-page.html:255
+msgid "Branch performance insights"
+msgstr ""
+
+#: .\src\templates\landing-page.html:267
+msgid "Pricing plans"
+msgstr ""
+
+#: .\src\templates\landing-page.html:270
+msgid "Simple, transparent pricing for every stage"
+msgstr ""
+
+#: .\src\templates\landing-page.html:273
+msgid "Choose the plan that matches your business size and branch operations."
+msgstr ""
+
+#: .\src\templates\landing-page.html:283
+msgid "Starter"
+msgstr ""
+
+#: .\src\templates\landing-page.html:284
+#, fuzzy
+#| msgid "From Store"
+msgid "For small stores"
+msgstr "از فروشگاه"
+
+#: .\src\templates\landing-page.html:288
+msgid "$19"
+msgstr ""
+
+#: .\src\templates\landing-page.html:289 .\src\templates\landing-page.html:322
+#: .\src\templates\landing-page.html:351
+msgid "/month"
+msgstr ""
+
+#: .\src\templates\landing-page.html:293
+msgid "Perfect for one store or a very small business getting started."
+msgstr ""
+
+# landing page translation
+#: .\src\templates\landing-page.html:297
+#, fuzzy
+#| msgid "Store Management System"
+msgid "1 store management"
+msgstr "سیستم مدیریت فروشگاه"
+
+#: .\src\templates\landing-page.html:298
+msgid "Basic inventory control"
+msgstr ""
+
+#: .\src\templates\landing-page.html:299
+msgid "Sales and purchases"
+msgstr ""
+
+#: .\src\templates\landing-page.html:300
+#, fuzzy
+#| msgid "Branch Reports"
+msgid "Basic reporting"
+msgstr "گزارش‌های شعبه"
+
+#: .\src\templates\landing-page.html:305
+msgid "Choose Starter"
+msgstr ""
+
+#: .\src\templates\landing-page.html:312
+#, fuzzy
+#| msgid "Most popular items today"
+msgid "Most Popular"
+msgstr "محبوب‌ترین اقلام امروز"
+
+#: .\src\templates\landing-page.html:316
+msgid "Growth"
+msgstr ""
+
+#: .\src\templates\landing-page.html:317
+msgid "Best value"
+msgstr ""
+
+#: .\src\templates\landing-page.html:321
+msgid "$49"
+msgstr ""
+
+#: .\src\templates\landing-page.html:326
+msgid ""
+"Ideal for growing retailers with multiple branches and more advanced "
+"workflows."
+msgstr ""
+
+#: .\src\templates\landing-page.html:330
+#, fuzzy
+#| msgid "Branch Management"
+msgid "Multi-branch management"
+msgstr "مدیریت شعبه"
+
+#: .\src\templates\landing-page.html:331
+msgid "Advanced inventory and transfers"
+msgstr ""
+
+#: .\src\templates\landing-page.html:332
+msgid "Sales, purchases, and workflows"
+msgstr ""
+
+#: .\src\templates\landing-page.html:333
+msgid "Accounting and performance reporting"
+msgstr ""
+
+#: .\src\templates\landing-page.html:338
+msgid "Choose Growth"
+msgstr ""
+
+#: .\src\templates\landing-page.html:345
+#, fuzzy
+#| msgid "Enter"
+msgid "Enterprise"
+msgstr "اینتر"
+
+#: .\src\templates\landing-page.html:346
+msgid "For large teams"
+msgstr ""
+
+#: .\src\templates\landing-page.html:350
+msgid "$99"
+msgstr ""
+
+#: .\src\templates\landing-page.html:355
+msgid ""
+"Designed for larger retail operations that need more branches, reporting, "
+"and control."
+msgstr ""
+
+#: .\src\templates\landing-page.html:359
+msgid "Unlimited branches"
+msgstr ""
+
+#: .\src\templates\landing-page.html:360
+msgid "Advanced reporting dashboards"
+msgstr ""
+
+#: .\src\templates\landing-page.html:361
+msgid "Full accounting visibility"
+msgstr ""
+
+#: .\src\templates\landing-page.html:362
+msgid "Priority support"
+msgstr ""
+
+#: .\src\templates\landing-page.html:367
+#, fuzzy
+#| msgid "Close filters"
+msgid "Choose Enterprise"
+msgstr "بستن فیلترها"
+
+#: .\src\templates\landing-page.html:379
+msgid "Run every store and branch with confidence"
+msgstr ""
+
+#: .\src\templates\landing-page.html:382
+msgid ""
+"Give your team full control of branch details, transactions, stock, and "
+"accounting from a single SaaS platform."
+msgstr ""
+
+#: .\src\templates\landing-page.html:387
+msgid "Register now"
+msgstr ""
+
+#: .\src\templates\landing-page.html:413
+msgid "Built for multi-branch retail operations."
+msgstr ""
+
+#: .\src\templates\navbar.html:18
+msgid "Commerce"
+msgstr ""
+
+#: .\src\templates\navbar.html:19
+#, fuzzy
+#| msgid "Inventory"
+msgid "Inventory Hub"
+msgstr "موجودی"
+
+#: .\src\templates\navbar.html:25
+#, fuzzy
+#| msgid "Sign In"
+msgid "Signed in as"
+msgstr "ورود"
+
+#: .\src\templates\navbar.html:90
+msgid "Sold Products"
+msgstr "فروش شده"
+
+#: .\src\templates\navbar.html:99
+msgid "Cart"
+msgstr "سبد خرید"
+
+#: .\src\templates\navbar.html:111
+msgid "Dashboard"
+msgstr "داشبورد"
+
+#: .\src\templates\navbar.html:118
+#, fuzzy
+#| msgid "Sales Overview"
+msgid "Overview"
+msgstr "مروری بر فروش"
+
+#: .\src\templates\navbar.html:124
+#, fuzzy
+#| msgid "Financial"
+msgid "Finance"
+msgstr "مالی"
+
+#: .\src\templates\navbar.html:138
+#, fuzzy
+#| msgid "Operating Expense"
+msgid "Operations"
+msgstr "مصرف عملیاتی"
+
+#: .\src\templates\navbar.html:223
+msgid "Sign Out"
+msgstr "خروج"
+
+#: .\src\templates\partials\_context_switcher.html:44
+msgid "Switch"
+msgstr ""
+
+#~ msgid "Persian"
+#~ msgstr "فارسی"
+
+#~ msgid "Hello"
+#~ msgstr "سلام و خوش آمدید"
+
+#~ msgid "Error"
+#~ msgstr "خظا"
+
+#~ msgid "My Profile"
+#~ msgstr "پروفایل من"
+
+#~ msgid "Success"
+#~ msgstr "موفقیت"
+
+#~ msgid "To continue to your account, please sign in"
+#~ msgstr "برای ادامه به حساب خود، لطفاً وارد شوید"
+
+#~ msgid "Create One"
+#~ msgstr "یک حساب بسازید"
+
+#~ msgid "forgot password?"
+#~ msgstr "رمز عبور خود را فراموش کرده اید؟"
+
+#~ msgid "Enter email"
+#~ msgstr "ایمیل خود را وارد کنید"
+
+#~ msgid ""
+#~ "A Store Management System is a software solution designed to manage and "
+#~ "streamline various operations of a retail business. It typically includes "
+#~ "features like inventory management, sales and billing, customer "
+#~ "management, employee tracking, and reporting. The system helps store "
+#~ "owners and managers track stock levels, process transactions efficiently, "
+#~ "and generate reports to make informed business decisions"
+#~ msgstr ""
+#~ "سیستم مدیریت فروشگاه یک راه‌حل نرم‌افزاری است که برای مدیریت و ساده‌سازی "
+#~ "عملیات مختلف یک کسب‌وکار خرده‌فروشی طراحی شده است. این سیستم معمولاً شامل "
+#~ "ویژگی‌هایی مانند مدیریت موجودی، فروش و صدور صورت‌حساب، مدیریت مشتریان، "
+#~ "پیگیری کارکنان و گزارش‌گیری است. سیستم به صاحبان فروشگاه و مدیران کمک "
+#~ "می‌کند تا سطوح موجودی را ردیابی کنند، تراکنش‌ها را به‌طور کارآمد پردازش کنند "
+#~ "و گزارش‌هایی را برای تصمیم‌گیری‌های تجاری آگاهانه تولید کنند"
+
+#~ msgid ""
+#~ "Our platform offers comprehensive Inventory Management, allowing you to "
+#~ "track stock levels, manage reorders, and optimize inventory efficiently"
+#~ msgstr ""
+#~ "پلتفرم ما مدیریت موجودی کامل را ارائه می‌دهد که به شما امکان می‌دهد سطح "
+#~ "موجودی را ردیابی، سفارشات مجدد را مدیریت و موجودی را به‌طور بهینه تنظیم "
+#~ "کنید"
+
+#~ msgid ""
+#~ "Our platform provides perfect financial management, ensuring seamless "
+#~ "tracking of expenses, revenues, and financial reports"
+#~ msgstr ""
+#~ "پلتفرم ما مدیریت مالی ایده‌آل را ارائه می‌دهد که ردیابی هزینه‌ها، درآمدها و "
+#~ "گزارش‌های مالی را به‌طور یکپارچه انجام می‌دهد"
+
+#~ msgid "Report"
+#~ msgstr "گزارش"
+
+#~ msgid ""
+#~ "Our platform offers perfect report generation with customizable date "
+#~ "selection, providing detailed insights based on your needs"
+#~ msgstr ""
+#~ "پلتفرم ما تولید گزارش‌ ایده‌آل با انتخاب تاریخ قابل تنظیم را ارائه می‌دهد، "
+#~ "که بینش‌های دقیقی بر اساس نیاز شما فراهم می‌کند"
+
+#~ msgid "Daily Dashboard"
+#~ msgstr "داشبورد روزانه"
+
+#~ msgid ""
+#~ "Our platform provides a Daily Dashboard, offering real-time insights into "
+#~ "sales, inventory, and key metrics for better decision-making"
+#~ msgstr ""
+#~ "پلتفرم ما داشبورد روزانه را ارائه می‌دهد که بینش‌های لحظه‌ای از فروش، موجودی "
+#~ "و معیارهای کلیدی برای تصمیم‌گیری بهتر فراهم می‌کند"
+
+#~ msgid ""
+#~ "Our platform offers customer management, enabling you to track customer "
+#~ "details, purchase history, and engagement for personalized services"
+#~ msgstr ""
+#~ "پلتفرم ما مدیریت مشتریان را ارائه می‌دهد که به شما امکان می‌دهد جزئیات "
+#~ "مشتری، تاریخچه خرید و تعاملات را برای خدمات شخصی‌سازی شده ردیابی کنید"
+
+#~ msgid ""
+#~ "Our platform offers seamless invoice generation, allowing easy creation "
+#~ "and management of invoices for every transaction"
+#~ msgstr ""
+#~ "پلتفرم ما تولید فاکتور بدون دردسر را ارائه می‌دهد که ایجاد و مدیریت "
+#~ "فاکتورها برای هر تراکنش را ساده می‌کند"
+
+#~ msgid "Billing"
+#~ msgstr "صورتحساب"
+
+#~ msgid ""
+#~ "Our platform provides efficient billing management, streamlining "
+#~ "invoicing, payment tracking, and transaction processing"
+#~ msgstr ""
+#~ "پلتفرم ما مدیریت صورتحساب کارآمدی را ارائه می‌دهد که صدور فاکتور، ردیابی "
+#~ "پرداخت‌ها و پردازش تراکنش‌ها را ساده می‌کند"
+
+#~ msgid "The user has been registered successfully"
+#~ msgstr "کاربر با موفقیت ثبت شد"
+
+#~ msgid "Sign Up to Manage Your Store Efficiently"
+#~ msgstr "ثبت نام کنید تا فروشگاه خود را به صورت کارآمد مدیریت کنید"
+
+#~ msgid "Already have an account ?"
+#~ msgstr "آیا قبلاً حساب کاربری دارید؟"
+
+#~ msgid "Confrim Password"
+#~ msgstr "تأیید رمز عبور"
+
+#~ msgid "This page showcases all available products for sale"
+#~ msgstr "این صفحه تمامی محصولات موجود برای فروش را نمایش می‌دهد"
+
+#~ msgid "category"
+#~ msgstr "دسته بندی"
+
+#~ msgid "admin"
+#~ msgstr "مدیر"
+
+#~ msgid "Let’s start shopping!"
+#~ msgstr "!بیایید خرید را شروع کنیم"
+
+#~ msgid "Invoice Number"
+#~ msgstr "شماره فاکتور"
+
+#~ msgid "Grand Total"
+#~ msgstr "قیمت مجموعه قابل پرداخت"
+
+#~ msgid "Please enter the customer details"
+#~ msgstr "لطفاً جزئیات مشتری را وارد کنید"
+
+#~ msgid "Adress"
+#~ msgstr "آدرس"
+
+#~ msgid "Customer has been added successfuly"
+#~ msgstr "مشتری با موفقیت اضافه شد"
+
+# Home page translateion
+#~ msgid "Overview of today’s sales and metrics"
+#~ msgstr "مروری بر فروش و معیارهای امروز"
+
+#~ msgid "Today's Sales Amount"
+#~ msgstr "میزان فروش امروز"
+
+#~ msgid "Total Paid Amount"
+#~ msgstr "مجموع مبلغ پرداخت‌شده"
+
+#~ msgid "Total Unpaid Amount"
+#~ msgstr "مجموع مبلغ پرداخت‌ نشده"
+
+#~ msgid "Today's Customers Count"
+#~ msgstr "تعداد مشتریان امروز"
+
+#~ msgid "Ten Best-Selling Products"
+#~ msgstr "ده پرفروش‌ترین محصولات"
+
+#~ msgid "An Overview of the Most Popular Products"
+#~ msgstr "مروری بر پرفروش‌ترین محصولات"
+
+#~ msgid "Total Units Sold"
+#~ msgstr "مجموع بسته‌های فروخته‌شده"
+
+#~ msgid ""
+#~ "The following products have fallen below the minimum stock level and "
+#~ "require immediate restocking to prevent supply disruptions."
+#~ msgstr ""
+#~ "محصولات زیر از سطح حداقل موجودی پایین‌تر آمده‌اند و نیاز به تأمین فوری "
+#~ "دارند تا از اختلال در عرضه جلوگیری شود."
+
+#~ msgid "Number of Remaining Packages"
+#~ msgstr "تعداد بسته های باقی مانده"
+
+#~ msgid ""
+#~ "Please use the form below to accurately enter the details of your "
+#~ "purchased inventory items"
+#~ msgstr ""
+#~ "لطفاً از فورم زیر برای درج دقیق جزئیات اجناس خریداری‌شده استفاده نمایید."
+
+#~ msgid "Number of Items"
+#~ msgstr "تعداد اقلام"
+
+# products list translation
+#~ msgid "Available Products List"
+#~ msgstr "لیست محصولات موجود"
+
+#~ msgid ""
+#~ "Browse through the complete list of products available for purchase. You "
+#~ "can view details, pricing, and availability for each item."
+#~ msgstr ""
+#~ "از طریق لیست کامل محصولات موجود برای خرید مرور کنید. شما می‌توانید جزئیات، "
+#~ "قیمت‌ها و موجودیت هر کالا را مشاهده کنید."
+
+#~ msgid "Total Purchase Price"
+#~ msgstr "قیمت کل خرید"
+
+#~ msgid "Products Sales Details"
+#~ msgstr "جزئیات فروش محصولات"
+
+#~ msgid ""
+#~ "View detailed information about each product's sales, including "
+#~ "quantities sold, total sales value, and customer details."
+#~ msgstr ""
+#~ "مشاهدهٔ اطلاعات دقیق در مورد فروش هر محصول، شامل تعداد فروش رفته، ارزش کل "
+#~ "فروش، و جزئیات مشتری."
+
+# dashbaord translation
+#~ msgid "Menu"
+#~ msgstr "منو"
+
+#~ msgid "Number of Bills"
+#~ msgstr "تعداد بل‌ها"
+
+#~ msgid ""
+#~ "View detailed insights into your customers' purchases and activities."
+#~ msgstr "نمایی دقیق از خریدها و فعالیت‌های مشتریان خود را مشاهده کنید."
+
+#~ msgid "Review customer purchases, payment status, and outstanding balances."
+#~ msgstr "بررسی خریدهای مشتری، وضعیت پرداخت و مبالغ باقی‌مانده."
+
+#~ msgid "Paid Category"
+#~ msgstr "دسته بندی پرداخت شده ها"
+
+#~ msgid "Unpaid Category"
+#~ msgstr "دسته‌ بندی پرداخت‌ نشده ها"
+
+#~ msgid "Management Page"
+#~ msgstr "صفحه مدیریت"
+
+#~ msgid "Update Products"
+#~ msgstr "به‌روزرسانی محصولات"
+
+#~ msgid "Unit"
+#~ msgstr "واحد"
+
+#~ msgid ""
+#~ "The Summary Page offers a quick overview of the store’s key metrics, "
+#~ "including inventory levels, sales, recent transactions, and pending orders"
+#~ "—all in a clear, easy-to-read dashboard."
+#~ msgstr ""
+#~ "صفحه خلاصه یک نمای سریع از شاخص‌های کلیدی فروشگاه، از جمله موجودی کالا، "
+#~ "فروش، تراکنش‌های اخیر و سفارشات در انتظار را در قالب یک داشبورد واضح و "
+#~ "قابل فهم ارائه می‌دهد."
+
+#~ msgid "Store Dashboard"
+#~ msgstr "داشبورد فروشگاه"
+
+#~ msgid ""
+#~ "To add a product to the shopping cart, scan its barcode or enter it in "
+#~ "the input box"
+#~ msgstr ""
+#~ "برای افزودن یک محصول به سبد خرید، بارکد آن را اسکن کنید یا در کادر ورودی "
+#~ "وارد نمایید"
+
+#~ msgid "Use Barcode Scanner"
+#~ msgstr "از بارکود اسکنر استفاده کنید"
+
+#~ msgid "Search product by its name of category"
+#~ msgstr "محصول را بر اساس نام یا دسته‌بندی جستجو کنید"
+
+#~ msgid "Enter product barcode"
+#~ msgstr "بارکود محصول را وارد کنید"

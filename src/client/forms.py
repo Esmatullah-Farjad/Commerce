@@ -39,21 +39,21 @@ class RegistrationForm(UserCreationForm):
             "last_name": _("Last Name"),
             "email": _("Email"),
             "password1": _("Password"),
-            "password2": _("Confrim Password"),
+            "password2": _("Confirm Password"),
         }
 
     username = forms.CharField(
-        label="Username",
+        label=_("Username"),
         help_text="",
         widget=forms.TextInput(),
     )
     password1 = forms.CharField(
-        label="Password",
+        label=_("Password"),
         help_text="",
         widget=forms.PasswordInput(),
     )
     password2 = forms.CharField(
-        label="Confirm Password",
+        label=_("Confirm Password"),
         help_text="",
         widget=forms.PasswordInput(),
     )
@@ -62,7 +62,7 @@ class RegistrationForm(UserCreationForm):
         username = self.cleaned_data.get("username")
         if User.objects.filter(username__iexact=username).exists():
             raise forms.ValidationError(
-                f"Username {username} already exists, please choose another."
+                _("Username %(username)s already exists. Please choose another.") % {"username": username}
             )
         return username
 
@@ -70,7 +70,7 @@ class RegistrationForm(UserCreationForm):
         email = self.cleaned_data.get("email")
         if User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError(
-                f"Email {email} already exists, please choose another."
+                _("Email %(email)s already exists. Please choose another.") % {"email": email}
             )
         return email
 

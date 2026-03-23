@@ -80,6 +80,18 @@
                 padding-right: 18rem;
             }
         }
+        .notification-enter {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.98);
+        }
+        .notification-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .notification-exit {
+            opacity: 0;
+            transform: translateY(-6px) scale(0.98);
+        }
     </style>
 </head>
 <body class="min-h-screen bg-white text-slate-900 antialiased">
@@ -170,25 +182,76 @@
             <main class="flex-1 {% if request.resolver_match.url_name == 'landing' %}px-0 py-0{% else %}px-4 py-6 lg:px-8{% endif %}">
                 <div class="{% if request.resolver_match.url_name == 'landing' %}w-full{% else %}mx-auto w-full max-w-7xl space-y-6{% endif %}">
                     {% if messages %}
-                    <div class="space-y-3">
+                    <div
+                        id="notification-center"
+                        aria-live="polite"
+                        aria-atomic="false"
+                        class="pointer-events-none fixed left-1/2 top-20 z-50 flex w-[min(92vw,34rem)] -translate-x-1/2 flex-col gap-3"
+                    >
                         {% for message in messages %}
-                        <div class="flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm shadow-sm {% if message.tags == 'success' %}border-primary-200 bg-primary-50 text-primary-900{% elif message.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-900{% else %}border-slate-200 bg-white text-slate-700{% endif %} message-holder">
-                            <span class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full {% if message.tags == 'success' %}bg-primary-100 text-primary-700{% elif message.tags == 'error' %}bg-rose-100 text-rose-700{% else %}bg-slate-100 text-slate-600{% endif %}">
-                                {% if message.tags == "success" %}
+                        <div
+                            class="message-holder notification-enter pointer-events-auto overflow-hidden rounded-2xl border shadow-xl ring-1 ring-slate-950/10 transition duration-200 ease-out {% if 'success' in message.tags %}border-teal-300 bg-teal-50{% elif 'error' in message.tags %}border-rose-300 bg-rose-50{% elif 'warning' in message.tags %}border-amber-300 bg-amber-50{% else %}border-sky-300 bg-sky-50{% endif %}"
+                            data-message-kind="{% if 'success' in message.tags %}success{% elif 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}"
+                            data-autodismiss="{% if 'success' in message.tags or 'info' in message.tags %}true{% else %}false{% endif %}"
+                            data-timeout="{% if 'success' in message.tags %}4200{% elif 'info' in message.tags %}5200{% else %}0{% endif %}"
+                            role="{% if 'error' in message.tags or 'warning' in message.tags %}alert{% else %}status{% endif %}"
+                        >
+                            <div class="flex items-start gap-3 px-4 py-3">
+                                <span class="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full {% if 'success' in message.tags %}bg-teal-100 text-teal-700{% elif 'error' in message.tags %}bg-rose-100 text-rose-700{% elif 'warning' in message.tags %}bg-amber-100 text-amber-700{% else %}bg-sky-100 text-sky-700{% endif %}">
+                                {% if 'success' in message.tags %}
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                 </svg>
-                                {% elif message.tags == "error" %}
+                                {% elif 'error' in message.tags %}
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                                {% elif 'warning' in message.tags %}
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008Zm8.25-.758L13.06 4.94c-.48-.83-1.64-.83-2.12 0L3.75 15.992c-.48.83.12 1.868 1.06 1.868h14.38c.94 0 1.54-1.038 1.06-1.868Z" />
                                 </svg>
                                 {% else %}
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 6h.008v.008H12v-.008Z" />
                                 </svg>
                                 {% endif %}
-                            </span>
-                            <div class="font-medium">{{ message }}</div>
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p class="text-sm font-semibold {% if 'success' in message.tags %}text-teal-900{% elif 'error' in message.tags %}text-rose-900{% elif 'warning' in message.tags %}text-amber-900{% else %}text-slate-900{% endif %}">
+                                                {% if 'success' in message.tags %}
+                                                    {% trans "Success" %}
+                                                {% elif 'error' in message.tags %}
+                                                    {% trans "Action Required" %}
+                                                {% elif 'warning' in message.tags %}
+                                                    {% trans "Warning" %}
+                                                {% else %}
+                                                    {% trans "Notice" %}
+                                                {% endif %}
+                                            </p>
+                                            <p class="mt-1 text-sm leading-6 {% if 'success' in message.tags %}text-teal-800{% elif 'error' in message.tags %}text-rose-800{% elif 'warning' in message.tags %}text-amber-800{% else %}text-slate-700{% endif %}">{{ message }}</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="notification-close inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white text-slate-500 transition hover:bg-white {% if 'success' in message.tags %}border-teal-200 hover:border-teal-300 hover:text-teal-700{% elif 'error' in message.tags %}border-rose-200 hover:border-rose-300 hover:text-rose-700{% elif 'warning' in message.tags %}border-amber-200 hover:border-amber-300 hover:text-amber-700{% else %}border-sky-200 hover:border-sky-300 hover:text-sky-700{% endif %}"
+                                            aria-label="{% trans 'Dismiss notification' %}"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    {% if 'error' in message.tags or 'warning' in message.tags %}
+                                    <p class="mt-2 text-xs font-medium text-slate-500">
+                                        {% trans "This notification stays visible until dismissed." %}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="h-1 w-full {% if 'success' in message.tags %}bg-teal-100{% elif 'error' in message.tags %}bg-rose-100{% elif 'warning' in message.tags %}bg-amber-100{% else %}bg-sky-100{% endif %}">
+                                <div class="notification-progress h-full origin-left {% if 'success' in message.tags %}bg-teal-500{% elif 'error' in message.tags %}bg-rose-500{% elif 'warning' in message.tags %}bg-amber-500{% else %}bg-sky-500{% endif %}"></div>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -204,6 +267,20 @@
     </div>
     <script src="{% static 'js/htmx.min.js' %}"></script>
     <script>
+        function getCookie(name) {
+            const cookieValue = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith(name + "="));
+            return cookieValue ? decodeURIComponent(cookieValue.split("=")[1]) : "";
+        }
+
+        document.body.addEventListener("htmx:configRequest", (event) => {
+            const csrfToken = getCookie("csrftoken");
+            if (csrfToken) {
+                event.detail.headers["X-CSRFToken"] = csrfToken;
+            }
+        });
+
         const shell = document.getElementById("app-shell");
         const toggle = document.getElementById("sidebar-toggle");
         const overlay = document.getElementById("sidebar-overlay");
@@ -217,11 +294,93 @@
                 shell.classList.remove("sidebar-open");
             });
         }
-        setTimeout(() => {
-            document.querySelectorAll(".message-holder").forEach((el) => {
-                el.remove();
+
+        function dismissNotification(element) {
+            if (!element || element.dataset.closing === "true") {
+                return;
+            }
+            element.dataset.closing = "true";
+            element.classList.remove("notification-visible");
+            element.classList.add("notification-exit");
+            window.setTimeout(() => {
+                element.remove();
+            }, 200);
+        }
+
+        function setupNotifications() {
+            document.querySelectorAll(".message-holder").forEach((element, index) => {
+                const progressBar = element.querySelector(".notification-progress");
+                const closeButton = element.querySelector(".notification-close");
+                const autoDismiss = element.dataset.autodismiss === "true";
+                const timeout = Number(element.dataset.timeout || 0);
+                let timerId = null;
+                let remaining = timeout;
+                let startedAt = 0;
+
+                window.setTimeout(() => {
+                    element.classList.add("notification-visible");
+                }, 20 + (index * 60));
+
+                if (!autoDismiss || timeout <= 0) {
+                    if (progressBar) {
+                        progressBar.style.display = "none";
+                    }
+                } else if (progressBar) {
+                    progressBar.style.transition = `transform ${timeout}ms linear`;
+                    window.requestAnimationFrame(() => {
+                        progressBar.style.transform = "scaleX(0)";
+                    });
+                }
+
+                const startTimer = () => {
+                    if (!autoDismiss || remaining <= 0) {
+                        return;
+                    }
+                    startedAt = Date.now();
+                    timerId = window.setTimeout(() => {
+                        dismissNotification(element);
+                    }, remaining);
+                };
+
+                const pauseTimer = () => {
+                    if (!autoDismiss || !timerId) {
+                        return;
+                    }
+                    window.clearTimeout(timerId);
+                    timerId = null;
+                    remaining -= Date.now() - startedAt;
+                    if (progressBar && timeout > 0) {
+                        const elapsedRatio = Math.min(Math.max((timeout - remaining) / timeout, 0), 1);
+                        progressBar.style.transition = "none";
+                        progressBar.style.transform = `scaleX(${1 - elapsedRatio})`;
+                    }
+                };
+
+                const resumeTimer = () => {
+                    if (!autoDismiss || remaining <= 0) {
+                        return;
+                    }
+                    if (progressBar && timeout > 0) {
+                        progressBar.style.transition = `transform ${remaining}ms linear`;
+                        window.requestAnimationFrame(() => {
+                            progressBar.style.transform = "scaleX(0)";
+                        });
+                    }
+                    startTimer();
+                };
+
+                if (closeButton) {
+                    closeButton.addEventListener("click", () => dismissNotification(element));
+                }
+
+                element.addEventListener("mouseenter", pauseTimer);
+                element.addEventListener("mouseleave", resumeTimer);
+
+                startTimer();
             });
-        }, 4000);
+        }
+
+        setupNotifications();
     </script>
 </body>
 </html>

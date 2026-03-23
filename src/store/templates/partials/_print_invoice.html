@@ -1,150 +1,293 @@
 {% load jalali_tags %}
 {% load i18n %}
 {% load static %}
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice</title>
-
+    <title>{% trans "Invoice" %}</title>
     <style>
         @font-face {
-            font-family: 'Vazirmatn';
-            src: url('{% static 'font/Vazirmatn-Bold.woff2' %}') format('woff2'),
-                 url('{% static 'font/Vazirmatn-Regular.woff2' %}') format('woff2');
+            font-family: "Vazirmatn";
+            src: url("{% static 'font/Vazirmatn-Bold.woff2' %}") format("woff2"),
+                 url("{% static 'font/Vazirmatn-Regular.woff2' %}") format("woff2");
             font-weight: normal;
             font-style: normal;
-          }
-        body{
-            font-family:'Vazirmatn',sans-serif;
-            font-size: 14pt;
+        }
+
+        @page {
+            size: 80mm auto;
+            margin: 4mm;
+        }
+
+        :root {
+            --ink: #111111;
+            --muted: #666666;
+            --line: #cfcfcf;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Vazirmatn", sans-serif;
             direction: rtl;
-            text-align: right;
+            color: var(--ink);
+            background: #ffffff;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .receipt {
+            width: 72mm;
+            margin: 0 auto;
+        }
+
+        .section {
+            border-bottom: 1px dashed var(--line);
+            padding: 8px 0;
+        }
+
+        .section:last-of-type {
+            border-bottom: 0;
+        }
+
+        .brand {
             text-align: center;
-            font-weight: 600;
-            border: 1px solid teal;
-            padding: 10px;
         }
-        .heading h1,h4,h5,p{
-            padding: 0px;
-            margin: 5px 0px;
+
+        .tenant-name {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
         }
-        .heading .badge{
-            padding: 3px 8px;
-            background-color: teal;
-            border-radius: 50px;
-            color: white;
-            margin: 0px 10px;
+
+        .branch-name {
+            margin: 3px 0 0;
+            font-size: 11px;
+            font-weight: 700;
         }
-        .heading .address{
-            background-color: teal;
-            border: 1px solid teal;
-            color: white;
-            padding: 5px 20px;
-            border-radius: 20px;
-            margin: 10px 0px;
+
+        .contact-lines,
+        .meta,
+        .totals {
+            display: grid;
+            gap: 4px;
         }
-        .flex-container{
+
+        .row {
             display: flex;
-            flex-direction: row;
+            align-items: baseline;
             justify-content: space-between;
+            gap: 10px;
         }
-        table{
-            border-collapse: collapse;
-            border: 1px solid teal;
+
+        .label {
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .value {
+            text-align: left;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        table {
             width: 100%;
-            font-size: 13px;
+            border-collapse: collapse;
         }
-        table thead,th{
-            border: 1px solid teal;
-            background-color: teal;
-            color: white;
+
+        thead th {
+            padding: 4px 0;
+            border-bottom: 1px solid var(--ink);
+            font-size: 10px;
+            font-weight: 700;
         }
-        table tbody tr, td{
-            border: 1px solid black;
+
+        tbody td {
+            padding: 4px 0;
+            vertical-align: top;
+            border-bottom: 1px dashed #e4e4e4;
         }
-        .small-cell{
-            width: 10%;
+
+        tbody tr:last-child td {
+            border-bottom: 0;
         }
-        .medium-cell{
-            width: 20%;
+
+        th,
+        td {
+            text-align: right;
         }
-        .normal-cell{
-            width: 40%;
+
+        .col-num,
+        .col-qty,
+        .col-amount {
+            white-space: nowrap;
         }
-        .footer-text{
-            font-size: small;
-            text-align: start;
+
+        .col-name {
+            width: 100%;
+            padding-left: 6px;
         }
-        .btn{
-            background-color:teal;
-            padding:2px 8px;
-            margin: 0px 1px;
-            font-size:14px;
+
+        .totals .row {
+            padding: 2px 0;
+        }
+
+        .total-payable {
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .footer-note {
+            color: var(--muted);
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 82px;
+            padding: 6px 10px;
+            border: 1px solid var(--ink);
+            border-radius: 999px;
+            color: var(--ink);
+            background: #ffffff;
             text-decoration: none;
-            color:white;
+            font-size: 11px;
+            font-weight: 600;
         }
+
         @media print {
-            #hidden-element {
+            .actions {
                 display: none;
             }
         }
-
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="heading">
-            <h1>خوراکه فروشی سلمان علی یعقوبی</h1>
-            <h4><span class="badge">عمده</span><i>Salman Ali Yaqobi Food Store</i><span class="badge">پرچون</span></h4>
-            <h5>عرضه کننده مواد ارتزاقی و نوشابه باب, شوینده باب و غیره</h5>
-            <span class="address">آدرس: چوک شهید مزاری, پل سوخته, داخل مارکیت محمدی</span>
-            <p>0766222777 - 0786244241</p>
+    <div class="receipt">
+        <div class="section brand">
+            <h1 class="tenant-name">{{ sales_details.tenant.name }}</h1>
+            {% if sales_details.branch %}
+                <p class="branch-name">
+                    {% trans "Branch" %}: {{ sales_details.branch.name }}
+                </p>
+            {% endif %}
+            <div class="contact-lines">
+                {% if sales_details.branch and sales_details.branch.address %}
+                    <div>{{ sales_details.branch.address }}</div>
+                {% endif %}
+                {% if sales_details.branch and sales_details.branch.contact_phone %}
+                    <div>{{ sales_details.branch.contact_phone }}</div>
+                {% endif %}
+                {% if sales_details.branch and sales_details.branch.contact_email %}
+                    <div>{{ sales_details.branch.contact_email }}</div>
+                {% endif %}
+            </div>
         </div>
-        <div class="flex-container">
-            <p>نمبر بل: {{sales_details.bill_number}}</p>
-            <p>اسم مشتری: {{sales_details.customer.name}}</p>
-            <p>تلفن: {{sales_details.customer.phone}}</p>
-            <p>آدرس: {{sales_details.customer.address}}</p>
-            <p>تاریخ: {{sales_details.created_at|jalali}}</p>
+
+        <div class="section meta">
+            <div class="row">
+                <span class="label">{% trans "Invoice No" %}</span>
+                <span class="value">{{ sales_details.bill_number }}</span>
+            </div>
+            <div class="row">
+                <span class="label">{% trans "Date" %}</span>
+                <span class="value">{{ sales_details.created_at|jalali }}</span>
+            </div>
+            <div class="row">
+                <span class="label">{% trans "Customer" %}</span>
+                <span class="value">{{ sales_details.customer.name }}</span>
+            </div>
+            {% if sales_details.customer.phone %}
+                <div class="row">
+                    <span class="label">{% trans "Phone" %}</span>
+                    <span class="value">{{ sales_details.customer.phone }}</span>
+                </div>
+            {% endif %}
+            {% if sales_details.customer.address %}
+                <div class="row">
+                    <span class="label">{% trans "Address" %}</span>
+                    <span class="value">{{ sales_details.customer.address }}</span>
+                </div>
+            {% endif %}
         </div>
-        <div>
+
+        <div class="section">
             <table>
                 <thead>
-                    <th class="small-cell">شماره</th>
-                    <th>اسم جنس</th>
-                    <th>تعداد</th>
-                    <th>کارتن</th>
-                    <th>فیات</th>
-                    <th>جمله شد</th>
+                    <tr>
+                        <th class="col-num">#</th>
+                        <th class="col-name">{% trans "Item" %}</th>
+                        <th class="col-qty">{% trans "Qty" %}</th>
+                        <th class="col-amount">{% trans "Total" %}</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for data in sales_products %}
-                    <tr>
-                        <td class="small-cell">{{forloop.counter}}</td>
-                        <td class="normal-cell">{{data.product.name}}</td>
-                        <td class="small-cell">{{data.item_qty}}</td>
-                        <td class="small-cell">{{data.package_qty}}</td>
-                        <td class="small-cell">{{data.package_price}}</td>
-                        <td class="medium-cell">{{data.total_price}}</td>
-                    </tr>
+                        <tr>
+                            <td class="col-num">{{ forloop.counter }}</td>
+                            <td class="col-name">
+                                {{ data.product.name }}
+                                <div class="label">
+                                    {% trans "Items" %}: {{ data.item_qty }} | {% trans "Packs" %}: {{ data.package_qty }}
+                                </div>
+                            </td>
+                            <td class="col-qty">{{ data.item_qty|add:data.package_qty }}</td>
+                            <td class="col-amount">{{ data.total_price|intcomma }}</td>
+                        </tr>
                     {% endfor %}
-                    
-                    <tr>
-                        <td colspan="2">جمله پول شد: {{calculate.total_amount}} {% trans 'AFN' %}</td>
-                        <td colspan="2">مبلغ پرداخت شده:  {{sales_details.paid_amount}} {% trans 'AFN' %}</td>
-                        <td colspan="2">مبلغ باقی مانده:  {{sales_details.unpaid_amount}} {% trans 'AFN' %}</td>
-                    </tr>
                 </tbody>
             </table>
-            <p class="footer-text">
-                لطفا در حین خرید نوعیت و کیفیت مال خود را چک نمایید در غیر آن دوباره مجرا داده نمیشود. جنس فروخته شده واپس گرفته نمی شود.
-            </p>
         </div>
-        <div id="hidden-element">
-            <a class="btn" href="#" onclick={window.print()}>{% trans 'Print' %}</a>
-            <a class="btn" href="{% url 'home' %}">{% trans 'Go Back' %}</a>
+
+        <div class="section totals">
+            <div class="row">
+                <span class="label">{% trans "Bill Amount" %}</span>
+                <span class="value">{{ sales_details.total_amount|intcomma }} {% trans "AFN" %}</span>
+            </div>
+            {% if sales_details.carried_forward_amount %}
+                <div class="row">
+                    <span class="label">{% trans "Carry Forward" %}</span>
+                    <span class="value">{{ sales_details.carried_forward_amount|intcomma }} {% trans "AFN" %}</span>
+                </div>
+            {% endif %}
+            <div class="row total-payable">
+                <span class="label">{% trans "Total Payable" %}</span>
+                <span class="value">{{ sales_details.payable_amount|default:sales_details.total_amount|intcomma }} {% trans "AFN" %}</span>
+            </div>
+            <div class="row">
+                <span class="label">{% trans "Paid" %}</span>
+                <span class="value">{{ sales_details.paid_amount|intcomma }} {% trans "AFN" %}</span>
+            </div>
+            <div class="row">
+                <span class="label">{% trans "Remaining" %}</span>
+                <span class="value">{{ sales_details.unpaid_amount|intcomma }} {% trans "AFN" %}</span>
+            </div>
+        </div>
+
+        <div class="section footer-note">
+            {% trans "Thank you for your business." %}
+        </div>
+
+        <div class="actions">
+            <a class="btn" href="#" onclick="window.print(); return false;">{% trans "Print" %}</a>
+            <a class="btn" href="{% url 'home' %}">{% trans "Go Back" %}</a>
         </div>
     </div>
 </body>

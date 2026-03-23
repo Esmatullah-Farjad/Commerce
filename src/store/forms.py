@@ -45,9 +45,10 @@ class PurchaseForm(forms.ModelForm):
             self.fields["purchase_unit"].queryset = PurchaseUnit.objects.all()
         if "unit" in self.fields:
             self.fields["unit"].label_from_instance = (
-                lambda obj: f"{obj.name} (Base: {obj.base_unit.name})"
-                if obj.base_unit
-                else f"{obj.name} (Base: {obj.name})"
+                lambda obj: _("%(name)s (Base: %(base)s)") % {
+                    "name": obj.name,
+                    "base": obj.base_unit.name if obj.base_unit else obj.name,
+                }
             )
         apply_placeholders(self)
 

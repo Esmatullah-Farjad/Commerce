@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from django.shortcuts import redirect, render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.urls import reverse
 from django.utils import timezone
 from django.contrib import messages
 from django.db import transaction
@@ -17,6 +18,7 @@ from store.filters import ProductsFilter, SalesDetailsFilter
 from .accounting import (
     account_balances,
     ensure_default_accounts,
+    record_customer_payment_entry,
     record_expense_entry,
     record_other_income_entry,
     record_purchase_entry,
@@ -560,10 +562,10 @@ def purchase(request):
                 reference_id=f"PRODUCT-{product.id}",
             )
 
-            messages.success(request, "Product added successfully!")
+            messages.success(request, _("Product added successfully."))
             return redirect('purchase')
         else:
-            messages.error(request, f"Something went wrong. Please fix the below errors: {form.errors}")
+            messages.error(request, _("Something went wrong. Please fix the errors below."))
 
     purchase = Products.objects.filter(
         tenant=tenant,
@@ -680,10 +682,10 @@ def update_products(request, pid):
             product.currency_category = currency_category
             product.save()
 
-            messages.success(request, "Product updated successfully.")
+            messages.success(request, _("Product updated successfully."))
             return redirect("products_display")
         else:
-            messages.error(request, f"Form has error: {form.errors}")
+            messages.error(request, _("Please correct the errors below."))
 
     context = {
         'product': product,
@@ -730,12 +732,18 @@ def products_view(request):
             "address": "" if not active_customer or is_walk_in_customer(active_customer) else active_customer.address,
         }
     )
+    active_customer_label = (
+        _("Walk-in Customer")
+        if active_customer and is_walk_in_customer(active_customer)
+        else (active_customer.name if active_customer else "")
+    )
     context = {
         'products': products,
         'categories': categories,
         'filter_form': products_filter,
-        'customer': active_customer.name if active_customer else "",
+        'customer': active_customer_label,
         'active_customer': active_customer,
+        'active_customer_label': active_customer_label,
         'customer_form': customer_form,
         'can_add_products': bool(branch),
         'sales_branch': branch,
@@ -788,7 +796,7 @@ def add_to_cart(request):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON body'}, status=400)
+            return JsonResponse({'status': 'error', 'message': str(_("Invalid JSON body."))}, status=400)
 
         # Extract data
         product_id = data.get('product_id')
@@ -802,19 +810,19 @@ def add_to_cart(request):
         branch = _active_branch(request)
         if not branch:
             return JsonResponse(
-                {'status': 'error', 'message': 'Select an active branch before selling.'},
+                {'status': 'error', 'message': str(_("Select an active branch before selling."))},
                 status=400,
             )
         product = Products.objects.filter(id=product_id, tenant=tenant).first()
         if not product:
-            return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
+            return JsonResponse({'status': 'error', 'message': str(_("Product not found."))}, status=404)
 
         item_quantity = safe_int(item_quantity, 0)
         package_quantity = safe_int(package_quantity, 0)
         if item_quantity < 0 or package_quantity < 0:
-            return JsonResponse({'status': 'error', 'message': 'Invalid quantity.'}, status=400)
+            return JsonResponse({'status': 'error', 'message': str(_("Invalid quantity."))}, status=400)
         if item_quantity == 0 and package_quantity == 0:
-            return JsonResponse({'status': 'error', 'message': 'Select a quantity before adding to cart.'}, status=400)
+            return JsonResponse({'status': 'error', 'message': str(_("Select a quantity before adding to cart."))}, status=400)
 
         package_contain = max(safe_int(getattr(product, 'package_contain', 1), 1), 1)
         requested_total = (package_quantity * package_contain) + item_quantity
@@ -824,7 +832,12 @@ def add_to_cart(request):
             return JsonResponse(
                 {
                     'status': 'error',
-                    'message': f'Only {available_total} items are available in {branch.name}.',
+                    'message': str(
+                        _("Only %(count)s items are available in %(branch)s.") % {
+                            "count": available_total,
+                            "branch": branch.name,
+                        }
+                    ),
                 },
                 status=400,
             )
@@ -842,14 +855,19 @@ def add_to_cart(request):
 
         return JsonResponse({"status": 200, "message": "success", "cart_length": len(cart)})
     
-    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+    return JsonResponse({"status": "error", "message": str(_("Invalid request."))}, status=400)
 
 def print_invoice(request, sales_id):
     tenant = _active_tenant(request)
     branch = _active_branch(request)
-    sales_details = get_object_or_404(SalesDetails, bill_number=sales_id, tenant=tenant, branch=branch)
+    sales_details = get_object_or_404(
+        SalesDetails.objects.select_related("tenant", "branch", "branch__store", "customer"),
+        bill_number=sales_id,
+        tenant=tenant,
+        branch=branch,
+    )
     
-    sales_product = SalesProducts.objects.filter(sale_detail=sales_details)
+    sales_product = SalesProducts.objects.filter(sale_detail=sales_details).select_related("product")
 
     calculate = sales_product.aggregate(
         total_amount=Sum('total_price')
@@ -875,7 +893,8 @@ def cart_view(request):
     stock_updates = []
     grand_total = Decimal("0.00")
     pre_unpaid_amount = Decimal("0.00")
-    total = Decimal("0.00")
+    bill_total = Decimal("0.00")
+    payable_total = Decimal("0.00")
 
     if not cart:
         return render(request, 'sale/cart_view.html', {'cart_details': [], 'grand_total': 0, 'customer': None})
@@ -913,7 +932,7 @@ def cart_view(request):
         current_stock = safe_int(stock_row.stock if stock_row else 0)
         new_stock = current_stock - sold_stock
         if new_stock < 0:
-            messages.error(request, _(f"Insufficient stock for {product.name}."))
+            messages.error(request, _("Insufficient stock for %(product)s.") % {"product": product.name})
             return redirect("products-view")
         if stock_row:
             stock_row.stock = new_stock
@@ -949,8 +968,8 @@ def cart_view(request):
             total_unpaid=Sum('unpaid_amount')
         )
         pre_unpaid_amount = to_decimal(pre_unpaid['total_unpaid'] or 0)
-    total = grand_total
-    grand_total = grand_total + pre_unpaid_amount
+    bill_total = grand_total
+    payable_total = bill_total + pre_unpaid_amount
     # Handle sale submission
     if request.method == 'POST':
         try:
@@ -958,20 +977,43 @@ def cart_view(request):
             if paid_amount < 0:
                 messages.error(request, _("Paid amount cannot be negative."))
                 return redirect("cart-view")
-            if paid_amount > grand_total:
-                messages.error(request, _("Paid amount cannot be greater than the grand total."))
+            if paid_amount > payable_total:
+                messages.error(request, _("Paid amount cannot be greater than the total payable amount."))
                 return redirect("cart-view")
-            unpaid_amount = grand_total - paid_amount
-           
-            SalesDetails.objects.filter(customer=customer_instance, tenant=tenant, branch=branch, unpaid_amount__gt=0).update(unpaid_amount=Decimal("0.00"))
+            unpaid_amount = payable_total - paid_amount
+
             # Create SalesDetails instance
             with transaction.atomic():
+                previous_unpaid_sales = list(
+                    SalesDetails.objects
+                    .select_for_update()
+                    .filter(customer=customer_instance, tenant=tenant, branch=branch, unpaid_amount__gt=0)
+                    .order_by("created_at", "id")
+                )
+                carried_forward_amount = sum(
+                    (to_decimal(sale.unpaid_amount or 0) for sale in previous_unpaid_sales),
+                    Decimal("0.00"),
+                )
+                if carried_forward_amount != pre_unpaid_amount:
+                    pre_unpaid_amount = carried_forward_amount
+                    payable_total = bill_total + carried_forward_amount
+                    if paid_amount > payable_total:
+                        messages.error(request, _("Paid amount cannot be greater than the total payable amount."))
+                        return redirect("cart-view")
+                    unpaid_amount = payable_total - paid_amount
+
+                for previous_sale in previous_unpaid_sales:
+                    previous_sale.unpaid_amount = Decimal("0.00")
+                    previous_sale.save(update_fields=["unpaid_amount"])
+
                 sales_details = SalesDetails.objects.create(
                     user = request.user,
                     tenant=tenant,
                     branch=branch,
                     customer=customer_instance,
-                    total_amount=grand_total,
+                    total_amount=bill_total,
+                    carried_forward_amount=carried_forward_amount,
+                    payable_amount=payable_total,
                     paid_amount=paid_amount,
                     unpaid_amount=unpaid_amount,
                 )
@@ -1001,11 +1043,25 @@ def cart_view(request):
                     unit_cost = to_decimal(product.package_purchase_price or 0) / Decimal(package_contain)
                     cogs_total += to_decimal(Decimal(item["sold_stock"]) * unit_cost)
 
+                applied_to_previous_due = min(paid_amount, carried_forward_amount)
+                current_sale_paid = paid_amount - applied_to_previous_due
+                current_sale_unpaid = bill_total - current_sale_paid
+
+                if applied_to_previous_due > Decimal("0.00"):
+                    record_customer_payment_entry(
+                        tenant=tenant,
+                        amount=applied_to_previous_due,
+                        store=branch.store,
+                        branch=branch,
+                        created_by=request.user,
+                        reference_id=sales_details.bill_number,
+                    )
+
                 record_sale_entry(
                     tenant=tenant,
-                    sale_total=grand_total,
-                    paid_amount=paid_amount,
-                    unpaid_amount=unpaid_amount,
+                    sale_total=bill_total,
+                    paid_amount=current_sale_paid,
+                    unpaid_amount=current_sale_unpaid,
                     cogs_total=cogs_total,
                     store=branch.store,
                     branch=branch,
@@ -1016,18 +1072,19 @@ def cart_view(request):
             # Clear cart after successful sale
             request.session['cart'] = {}
             request.session['customer'] = {}
-            messages.success(request, "Products have been sold successfully!")
+            messages.success(request, _("Products have been sold successfully."))
             return redirect("print-invoice", sales_details.bill_number)
         except Exception as e:
             # Roll back the transaction and handle the error gracefully
-            messages.error(request, f"An error occurred: {str(e)}")
+            messages.error(request, _("An error occurred: %(error)s") % {"error": str(e)})
 
     context = {
         'cart_details': cart_details,
-        'grand_total': grand_total,
+        'grand_total': payable_total,
         'pre_unpaid_amount':pre_unpaid_amount,
         'customer': customer_instance,
-        'total':total
+        'total': bill_total,
+        'payable_total': payable_total,
     }
     return render(request, 'sale/cart_view.html', context)
 
@@ -1066,34 +1123,51 @@ def sold_product_detail(request, pk):
     return render(request, 'sale/sold_products_detail.html', context)
 
 def return_items(request, pk):
-    # Get the returned product or raise 404
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
     tenant = _active_tenant(request)
     branch = _active_branch(request)
     returned_product = get_object_or_404(
-        SalesProducts,
+        SalesProducts.objects.select_related("sale_detail", "product"),
         id=pk,
         sale_detail__tenant=tenant,
         sale_detail__branch=branch,
     )
-    
-    # Calculate new quantities
+
+    sale_detail = returned_product.sale_detail
+    product = returned_product.product
     returned_pkg = safe_int(returned_product.package_qty)
     returned_item = safe_int(returned_product.item_qty)
-    product = returned_product.product  # Get the related product
-    
-    # Use atomic transaction to prevent race conditions
+    returned_total_items = (returned_pkg * max(safe_int(getattr(product, "package_contain", 1), 1), 1)) + returned_item
+    returned_total_price = to_decimal(returned_product.total_price or 0)
+
     with transaction.atomic():
-        stock_row, created = BranchStock.objects.get_or_create(
+        sale_detail = SalesDetails.objects.select_for_update().get(pk=sale_detail.pk)
+
+        _adjust_stock(
+            "branch",
+            product,
+            returned_total_items,
             branch=branch,
-            product=product,
-            defaults={"stock": 0, "num_of_packages": 0, "num_items": 0},
         )
-        stock_row.num_of_packages = safe_int(stock_row.num_of_packages) + returned_pkg
-        stock_row.num_items = safe_int(stock_row.num_items) + returned_item
-        stock_row.stock = (stock_row.num_of_packages * safe_int(product.package_contain)) + stock_row.num_items
-        stock_row.save()
+
+        sale_detail.total_amount = max(to_decimal(sale_detail.total_amount or 0) - returned_total_price, Decimal("0.00"))
+        sale_detail.payable_amount = max(to_decimal(sale_detail.payable_amount or 0) - returned_total_price, Decimal("0.00"))
+        sale_detail.paid_amount = min(to_decimal(sale_detail.paid_amount or 0), sale_detail.payable_amount)
+        sale_detail.unpaid_amount = max(sale_detail.payable_amount - sale_detail.paid_amount, Decimal("0.00"))
+        sale_detail.save(update_fields=["total_amount", "payable_amount", "paid_amount", "unpaid_amount"])
+
         returned_product.delete()
-        return HttpResponse('', headers={'HX-Trigger': 'returnSuccess'})
+
+    messages.success(request, _("Item returned successfully."))
+
+    if request.headers.get("HX-Request") == "true":
+        response = HttpResponse(status=204)
+        response["HX-Redirect"] = reverse("sold-product-detail", args=[sale_detail.id])
+        return response
+
+    return redirect("sold-product-detail", pk=sale_detail.id)
 
     
 
@@ -1607,18 +1681,18 @@ def get_product_by_barcode(request):
     if request.method == 'POST':
         barcode = request.POST.get('barcode')
         if not barcode:
-            return JsonResponse({'status': 'error', 'message': 'No barcode provided'}, status=400)
+            return JsonResponse({'status': 'error', 'message': str(_("No barcode provided."))}, status=400)
 
         tenant = _active_tenant(request)
         branch = _active_branch(request)
         if not branch:
-            return JsonResponse({'status': 'error', 'message': 'No active branch selected'}, status=400)
+            return JsonResponse({'status': 'error', 'message': str(_("No active branch selected."))}, status=400)
         product = Products.objects.filter(code=barcode, tenant=tenant).first()
         if not product:
-            return JsonResponse({'status': 'error', 'message': 'Product not found'}, status=404)
+            return JsonResponse({'status': 'error', 'message': str(_("Product not found."))}, status=404)
         stock_row = BranchStock.objects.filter(branch=branch, product=product).first()
         if not stock_row or safe_int(stock_row.stock, 0) <= 0:
-            return JsonResponse({'status': 'error', 'message': 'Product is not available in this branch'}, status=404)
+            return JsonResponse({'status': 'error', 'message': str(_("Product is not available in this branch."))}, status=404)
 
         return JsonResponse({
             'status': 'success',
@@ -1630,7 +1704,7 @@ def get_product_by_barcode(request):
             }
         })
 
-    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=400)
+    return JsonResponse({'status': 'error', 'message': str(_("Invalid method."))}, status=400)
 
 
 def scanner_view(request):

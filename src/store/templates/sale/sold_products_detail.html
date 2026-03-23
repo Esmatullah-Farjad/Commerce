@@ -105,8 +105,16 @@
 
       <dl class="mt-3 space-y-2 text-sm">
         <div class="flex items-center justify-between">
-          <dt class="text-slate-600">{% trans 'Total Amount' %}</dt>
+          <dt class="text-slate-600">{% trans 'Bill Amount' %}</dt>
           <dd class="font-semibold text-slate-900 tabular-nums">{{ sales_info.total_amount|intcomma }}</dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-600">{% trans 'Carried Forward' %}</dt>
+          <dd class="font-semibold text-slate-900 tabular-nums">{{ sales_info.carried_forward_amount|intcomma }}</dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-600">{% trans 'Total Payable' %}</dt>
+          <dd class="font-semibold text-slate-900 tabular-nums">{{ sales_info.payable_amount|default:sales_info.total_amount|intcomma }}</dd>
         </div>
         <div class="flex items-center justify-between">
           <dt class="text-slate-600">{% trans 'Paid Amount' %}</dt>
@@ -134,6 +142,10 @@
 
         <div class="pt-2 border-t border-slate-200"></div>
 
+        <div class="flex items-center justify-between">
+          <dt class="text-slate-600">{% trans 'Customer Total Billed' %}</dt>
+          <dd class="font-semibold text-slate-900 tabular-nums">{{ customer_summary.total_amount|intcomma }}</dd>
+        </div>
         <div class="flex items-center justify-between">
           <dt class="text-slate-600">{% trans 'Customer Total Bills' %}</dt>
           <dd class="font-semibold text-slate-900 tabular-nums">{{ customer_summary.bill_count }}</dd>
@@ -182,20 +194,19 @@
             <td class="px-3 py-2.5 text-right font-semibold tabular-nums text-slate-900">{{ data.total_price|intcomma }}</td>
 
             <td class="px-3 py-2.5 text-center">
-              <a
+              <button
+                type="button"
                 class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700
                        hover:bg-slate-50 hover:text-slate-900"
-                hx-get="{% url 'return-items' data.id %}"
-                hx-target="closest tr"
-                hx-swap="outerHTML swap:0.3s"
+                hx-post="{% url 'return-items' data.id %}"
+                hx-swap="none"
                 hx-confirm="{% trans 'Are you sure you want to return this item?' %}"
-                hx-on="returnSuccess: showSuccess()"
               >
                 {% trans "Return" %}
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
                 </svg>
-              </a>
+              </button>
             </td>
           </tr>
           {% endfor %}
@@ -222,28 +233,5 @@
     </table>
   </div>
 
-  <!-- Toast -->
-  <div id="toast"
-       class="pointer-events-none fixed bottom-6 right-6 z-40 hidden items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-lg">
-    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-    </svg>
-    <span id="toastText">{% trans 'Return processed successfully!' %}</span>
-  </div>
-
 </div>
-
-<script>
-  function showSuccess() {
-    const toast = document.getElementById('toast');
-    toast.classList.remove('hidden');
-    toast.classList.add('flex');
-
-    clearTimeout(window.__toastTimer);
-    window.__toastTimer = setTimeout(() => {
-      toast.classList.add('hidden');
-      toast.classList.remove('flex');
-    }, 2000);
-  }
-</script>
 {% endblock content %}

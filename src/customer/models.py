@@ -26,10 +26,10 @@ class Customer(models.Model):
 
 class CustomerPayment(models.Model):
     PAYMENT_METHOD = [
-        ("cash", "Cash"),
-        ("bank_transfer", "Bank Transfer"),
-        ("hesab_pay", "Hesab Pay"),
-        ("hawala", "Hawala"),
+        ("cash", _("Cash")),
+        ("bank_transfer", _("Bank Transfer")),
+        ("hesab_pay", _("Hesab Pay")),
+        ("hawala", _("Hawala")),
     ]
 
     tenant = models.ForeignKey(
@@ -73,5 +73,5 @@ class CustomerPayment(models.Model):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        customer_name = self.customer.name if self.customer else "Deleted Customer"
+        customer_name = self.customer.name if self.customer else _("Deleted Customer")
         return f"{customer_name} - {self.get_payment_method_display()} - {self.payment_amount}"

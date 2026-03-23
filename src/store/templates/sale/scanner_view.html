@@ -33,7 +33,7 @@
               {% trans 'Tip' %}: {% trans 'Keep cursor in input for faster scanning' %}
             </span>
             <span class="hidden sm:inline rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-semibold text-slate-600">
-              Enter
+              {% trans 'Enter' %}
             </span>
           </div>
         </div>
@@ -75,7 +75,7 @@
           <input
             type="text"
             id="barcodeInput"
-            placeholder="{% trans 'Scan or type barcode and press Enter…' %}"
+            placeholder="{% trans 'Scan or type barcode and press Enter...' %}"
             class="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-24 py-3 text-sm text-slate-800 shadow-sm
                    placeholder:text-slate-400
                    focus:bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
@@ -171,7 +171,7 @@
 
     input.value = "";
     toggleClear();
-    showStatus("info", "{% trans 'Searching barcode…' %}");
+    showStatus("info", "{% trans 'Searching barcode...' %}");
 
     const response = await fetch('{% url "get-product-by-barcode" %}', {
       method: 'POST',

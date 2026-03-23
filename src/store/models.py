@@ -61,8 +61,8 @@ class ExchangeRate(models.Model):
 class Products(models.Model):
     NUMBER_CHOICES = [(i, str(i)) for i in range(1, 201)]
     CURRENCY_CHOICES = [
-        ("usd", "USD"),
-        ("afn", "AFN"),
+        ("usd", _("USD")),
+        ("afn", _("AFN")),
     ]
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="products", null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -131,6 +131,8 @@ class SalesDetails(models.Model):
     bill_number = models.CharField(max_length=100, editable=False, default="")
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="customer")
     total_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
+    carried_forward_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
+    payable_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
     paid_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
     unpaid_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
     created_at = models.DateTimeField(auto_now_add=True)
@@ -150,6 +152,8 @@ class SalesDetails(models.Model):
     def save(self, *args, **kwargs):
         if not self.bill_number:
             self.bill_number = str(BillNumberTracker.get_next_bill_number(self.tenant))
+        if self.payable_amount in (None, Decimal("0.00")) and (self.total_amount or self.carried_forward_amount):
+            self.payable_amount = (self.total_amount or Decimal("0.00")) + (self.carried_forward_amount or Decimal("0.00"))
         self.full_clean()
         super().save(*args, **kwargs)
 
@@ -196,11 +200,11 @@ class Expense(models.Model):
 
 class LedgerAccount(models.Model):
     ACCOUNT_TYPE_CHOICES = [
-        ("asset", "Asset"),
-        ("liability", "Liability"),
-        ("equity", "Equity"),
-        ("revenue", "Revenue"),
-        ("expense", "Expense"),
+        ("asset", _("Asset")),
+        ("liability", _("Liability")),
+        ("equity", _("Equity")),
+        ("revenue", _("Revenue")),
+        ("expense", _("Expense")),
     ]
 
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="ledger_accounts")
@@ -231,12 +235,12 @@ class LedgerAccount(models.Model):
 
 class JournalEntry(models.Model):
     REFERENCE_TYPE_CHOICES = [
-        ("sale", "Sale"),
-        ("purchase", "Purchase"),
-        ("payment", "Payment"),
-        ("expense", "Expense"),
-        ("other_income", "Other Income"),
-        ("adjustment", "Adjustment"),
+        ("sale", _("Sale")),
+        ("purchase", _("Purchase")),
+        ("payment", _("Payment")),
+        ("expense", _("Expense")),
+        ("other_income", _("Other Income")),
+        ("adjustment", _("Adjustment")),
     ]
 
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="journal_entries")
@@ -346,9 +350,9 @@ class TenantStock(models.Model):
 
 class InventoryTransfer(models.Model):
     SCOPE_CHOICES = [
-        ("tenant", "Tenant"),
-        ("store", "Store"),
-        ("branch", "Branch"),
+        ("tenant", _("Tenant")),
+        ("store", _("Store")),
+        ("branch", _("Branch")),
     ]
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="inventory_transfers")
     product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="inventory_transfers")
@@ -394,10 +398,10 @@ class InventoryTransfer(models.Model):
 
 class InventoryMovement(models.Model):
     MOVEMENT_CHOICES = [
-        ("purchase", "Purchase"),
-        ("transfer_in", "Transfer In"),
-        ("transfer_out", "Transfer Out"),
-        ("adjustment", "Adjustment"),
+        ("purchase", _("Purchase")),
+        ("transfer_in", _("Transfer In")),
+        ("transfer_out", _("Transfer Out")),
+        ("adjustment", _("Adjustment")),
     ]
     SCOPE_CHOICES = InventoryTransfer.SCOPE_CHOICES
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="inventory_movements")
@@ -435,9 +439,9 @@ class InventoryMovement(models.Model):
 
 class StockTransfer(models.Model):
     STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("approved", "Approved"),
-        ("rejected", "Rejected"),
+        ("pending", _("Pending")),
+        ("approved", _("Approved")),
+        ("rejected", _("Rejected")),
     ]
     from_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="stock_transfers_out")
     to_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="stock_transfers_in")

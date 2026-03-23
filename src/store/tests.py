@@ -7,8 +7,9 @@ from django.db.models import Sum
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from customer.services import customer_account_summary
 from .accounting import ensure_default_accounts, record_expense_entry, record_sale_entry
-from .models import Branch, BranchMember, BranchStock, Category, JournalLine, Products, Store, StoreMember, Tenant, TenantMember, UserOnboarding
+from .models import Branch, BranchMember, BranchStock, Category, Customer, JournalLine, Products, SalesDetails, SalesProducts, Store, StoreMember, Tenant, TenantMember, UserOnboarding
 from .permissions import can_transfer_stock
 
 
@@ -516,3 +517,181 @@ class BranchInventoryIsolationTests(TestCase):
         self.assertEqual(source_stock.num_of_packages, 1)
         self.assertEqual(destination_stock.stock, 10)
         self.assertEqual(destination_stock.num_of_packages, 1)
+
+
+class CustomerCarryForwardBillingTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="carry_forward_owner", password="pass123", is_active=True)
+        self.tenant = Tenant.objects.create(name="Carry Forward Tenant", slug="carry-forward-tenant")
+        self.store = Store.objects.create(tenant=self.tenant, name="Carry Forward Store")
+        self.branch = Branch.objects.create(store=self.store, name="Carry Forward Branch")
+        self.category = Category.objects.create(tenant=self.tenant, name="Groceries", description="Groceries")
+        self.customer = Customer.objects.create(
+            tenant=self.tenant,
+            name="Repeat Customer",
+            phone=700010101,
+            address="Kabul",
+        )
+        self.product = Products.objects.create(
+            tenant=self.tenant,
+            category=self.category,
+            code=3001,
+            name="Sugar",
+            package_contain=10,
+            package_purchase_price=Decimal("800.00"),
+            package_sale_price=Decimal("1500.00"),
+            num_of_packages=10,
+            total_package_price=Decimal("8000.00"),
+            item_sale_price=Decimal("150.00"),
+            num_items=0,
+            stock=100,
+        )
+        BranchStock.objects.create(
+            branch=self.branch,
+            product=self.product,
+            stock=100,
+            num_of_packages=10,
+            num_items=0,
+        )
+
+        TenantMember.objects.create(tenant=self.tenant, user=self.user, role="staff")
+        BranchMember.objects.create(branch=self.branch, user=self.user, role="staff")
+
+        self.previous_sale = SalesDetails.objects.create(
+            tenant=self.tenant,
+            branch=self.branch,
+            user=self.user,
+            customer=self.customer,
+            total_amount=Decimal("3000.00"),
+            payable_amount=Decimal("3000.00"),
+            paid_amount=Decimal("2000.00"),
+            unpaid_amount=Decimal("1000.00"),
+        )
+
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session["active_branch_id"] = self.branch.id
+        session["active_store_id"] = self.store.id
+        session["customer"] = {str(self.customer.id): self.customer.name}
+        session["cart"] = {
+            str(self.product.id): {
+                "product_id": self.product.id,
+                "item_quantity": 0,
+                "package_quantity": 3,
+                "item_price": "150.00",
+                "package_price": "1500.00",
+            }
+        }
+        session.save()
+
+    def test_cart_checkout_rolls_previous_unpaid_into_new_bill(self):
+        response = self.client.post(
+            reverse("cart-view"),
+            {"paid": "3000.00"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.previous_sale.refresh_from_db()
+        self.assertEqual(self.previous_sale.unpaid_amount, Decimal("0.00"))
+
+        new_sale = SalesDetails.objects.exclude(id=self.previous_sale.id).get(customer=self.customer)
+        self.assertEqual(new_sale.total_amount, Decimal("4500.00"))
+        self.assertEqual(new_sale.carried_forward_amount, Decimal("1000.00"))
+        self.assertEqual(new_sale.payable_amount, Decimal("5500.00"))
+        self.assertEqual(new_sale.paid_amount, Decimal("3000.00"))
+        self.assertEqual(new_sale.unpaid_amount, Decimal("2500.00"))
+
+        summary = customer_account_summary(self.customer, self.tenant, branch=self.branch)
+        self.assertEqual(summary["total_amount"], Decimal("7500.00"))
+        self.assertEqual(summary["total_paid"], Decimal("5000.00"))
+        self.assertEqual(summary["total_due"], Decimal("2500.00"))
+
+
+class SalesReturnFlowTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username="return_user", password="pass123", is_active=True)
+        self.tenant = Tenant.objects.create(name="Return Tenant", slug="return-tenant")
+        self.store = Store.objects.create(tenant=self.tenant, name="Return Store")
+        self.branch = Branch.objects.create(store=self.store, name="Return Branch")
+        self.category = Category.objects.create(tenant=self.tenant, name="General", description="General")
+        self.customer = Customer.objects.create(
+            tenant=self.tenant,
+            name="Return Customer",
+            phone=700222333,
+            address="Kabul",
+        )
+        self.product = Products.objects.create(
+            tenant=self.tenant,
+            category=self.category,
+            code=4001,
+            name="Oil",
+            package_contain=12,
+            package_purchase_price=Decimal("900.00"),
+            package_sale_price=Decimal("1200.00"),
+            num_of_packages=5,
+            total_package_price=Decimal("4500.00"),
+            item_sale_price=Decimal("100.00"),
+            num_items=0,
+            stock=60,
+        )
+        BranchStock.objects.create(
+            branch=self.branch,
+            product=self.product,
+            stock=24,
+            num_of_packages=2,
+            num_items=0,
+        )
+        self.sale = SalesDetails.objects.create(
+            tenant=self.tenant,
+            branch=self.branch,
+            user=self.user,
+            customer=self.customer,
+            total_amount=Decimal("2400.00"),
+            payable_amount=Decimal("2400.00"),
+            paid_amount=Decimal("2400.00"),
+            unpaid_amount=Decimal("0.00"),
+        )
+        self.sale_product = SalesProducts.objects.create(
+            sale_detail=self.sale,
+            product=self.product,
+            item_price=Decimal("100.00"),
+            package_price=Decimal("1200.00"),
+            item_qty=0,
+            package_qty=2,
+            total_price=Decimal("2400.00"),
+        )
+
+        TenantMember.objects.create(tenant=self.tenant, user=self.user, role="staff")
+        BranchMember.objects.create(branch=self.branch, user=self.user, role="staff")
+
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["active_tenant_id"] = self.tenant.id
+        session["active_branch_id"] = self.branch.id
+        session["active_store_id"] = self.store.id
+        session.save()
+
+    def test_return_item_restocks_branch_and_updates_sale_totals(self):
+        response = self.client.post(
+            reverse("return-items", args=[self.sale_product.id]),
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response["HX-Redirect"], reverse("sold-product-detail", args=[self.sale.id]))
+
+        self.sale.refresh_from_db()
+        stock = BranchStock.objects.get(branch=self.branch, product=self.product)
+
+        self.assertEqual(self.sale.total_amount, Decimal("0.00"))
+        self.assertEqual(self.sale.payable_amount, Decimal("0.00"))
+        self.assertEqual(self.sale.paid_amount, Decimal("0.00"))
+        self.assertEqual(self.sale.unpaid_amount, Decimal("0.00"))
+        self.assertFalse(SalesProducts.objects.filter(id=self.sale_product.id).exists())
+        self.assertEqual(stock.stock, 48)
+        self.assertEqual(stock.num_of_packages, 4)
+        self.assertEqual(stock.num_items, 0)
